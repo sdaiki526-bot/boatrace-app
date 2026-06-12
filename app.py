@@ -35,10 +35,10 @@ st.markdown("""
     .main .block-container { padding: 1.5rem 2rem; max-width: 1100px; }
 
     /* Streamlitデフォルト要素を統一 */
-    .stSelectbox > div > div,
-    .stMultiSelect > div > div { background: #1f2937 !important; border-color: #374151 !important; color: #f3f4f6 !important; }
+    .stSelectbox > div > div { background: #374151 !important; border-color: #4b5563 !important; }
+    .stSelectbox > div > div > div { color: #f3f4f6 !important; }
+    .stSelectbox svg { color: #9ca3af !important; }
     .stSelectbox label, .stMultiSelect label { color: #9ca3af !important; }
-    p, span, div { color: #f3f4f6; }
 
     /* ヘッダー */
     .header-box {
