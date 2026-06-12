@@ -1,0 +1,362 @@
+{
+  "1": {
+    "race_no": 1,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 1,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_2": null,
+        "４_6": null,
+        "５_4": null,
+        "６_5": null,
+        "3連単_1-3-2": null,
+        "3連複_1=2=3": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=2_¥200": 3,
+        "2=3_¥170": 2,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "2": {
+    "race_no": 2,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 2,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_4": null,
+        "４_6": null,
+        "５_5": null,
+        "６_2": null,
+        "3連単_1-3-4": null,
+        "3連複_1=3=4": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=4_¥280": 6,
+        "3=4_¥280": 6,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥190": null
+      },
+      "start_times": {}
+    }
+  },
+  "3": {
+    "race_no": 3,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 3,
+      "arrival": [],
+      "payouts": {
+        "１_3": null,
+        "２_1": null,
+        "３_6": null,
+        "４_2": null,
+        "５_4": null,
+        "６_5": null,
+        "3連単_3-1-6": null,
+        "3連複_1=3=6": null,
+        "2連単_3-1": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "3=6_¥880": 10,
+        "1=6_¥300": 4,
+        "単勝_3": null,
+        "複勝_3": null,
+        "1_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "4": {
+    "race_no": 4,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 4,
+      "arrival": [],
+      "payouts": {
+        "１_2": null,
+        "２_1": null,
+        "３_4": null,
+        "４_3": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_2-1-4": null,
+        "3連複_1=2=4": null,
+        "2連単_2-1": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "2=4_¥170": 3,
+        "1=4_¥210": 5,
+        "単勝_2": null,
+        "複勝_2": null,
+        "1_¥150": null
+      },
+      "start_times": {}
+    }
+  },
+  "5": {
+    "race_no": 5,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 5,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_6": null,
+        "４_2": null,
+        "５_4": null,
+        "６_5": null,
+        "3連単_1-3-6": null,
+        "3連複_1=3=6": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=6_¥190": 3,
+        "3=6_¥430": 7,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥170": null
+      },
+      "start_times": {}
+    }
+  },
+  "6": {
+    "race_no": 6,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 6,
+      "arrival": [],
+      "payouts": {
+        "１_3": null,
+        "２_1": null,
+        "３_2": null,
+        "４_4": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_3-1-2": null,
+        "3連複_1=2=3": null,
+        "2連単_3-1": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "2=3_¥230": 5,
+        "1=2_¥210": 4,
+        "単勝_3": null,
+        "複勝_3": null,
+        "1_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "7": {
+    "race_no": 7,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 7,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_5": null,
+        "３_2": null,
+        "４_6": null,
+        "５_4": null,
+        "６_3": null,
+        "3連単_1-5-2": null,
+        "3連複_1=2=5": null,
+        "2連単_1-5": null,
+        "2連複_1=5": null,
+        "拡連複_1=5": null,
+        "1=2_¥170": 5,
+        "2=5_¥140": 2,
+        "単勝_1": null,
+        "複勝_1": null,
+        "5_¥150": null
+      },
+      "start_times": {}
+    }
+  },
+  "8": {
+    "race_no": 8,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 8,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_6": null,
+        "３_1": null,
+        "４_2": null,
+        "５_3": null,
+        "６_5": null,
+        "3連単_4-6-1": null,
+        "3連複_1=4=6": null,
+        "2連単_4-6": null,
+        "2連複_4=6": null,
+        "拡連複_4=6": null,
+        "1=4_¥160": 1,
+        "1=6_¥390": 6,
+        "単勝_4": null,
+        "複勝_4": null,
+        "6_¥1,140": null
+      },
+      "start_times": {}
+    }
+  },
+  "9": {
+    "race_no": 9,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 9,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_5": null,
+        "３_1": null,
+        "４_2": null,
+        "５_3": null,
+        "６_6": null,
+        "3連単_4-5-1": null,
+        "3連複_1=4=5": null,
+        "2連単_4-5": null,
+        "2連複_4=5": null,
+        "拡連複_4=5": null,
+        "1=4_¥130": 1,
+        "1=5_¥160": 2,
+        "単勝_4": null,
+        "複勝_4": null,
+        "5_¥330": null
+      },
+      "start_times": {}
+    }
+  },
+  "10": {
+    "race_no": 10,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 10,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_3": null,
+        "４_4": null,
+        "５_6": null,
+        "６_5": null,
+        "3連単_1-2-3": null,
+        "3連複_1=2=3": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=3_¥140": 2,
+        "2=3_¥230": 4,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥210": null
+      },
+      "start_times": {}
+    }
+  },
+  "11": {
+    "race_no": 11,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 11,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_6": null,
+        "３_5": null,
+        "４_2": null,
+        "５_3": null,
+        "Ｆ_1": null,
+        "3連単_4-6-5": null,
+        "3連複_4=5=6": null,
+        "2連単_4-6": null,
+        "2連複_4=6": null,
+        "拡連複_4=6": null,
+        "4=5_¥810": 9,
+        "5=6_¥640": 8,
+        "単勝_4": null,
+        "複勝_4": null,
+        "6_¥450": null
+      },
+      "start_times": {}
+    }
+  },
+  "12": {
+    "race_no": 12,
+    "racers": [],
+    "result": {
+      "race_date": "20250606",
+      "venue_code": "12",
+      "venue_name": "住之江",
+      "race_no": 12,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_5": null,
+        "４_4": null,
+        "４_6": null,
+        "６_2": null,
+        "3連単_1-3-5": null,
+        "3連複_1=3=5": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=5_¥290": 5,
+        "3=5_¥690": 10,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥160": null
+      },
+      "start_times": {}
+    }
+  }
+}

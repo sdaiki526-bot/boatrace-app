@@ -1,0 +1,362 @@
+{
+  "1": {
+    "race_no": 1,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 1,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_4": null,
+        "３_2": null,
+        "４_6": null,
+        "５_5": null,
+        "６_3": null,
+        "3連単_1-4-2": null,
+        "3連複_1=2=4": null,
+        "2連単_1-4": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "1=2_¥150": 1,
+        "2=4_¥220": 4,
+        "単勝_1": null,
+        "複勝_1": null,
+        "4_¥170": null
+      },
+      "start_times": {}
+    }
+  },
+  "2": {
+    "race_no": 2,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 2,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_4": null,
+        "３_5": null,
+        "４_2": null,
+        "５_3": null,
+        "６_6": null,
+        "3連単_1-4-5": null,
+        "3連複_1=4=5": null,
+        "2連単_1-4": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "1=5_¥500": 6,
+        "4=5_¥700": 9,
+        "単勝_1": null,
+        "複勝_1": null,
+        "4_¥230": null
+      },
+      "start_times": {}
+    }
+  },
+  "3": {
+    "race_no": 3,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 3,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_4": null,
+        "３_2": null,
+        "４_3": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-4-2": null,
+        "3連複_1=2=4": null,
+        "2連単_1-4": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "1=2_¥270": 4,
+        "2=4_¥160": 1,
+        "単勝_1": null,
+        "複勝_1": null,
+        "4_¥160": null
+      },
+      "start_times": {}
+    }
+  },
+  "4": {
+    "race_no": 4,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 4,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_4": null,
+        "４_6": null,
+        "５_5": null,
+        "６_3": null,
+        "3連単_1-2-4": null,
+        "3連複_1=2=4": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=4_¥190": 1,
+        "2=4_¥200": 2,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥170": null
+      },
+      "start_times": {}
+    }
+  },
+  "5": {
+    "race_no": 5,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 5,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_1": null,
+        "３_2": null,
+        "４_5": null,
+        "５_6": null,
+        "６_3": null,
+        "3連単_4-1-2": null,
+        "3連複_1=2=4": null,
+        "2連単_4-1": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "2=4_¥200": 4,
+        "1=2_¥160": 2,
+        "単勝_4": null,
+        "複勝_4": null,
+        "1_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "6": {
+    "race_no": 6,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 6,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_2": null,
+        "４_4": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-3-2": null,
+        "3連複_1=2=3": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=2_¥200": 2,
+        "2=3_¥530": 9,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥180": null
+      },
+      "start_times": {}
+    }
+  },
+  "7": {
+    "race_no": 7,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 7,
+      "arrival": [],
+      "payouts": {
+        "１_6": null,
+        "２_4": null,
+        "３_1": null,
+        "４_5": null,
+        "５_2": null,
+        "６_3": null,
+        "3連単_6-4-1": null,
+        "3連複_1=4=6": null,
+        "2連単_6-4": null,
+        "2連複_4=6": null,
+        "拡連複_4=6": null,
+        "1=6_¥180": 2,
+        "1=4_¥100": 1,
+        "単勝_6": null,
+        "複勝_6": null,
+        "4_¥180": null
+      },
+      "start_times": {}
+    }
+  },
+  "8": {
+    "race_no": 8,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 8,
+      "arrival": [],
+      "payouts": {
+        "１_3": null,
+        "２_5": null,
+        "３_1": null,
+        "４_4": null,
+        "５_2": null,
+        "６_6": null,
+        "3連単_3-5-1": null,
+        "3連複_1=3=5": null,
+        "2連単_3-5": null,
+        "2連複_3=5": null,
+        "拡連複_3=5": null,
+        "1=3_¥140": 1,
+        "1=5_¥220": 3,
+        "単勝_3": null,
+        "複勝_3": null,
+        "5_¥650": null
+      },
+      "start_times": {}
+    }
+  },
+  "9": {
+    "race_no": 9,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 9,
+      "arrival": [],
+      "payouts": {
+        "１_5": null,
+        "２_4": null,
+        "３_1": null,
+        "４_3": null,
+        "５_6": null,
+        "転_2": null,
+        "3連単_5-4-1": null,
+        "3連複_1=4=5": null,
+        "2連単_5-4": null,
+        "2連複_4=5": null,
+        "拡連複_4=5": null,
+        "1=5_¥530": 9,
+        "1=4_¥350": 4,
+        "単勝_5": null,
+        "複勝_5": null,
+        "4_¥600": null
+      },
+      "start_times": {}
+    }
+  },
+  "10": {
+    "race_no": 10,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 10,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_6": null,
+        "４_3": null,
+        "５_4": null,
+        "６_5": null,
+        "3連単_1-2-6": null,
+        "3連複_1=2=6": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=6_¥640": 8,
+        "2=6_¥700": 9,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "11": {
+    "race_no": 11,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 11,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_3": null,
+        "４_6": null,
+        "５_4": null,
+        "６_5": null,
+        "3連単_1-2-3": null,
+        "3連複_1=2=3": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=3_¥190": 5,
+        "2=3_¥180": 3,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥120": null
+      },
+      "start_times": {}
+    }
+  },
+  "12": {
+    "race_no": 12,
+    "racers": [],
+    "result": {
+      "race_date": "20250711",
+      "venue_code": "20",
+      "venue_name": "若松",
+      "race_no": 12,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_5": null,
+        "３_6": null,
+        "４_2": null,
+        "５_1": null,
+        "６_3": null,
+        "3連単_4-5-6": null,
+        "3連複_4=5=6": null,
+        "2連単_4-5": null,
+        "2連複_4=5": null,
+        "拡連複_4=5": null,
+        "4=6_¥350": 7,
+        "5=6_¥590": 9,
+        "単勝_4": null,
+        "複勝_4": null,
+        "5_¥310": null
+      },
+      "start_times": {}
+    }
+  }
+}

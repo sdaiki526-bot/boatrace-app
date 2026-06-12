@@ -1,0 +1,362 @@
+{
+  "1": {
+    "race_no": 1,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 1,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_4": null,
+        "４_5": null,
+        "５_6": null,
+        "６_2": null,
+        "3連単_1-3-4": null,
+        "3連複_1=3=4": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=4_¥210": 3,
+        "3=4_¥210": 4,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥210": null
+      },
+      "start_times": {}
+    }
+  },
+  "2": {
+    "race_no": 2,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 2,
+      "arrival": [],
+      "payouts": {
+        "１_2": null,
+        "２_1": null,
+        "３_6": null,
+        "４_3": null,
+        "５_5": null,
+        "欠_4": null,
+        "3連単_2-1-6": null,
+        "3連複_1=2=6": null,
+        "2連単_2-1": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "2=6_¥160": 2,
+        "1=6_¥120": 1,
+        "単勝_2": null,
+        "複勝_2": null,
+        "1_¥830": null
+      },
+      "start_times": {}
+    }
+  },
+  "3": {
+    "race_no": 3,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 3,
+      "arrival": [],
+      "payouts": {
+        "１_3": null,
+        "２_5": null,
+        "３_1": null,
+        "４_6": null,
+        "５_2": null,
+        "６_4": null,
+        "3連単_3-5-1": null,
+        "3連複_1=3=5": null,
+        "2連単_3-5": null,
+        "2連複_3=5": null,
+        "拡連複_3=5": null,
+        "1=3_¥300": 3,
+        "1=5_¥160": 2,
+        "単勝_3": null,
+        "複勝_3": null,
+        "5_¥140": null
+      },
+      "start_times": {}
+    }
+  },
+  "4": {
+    "race_no": 4,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 4,
+      "arrival": [],
+      "payouts": {
+        "１_2": null,
+        "２_4": null,
+        "３_5": null,
+        "４_6": null,
+        "５_1": null,
+        "６_3": null,
+        "3連単_2-4-5": null,
+        "3連複_2=4=5": null,
+        "2連単_2-4": null,
+        "2連複_2=4": null,
+        "拡連複_2=4": null,
+        "2=5_¥170": 1,
+        "4=5_¥300": 7,
+        "単勝_2": null,
+        "複勝_2": null,
+        "4_¥290": null
+      },
+      "start_times": {}
+    }
+  },
+  "5": {
+    "race_no": 5,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 5,
+      "arrival": [],
+      "payouts": {
+        "１_5": null,
+        "２_6": null,
+        "３_3": null,
+        "４_4": null,
+        "５_2": null,
+        "６_1": null,
+        "3連単_5-6-3": null,
+        "3連複_3=5=6": null,
+        "2連単_5-6": null,
+        "2連複_5=6": null,
+        "拡連複_5=6": null,
+        "3=5_¥340": 7,
+        "3=6_¥120": 1,
+        "単勝_5": null,
+        "複勝_5": null,
+        "6_¥170": null
+      },
+      "start_times": {}
+    }
+  },
+  "6": {
+    "race_no": 6,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 6,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_2": null,
+        "３_3": null,
+        "４_5": null,
+        "５_1": null,
+        "６_6": null,
+        "3連単_4-2-3": null,
+        "3連複_2=3=4": null,
+        "2連単_4-2": null,
+        "2連複_2=4": null,
+        "拡連複_2=4": null,
+        "3=4_¥240": 5,
+        "2=3_¥290": 7,
+        "単勝_4": null,
+        "複勝_4": null,
+        "2_¥230": null
+      },
+      "start_times": {}
+    }
+  },
+  "7": {
+    "race_no": 7,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 7,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_4": null,
+        "３_2": null,
+        "４_5": null,
+        "５_3": null,
+        "６_6": null,
+        "3連単_1-4-2": null,
+        "3連複_1=2=4": null,
+        "2連単_1-4": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "1=2_¥100": 1,
+        "2=4_¥340": 7,
+        "単勝_1": null,
+        "複勝_1": null,
+        "4_¥180": null
+      },
+      "start_times": {}
+    }
+  },
+  "8": {
+    "race_no": 8,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 8,
+      "arrival": [],
+      "payouts": {
+        "１_6": null,
+        "２_3": null,
+        "３_4": null,
+        "４_1": null,
+        "５_2": null,
+        "６_5": null,
+        "3連単_6-3-4": null,
+        "3連複_3=4=6": null,
+        "2連単_6-3": null,
+        "2連複_3=6": null,
+        "拡連複_3=6": null,
+        "4=6_¥280": 4,
+        "3=4_¥400": 9,
+        "単勝_6": null,
+        "複勝_6": null,
+        "3_¥140": null
+      },
+      "start_times": {}
+    }
+  },
+  "9": {
+    "race_no": 9,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 9,
+      "arrival": [],
+      "payouts": {
+        "１_2": null,
+        "２_3": null,
+        "３_5": null,
+        "４_1": null,
+        "５_4": null,
+        "６_6": null,
+        "3連単_2-3-5": null,
+        "3連複_2=3=5": null,
+        "2連単_2-3": null,
+        "2連複_2=3": null,
+        "拡連複_2=3": null,
+        "2=5_¥1,100": 9,
+        "3=5_¥710": 8,
+        "単勝_2": null,
+        "複勝_2": null,
+        "3_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "10": {
+    "race_no": 10,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 10,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_4": null,
+        "４_3": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-2-4": null,
+        "3連複_1=2=4": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=4_¥180": 2,
+        "2=4_¥310": 6,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥150": null
+      },
+      "start_times": {}
+    }
+  },
+  "11": {
+    "race_no": 11,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 11,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_5": null,
+        "４_2": null,
+        "５_6": null,
+        "６_4": null,
+        "3連単_1-3-5": null,
+        "3連複_1=3=5": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=5_¥140": 2,
+        "3=5_¥550": 10,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥250": null
+      },
+      "start_times": {}
+    }
+  },
+  "12": {
+    "race_no": 12,
+    "racers": [],
+    "result": {
+      "race_date": "20250720",
+      "venue_code": "11",
+      "venue_name": "びわこ",
+      "race_no": 12,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_3": null,
+        "３_1": null,
+        "４_5": null,
+        "５_2": null,
+        "６_6": null,
+        "3連単_4-3-1": null,
+        "3連複_1=3=4": null,
+        "2連単_4-3": null,
+        "2連複_3=4": null,
+        "拡連複_3=4": null,
+        "1=4_¥170": 2,
+        "1=3_¥210": 4,
+        "単勝_4": null,
+        "複勝_4": null,
+        "3_¥330": null
+      },
+      "start_times": {}
+    }
+  }
+}

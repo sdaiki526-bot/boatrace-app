@@ -1,0 +1,362 @@
+{
+  "1": {
+    "race_no": 1,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 1,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_4": null,
+        "４_3": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-2-4": null,
+        "3連複_1=2=4": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=4_¥120": 2,
+        "2=4_¥150": 4,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥110": null
+      },
+      "start_times": {}
+    }
+  },
+  "2": {
+    "race_no": 2,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 2,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_4": null,
+        "４_2": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-3-4": null,
+        "3連複_1=3=4": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=4_¥230": 4,
+        "3=4_¥320": 6,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥430": null
+      },
+      "start_times": {}
+    }
+  },
+  "3": {
+    "race_no": 3,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 3,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_5": null,
+        "４_4": null,
+        "５_3": null,
+        "６_6": null,
+        "3連単_1-2-5": null,
+        "3連複_1=2=5": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=5_¥210": 2,
+        "2=5_¥400": 8,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥240": null
+      },
+      "start_times": {}
+    }
+  },
+  "4": {
+    "race_no": 4,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 4,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_1": null,
+        "３_6": null,
+        "４_5": null,
+        "５_2": null,
+        "６_3": null,
+        "3連単_4-1-6": null,
+        "3連複_1=4=6": null,
+        "2連単_4-1": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "4=6_¥590": 10,
+        "1=6_¥350": 6,
+        "単勝_4": null,
+        "複勝_4": null,
+        "1_¥190": null
+      },
+      "start_times": {}
+    }
+  },
+  "5": {
+    "race_no": 5,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 5,
+      "arrival": [],
+      "payouts": {
+        "１_5": null,
+        "２_1": null,
+        "３_2": null,
+        "４_6": null,
+        "５_4": null,
+        "６_3": null,
+        "3連単_5-1-2": null,
+        "3連複_1=2=5": null,
+        "2連単_5-1": null,
+        "2連複_1=5": null,
+        "拡連複_1=5": null,
+        "2=5_¥190": 2,
+        "1=2_¥190": 3,
+        "単勝_5": null,
+        "複勝_5": null,
+        "1_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "6": {
+    "race_no": 6,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 6,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_6": null,
+        "３_2": null,
+        "４_5": null,
+        "５_4": null,
+        "６_3": null,
+        "3連単_1-6-2": null,
+        "3連複_1=2=6": null,
+        "2連単_1-6": null,
+        "2連複_1=6": null,
+        "拡連複_1=6": null,
+        "1=2_¥580": 8,
+        "2=6_¥370": 6,
+        "単勝_1": null,
+        "複勝_1": null,
+        "6_¥200": null
+      },
+      "start_times": {}
+    }
+  },
+  "7": {
+    "race_no": 7,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 7,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_6": null,
+        "３_5": null,
+        "４_2": null,
+        "５_4": null,
+        "６_3": null,
+        "3連単_1-6-5": null,
+        "3連複_1=5=6": null,
+        "2連単_1-6": null,
+        "2連複_1=6": null,
+        "拡連複_1=6": null,
+        "1=5_¥600": 7,
+        "5=6_¥310": 4,
+        "単勝_1": null,
+        "複勝_1": null,
+        "6_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "8": {
+    "race_no": 8,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 8,
+      "arrival": [],
+      "payouts": {
+        "１_2": null,
+        "２_1": null,
+        "３_4": null,
+        "４_5": null,
+        "５_3": null,
+        "Ｆ_6": null,
+        "3連単_2-1-4": null,
+        "3連複_1=2=4": null,
+        "2連単_2-1": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "2=4_¥710": 9,
+        "1=4_¥500": 7,
+        "単勝_2": null,
+        "複勝_2": null,
+        "1_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "9": {
+    "race_no": 9,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 9,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_4": null,
+        "３_5": null,
+        "４_2": null,
+        "５_3": null,
+        "６_6": null,
+        "3連単_1-4-5": null,
+        "3連複_1=4=5": null,
+        "2連単_1-4": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "1=5_¥310": 6,
+        "4=5_¥390": 8,
+        "単勝_1": null,
+        "複勝_1": null,
+        "4_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "10": {
+    "race_no": 10,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 10,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_5": null,
+        "４_2": null,
+        "５_6": null,
+        "６_4": null,
+        "3連単_1-3-5": null,
+        "3連複_1=3=5": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=5_¥230": 3,
+        "3=5_¥670": 9,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥300": null
+      },
+      "start_times": {}
+    }
+  },
+  "11": {
+    "race_no": 11,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 11,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_3": null,
+        "４_6": null,
+        "５_4": null,
+        "６_5": null,
+        "3連単_1-2-3": null,
+        "3連複_1=2=3": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=3_¥180": 2,
+        "2=3_¥190": 3,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥190": null
+      },
+      "start_times": {}
+    }
+  },
+  "12": {
+    "race_no": 12,
+    "racers": [],
+    "result": {
+      "race_date": "20250708",
+      "venue_code": "10",
+      "venue_name": "三国",
+      "race_no": 12,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_4": null,
+        "３_3": null,
+        "４_2": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-4-3": null,
+        "3連複_1=3=4": null,
+        "2連単_1-4": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "1=3_¥220": 2,
+        "3=4_¥770": 11,
+        "単勝_1": null,
+        "複勝_1": null,
+        "4_¥420": null
+      },
+      "start_times": {}
+    }
+  }
+}

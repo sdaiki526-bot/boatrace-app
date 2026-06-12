@@ -1,0 +1,362 @@
+{
+  "1": {
+    "race_no": 1,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 1,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_4": null,
+        "４_3": null,
+        "５_6": null,
+        "６_5": null,
+        "3連単_1-2-4": null,
+        "3連複_1=2=4": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=4_¥240": 4,
+        "2=4_¥530": 8,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥130": null
+      },
+      "start_times": {}
+    }
+  },
+  "2": {
+    "race_no": 2,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 2,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_1": null,
+        "３_2": null,
+        "４_5": null,
+        "５_6": null,
+        "６_3": null,
+        "3連単_4-1-2": null,
+        "3連複_1=2=4": null,
+        "2連単_4-1": null,
+        "2連複_1=4": null,
+        "拡連複_1=4": null,
+        "2=4_¥130": 2,
+        "1=2_¥180": 4,
+        "単勝_4": null,
+        "複勝_4": null,
+        "1_¥100": null
+      },
+      "start_times": {}
+    }
+  },
+  "3": {
+    "race_no": 3,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 3,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_5": null,
+        "３_1": null,
+        "４_2": null,
+        "５_6": null,
+        "６_3": null,
+        "3連単_4-5-1": null,
+        "3連複_1=4=5": null,
+        "2連単_4-5": null,
+        "2連複_4=5": null,
+        "拡連複_4=5": null,
+        "1=4_¥380": 5,
+        "1=5_¥230": 3,
+        "単勝_4": null,
+        "複勝_4": null,
+        "5_¥320": null
+      },
+      "start_times": {}
+    }
+  },
+  "4": {
+    "race_no": 4,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 4,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_3": null,
+        "４_4": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-2-3": null,
+        "3連複_1=2=3": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=3_¥160": 4,
+        "2=3_¥330": 6,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥190": null
+      },
+      "start_times": {}
+    }
+  },
+  "5": {
+    "race_no": 5,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 5,
+      "arrival": [],
+      "payouts": {
+        "１_4": null,
+        "２_5": null,
+        "３_6": null,
+        "４_3": null,
+        "５_1": null,
+        "６_2": null,
+        "3連単_4-5-6": null,
+        "3連複_4=5=6": null,
+        "2連単_4-5": null,
+        "2連複_4=5": null,
+        "拡連複_4=5": null,
+        "4=6_¥1,490": 12,
+        "5=6_¥2,100": 13,
+        "単勝_4": null,
+        "複勝_4": null,
+        "5_¥230": null
+      },
+      "start_times": {}
+    }
+  },
+  "6": {
+    "race_no": 6,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 6,
+      "arrival": [],
+      "payouts": {
+        "１_3": null,
+        "２_4": null,
+        "３_6": null,
+        "４_5": null,
+        "５_1": null,
+        "６_2": null,
+        "3連単_3-4-6": null,
+        "3連複_3=4=6": null,
+        "2連単_3-4": null,
+        "2連複_3=4": null,
+        "拡連複_3=4": null,
+        "3=6_¥250": 4,
+        "4=6_¥590": 10,
+        "単勝_3": null,
+        "複勝_3": null,
+        "4_¥130": null
+      },
+      "start_times": {}
+    }
+  },
+  "7": {
+    "race_no": 7,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 7,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_6": null,
+        "４_5": null,
+        "５_4": null,
+        "６_2": null,
+        "3連単_1-3-6": null,
+        "3連複_1=3=6": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=6_¥1,030": 13,
+        "3=6_¥360": 7,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥120": null
+      },
+      "start_times": {}
+    }
+  },
+  "8": {
+    "race_no": 8,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 8,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_3": null,
+        "４_4": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_1-2-3": null,
+        "3連複_1=2=3": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=3_¥160": 3,
+        "2=3_¥140": 2,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥200": null
+      },
+      "start_times": {}
+    }
+  },
+  "9": {
+    "race_no": 9,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 9,
+      "arrival": [],
+      "payouts": {
+        "１_2": null,
+        "２_1": null,
+        "３_4": null,
+        "４_3": null,
+        "５_5": null,
+        "６_6": null,
+        "3連単_2-1-4": null,
+        "3連複_1=2=4": null,
+        "2連単_2-1": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "2=4_¥450": 7,
+        "1=4_¥1,060": 12,
+        "単勝_2": null,
+        "複勝_2": null,
+        "1_¥140": null
+      },
+      "start_times": {}
+    }
+  },
+  "10": {
+    "race_no": 10,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 10,
+      "arrival": [],
+      "payouts": {
+        "１_2": null,
+        "２_1": null,
+        "３_3": null,
+        "４_6": null,
+        "５_5": null,
+        "６_4": null,
+        "3連単_2-1-3": null,
+        "3連複_1=2=3": null,
+        "2連単_2-1": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "2=3_¥220": 3,
+        "1=3_¥290": 6,
+        "単勝_2": null,
+        "複勝_2": null,
+        "1_¥250": null
+      },
+      "start_times": {}
+    }
+  },
+  "11": {
+    "race_no": 11,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 11,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_2": null,
+        "３_3": null,
+        "４_6": null,
+        "５_5": null,
+        "６_4": null,
+        "3連単_1-2-3": null,
+        "3連複_1=2=3": null,
+        "2連単_1-2": null,
+        "2連複_1=2": null,
+        "拡連複_1=2": null,
+        "1=3_¥260": 3,
+        "2=3_¥390": 7,
+        "単勝_1": null,
+        "複勝_1": null,
+        "2_¥120": null
+      },
+      "start_times": {}
+    }
+  },
+  "12": {
+    "race_no": 12,
+    "racers": [],
+    "result": {
+      "race_date": "20250703",
+      "venue_code": "21",
+      "venue_name": "芦屋",
+      "race_no": 12,
+      "arrival": [],
+      "payouts": {
+        "１_1": null,
+        "２_3": null,
+        "３_5": null,
+        "４_4": null,
+        "５_6": null,
+        "６_2": null,
+        "3連単_1-3-5": null,
+        "3連複_1=3=5": null,
+        "2連単_1-3": null,
+        "2連複_1=3": null,
+        "拡連複_1=3": null,
+        "1=5_¥180": 1,
+        "3=5_¥650": 10,
+        "単勝_1": null,
+        "複勝_1": null,
+        "3_¥340": null
+      },
+      "start_times": {}
+    }
+  }
+}

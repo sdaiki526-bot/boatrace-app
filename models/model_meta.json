@@ -1,0 +1,38 @@
+{
+  "feature_cols": [
+    "lane",
+    "course_base_winrate",
+    "rank_num",
+    "age",
+    "weight",
+    "flying_count",
+    "late_count",
+    "avg_start_time",
+    "win_rate_all",
+    "win_rate_2",
+    "win_rate_3",
+    "local_win_rate",
+    "local_win_rate_2",
+    "local_win_rate_3",
+    "motor_2rate",
+    "boat_2rate"
+  ],
+  "auc_win": 0.8028,
+  "auc_top3": 0.7195,
+  "lgb_params": {
+    "objective": "binary",
+    "metric": "auc",
+    "learning_rate": 0.05,
+    "num_leaves": 31,
+    "max_depth": -1,
+    "min_child_samples": 20,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "reg_alpha": 0.1,
+    "reg_lambda": 0.1,
+    "verbose": -1,
+    "n_jobs": -1,
+    "random_state": 42
+  }
+}
