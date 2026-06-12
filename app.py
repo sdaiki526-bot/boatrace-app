@@ -46,6 +46,62 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
+# 予想記録の保存・読み込み
+# ─────────────────────────────────────────────
+RECORD_FILE = Path("prediction_records.json")
+
+def load_records():
+    if RECORD_FILE.exists():
+        return json.loads(RECORD_FILE.read_text(encoding="utf-8"))
+    return []
+
+def save_record(record):
+    records = load_records()
+    # 同じレースの記録があれば上書き
+    key = f"{record['race_date']}_{record['venue_code']}_{record['race_no']}"
+    records = [r for r in records if f"{r['race_date']}_{r['venue_code']}_{r['race_no']}" != key]
+    records.append(record)
+    RECORD_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def check_hit(sanren_tan_combos, arrival):
+    """3連単が的中しているか確認"""
+    if len(arrival) < 3:
+        return False, ""
+    actual = f"{arrival[0]}-{arrival[1]}-{arrival[2]}"
+    for combo in sanren_tan_combos:
+        if combo == actual:
+            return True, combo
+    return False, actual
+
+# ─────────────────────────────────────────────
+# 出走表キャッシュ（日付単位でファイル保存）
+# ─────────────────────────────────────────────
+CACHE_FILE = Path(f"cache_racers_{date.today().strftime('%Y%m%d')}.json")
+
+def load_cache():
+    if CACHE_FILE.exists():
+        return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+    return {}
+
+def save_cache(today_racers):
+    from dataclasses import asdict
+    serializable = {}
+    for venue, races in today_racers.items():
+        serializable[venue] = {}
+        for rno, racers in races.items():
+            serializable[venue][str(rno)] = [asdict(r) for r in racers]
+    CACHE_FILE.write_text(json.dumps(serializable, ensure_ascii=False), encoding="utf-8")
+
+def restore_cache(data):
+    from boatrace_scraper import RacerInfo
+    restored = {}
+    for venue, races in data.items():
+        restored[venue] = {}
+        for rno, racers in races.items():
+            restored[venue][int(rno)] = [RacerInfo(**r) for r in racers]
+    return restored
+
+# ─────────────────────────────────────────────
 # セッション初期化
 # ─────────────────────────────────────────────
 if "scraper" not in st.session_state:
@@ -53,15 +109,20 @@ if "scraper" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "today_racers" not in st.session_state:
-    st.session_state.today_racers = {}   # {venue_code: {race_no: [racers]}}
+    cached = load_cache()
+    if cached:
+        st.session_state.today_racers = restore_cache(cached)
+    else:
+        st.session_state.today_racers = {}
 if "prediction" not in st.session_state:
     st.session_state.prediction = None
 if "before_info" not in st.session_state:
     st.session_state.before_info = None
+if "last_venue" not in st.session_state:
+    st.session_state.last_venue = None
+if "last_race" not in st.session_state:
+    st.session_state.last_race = None
 
-# ─────────────────────────────────────────────
-# スクレイパー取得
-# ─────────────────────────────────────────────
 def get_scraper():
     if not st.session_state.logged_in:
         sc = BoatraceScraper(delay=1.0)
@@ -82,21 +143,18 @@ st.caption(f"📅 {date.today().strftime('%Y年%m月%d日')}")
 # ─────────────────────────────────────────────
 # タブ
 # ─────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["🎯 予想", "📊 直前情報", "📋 結果確認"])
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録"])
 
 # ─────────────────────────────────────────────
 # タブ1: 予想
 # ─────────────────────────────────────────────
 with tab1:
-
-    # ── 今日の出走表を一括取得ボタン ──────────
     if st.button("📥 今日の出走表を一括取得", type="primary"):
         sc = get_scraper()
         if sc:
             from crawler import get_holding_venues
             with st.spinner("開催会場を確認中..."):
                 venues = get_holding_venues(sc, date.today())
-
             if not venues:
                 st.warning("本日の開催会場が見つかりませんでした")
             else:
@@ -105,7 +163,6 @@ with tab1:
                 today_racers = {}
                 total = len(venues) * 12
                 count = 0
-
                 for venue in venues:
                     today_racers[venue] = {}
                     for rno in range(1, 13):
@@ -114,29 +171,52 @@ with tab1:
                             today_racers[venue][rno] = racers
                         count += 1
                         progress.progress(count / total)
-
                 st.session_state.today_racers = today_racers
+                save_cache(today_racers)
                 total_races = sum(len(v) for v in today_racers.values())
-                st.success(f"✅ 取得完了！{len(venues)}会場 {total_races}レース分のデータを取得しました")
+                st.success(f"✅ {len(venues)}会場 {total_races}レース分を取得しました")
+
+    # ── 一括予想ボタン ──────────────────────
+    if st.session_state.today_racers:
+        if st.button("🎯 今日の全レースを一括予想", type="secondary"):
+            predictor = BoatracePredictor()
+            count = 0
+            for venue, races in st.session_state.today_racers.items():
+                for rno, racers in races.items():
+                    pred = predictor.predict(
+                        racers,
+                        race_date=date.today().strftime("%Y%m%d"),
+                        venue_name=VENUE_MAP[venue],
+                        race_no=rno,
+                    )
+                    record = {
+                        "race_date":   date.today().strftime("%Y%m%d"),
+                        "venue_code":  venue,
+                        "venue_name":  VENUE_MAP[venue],
+                        "race_no":     rno,
+                        "tansho":      pred.tansho,
+                        "sanren_tan":  pred.sanren_tan,
+                        "sanren_fuku": pred.sanren_fuku,
+                        "hit":         None,
+                        "actual":      "",
+                        "payout":      None,
+                    }
+                    save_record(record)
+                    count += 1
+            st.success(f"✅ {count}レース分の予想を記録しました！成績記録タブで確認できます")
 
     st.divider()
-
-    # ── レース選択・予想 ─────────────────────
     st.subheader("レース選択")
 
-    # 取得済みデータがあれば会場・レースを選択
     if st.session_state.today_racers:
         available_venues = list(st.session_state.today_racers.keys())
         venue_labels = [f"{VENUE_MAP[v]}（{v}）" for v in available_venues]
         selected_venue_label = st.selectbox("会場", venue_labels)
         selected_venue = available_venues[venue_labels.index(selected_venue_label)]
-
         available_races = sorted(st.session_state.today_racers[selected_venue].keys())
         selected_race = st.selectbox("レース", available_races, format_func=lambda x: f"{x}R")
-
         racers = st.session_state.today_racers[selected_venue][selected_race]
 
-        # 出走表表示
         st.subheader("出走表")
         for r in racers:
             col1, col2, col3 = st.columns([1, 3, 2])
@@ -158,15 +238,32 @@ with tab1:
                 race_no=selected_race,
             )
             st.session_state.prediction = pred
+            st.session_state.last_venue = selected_venue
+            st.session_state.last_race = selected_race
+
+            # 予想を自動記録
+            record = {
+                "race_date":   date.today().strftime("%Y%m%d"),
+                "venue_code":  selected_venue,
+                "venue_name":  VENUE_MAP[selected_venue],
+                "race_no":     selected_race,
+                "tansho":      pred.tansho,
+                "sanren_tan":  pred.sanren_tan,
+                "sanren_fuku": pred.sanren_fuku,
+                "hit":         None,
+                "actual":      "",
+                "payout":      None,
+            }
+            save_record(record)
+            st.success("✅ 予想を記録しました")
 
     else:
-        # 取得済みデータがない場合は個別取得
-        st.info("上の「今日の出走表を一括取得」ボタンを押してください")
-
+        st.info("上のボタンで今日の出走表を取得してください")
         col1, col2 = st.columns(2)
         with col1:
             venue_options = {v: k for k, v in VENUE_MAP.items()}
-            venue_name = st.selectbox("会場", list(venue_options.keys()), index=list(venue_options.keys()).index("住之江"))
+            venue_name = st.selectbox("会場", list(venue_options.keys()),
+                                      index=list(venue_options.keys()).index("住之江"))
             venue_code = venue_options[venue_name]
         with col2:
             race_no = st.selectbox("レース", list(range(1, 13)), format_func=lambda x: f"{x}R")
@@ -189,17 +286,14 @@ with tab1:
     if st.session_state.prediction:
         pred = st.session_state.prediction
         st.subheader("🏆 予想結果")
-
         medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣"]
-        sorted_scores = sorted(pred.scores, key=lambda s: s.predicted_rank)
-        for s in sorted_scores:
+        for s in sorted(pred.scores, key=lambda s: s.predicted_rank):
             st.markdown(f"{medals[s.predicted_rank-1]} **{s.lane}枠** {s.name}　{s.rank}　{s.total_score:.1f}点")
-
         st.divider()
         st.markdown('<div class="buy-box">', unsafe_allow_html=True)
         st.markdown("### 💰 推奨買い目")
         st.markdown(f"**単勝:** {pred.tansho}")
-        st.markdown(f"**3連単:**")
+        st.markdown("**3連単:**")
         for combo in pred.sanren_tan:
             st.markdown(f"　✅ {combo}")
         st.markdown(f"**3連複:** {pred.sanren_fuku}")
@@ -211,7 +305,6 @@ with tab1:
 with tab2:
     st.subheader("展示タイム・気象情報")
     st.caption("レース約1時間前から取得可能")
-
     col1, col2 = st.columns(2)
     with col1:
         venue_options2 = {v: k for k, v in VENUE_MAP.items()}
@@ -219,7 +312,8 @@ with tab2:
                                    index=list(venue_options2.keys()).index("住之江"))
         venue_code2 = venue_options2[venue_name2]
     with col2:
-        race_no2 = st.selectbox("レース", list(range(1, 13)), key="race2", format_func=lambda x: f"{x}R")
+        race_no2 = st.selectbox("レース", list(range(1, 13)), key="race2",
+                                 format_func=lambda x: f"{x}R")
 
     if st.button("📥 直前情報を取得", type="primary", key="before_btn"):
         before_scraper = BeforeInfoScraper(delay=1.0)
@@ -247,7 +341,6 @@ with tab2:
                         st.markdown(f"🔥 **{et}**" if et <= 6.70 else f"{et}")
                     else:
                         st.markdown("-")
-
         if info.weather:
             st.subheader("🌤 気象情報")
             w = info.weather
@@ -258,7 +351,6 @@ with tab2:
                 st.metric("風速", f"{w.wind_speed}m" if w.wind_speed else "-")
             with cols[2]:
                 st.metric("波高", f"{w.wave_height}cm" if w.wave_height else "-")
-
         if info.start_exhibition:
             st.subheader("スタート展示")
             for s in info.start_exhibition:
@@ -269,7 +361,6 @@ with tab2:
 # ─────────────────────────────────────────────
 with tab3:
     st.subheader("レース結果")
-
     col1, col2 = st.columns(2)
     with col1:
         venue_options3 = {v: k for k, v in VENUE_MAP.items()}
@@ -277,9 +368,10 @@ with tab3:
                                    index=list(venue_options3.keys()).index("住之江"))
         venue_code3 = venue_options3[venue_name3]
     with col2:
-        race_no3 = st.selectbox("レース", list(range(1, 13)), key="race3", format_func=lambda x: f"{x}R")
+        race_no3 = st.selectbox("レース", list(range(1, 13)), key="race3",
+                                 format_func=lambda x: f"{x}R")
 
-    if st.button("📥 結果を取得", type="primary", key="result_btn"):
+    if st.button("📥 結果を取得して記録を更新", type="primary", key="result_btn"):
         sc = get_scraper()
         if sc:
             with st.spinner("取得中..."):
@@ -289,14 +381,78 @@ with tab3:
                     st.subheader("着順")
                     for i, boat in enumerate(result.arrival):
                         st.markdown(f"{medals[i]} **{boat}号艇**")
+
                     if result.payouts:
                         st.subheader("払戻金")
                         for key, val in result.payouts.items():
                             if val:
                                 st.markdown(f"**{key}**: ¥{val:,}")
-                    if result.start_times:
-                        st.subheader("スタートタイム")
-                        for lane, st_time in result.start_times.items():
-                            st.markdown(f"{lane}号艇: {st_time}")
+
+                    # 予想記録を更新
+                    records = load_records()
+                    date_str = date.today().strftime("%Y%m%d")
+                    updated = False
+                    for r in records:
+                        if r["race_date"] == date_str and r["venue_code"] == venue_code3 and r["race_no"] == race_no3:
+                            hit, actual = check_hit(r["sanren_tan"], result.arrival)
+                            r["hit"] = hit
+                            r["actual"] = f"{result.arrival[0]}-{result.arrival[1]}-{result.arrival[2]}" if len(result.arrival) >= 3 else ""
+                            sanren_key = f"3連単_{r['actual']}"
+                            r["payout"] = result.payouts.get(sanren_key)
+                            updated = True
+                            if hit:
+                                st.success(f"🎉 的中！ {actual} ¥{r['payout']:,}" if r['payout'] else "🎉 的中！")
+                            else:
+                                st.error(f"❌ ハズレ　実際: {r['actual']}　予想: {' / '.join(r['sanren_tan'])}")
+                    if updated:
+                        RECORD_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
                 else:
-                    st.warning("結果がまだ出ていません")py -m streamlit run app.py
+                    st.warning("結果がまだ出ていません")
+
+# ─────────────────────────────────────────────
+# タブ4: 成績記録
+# ─────────────────────────────────────────────
+with tab4:
+    st.subheader("📈 予想成績")
+
+    records = load_records()
+    if not records:
+        st.info("まだ予想記録がありません。予想タブで予想すると自動で記録されます。")
+    else:
+        # 集計
+        total = len(records)
+        checked = [r for r in records if r["hit"] is not None]
+        hits = [r for r in checked if r["hit"]]
+        hit_rate = len(hits) / len(checked) * 100 if checked else 0
+        total_payout = sum(r["payout"] or 0 for r in hits)
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("予想数", f"{total}レース")
+        with col2:
+            st.metric("的中率", f"{hit_rate:.1f}%" if checked else "-")
+        with col3:
+            st.metric("総払戻", f"¥{total_payout:,}" if hits else "-")
+
+        st.divider()
+        st.subheader("記録一覧")
+
+        for r in sorted(records, reverse=True, key=lambda x: (x["race_date"], x["venue_code"], x["race_no"])):
+            hit_icon = "🎉" if r["hit"] else ("❌" if r["hit"] is False else "⏳")
+            date_str = r["race_date"]
+            formatted = f"{date_str[:4]}/{date_str[4:6]}/{date_str[6:]}"
+            with st.expander(f"{hit_icon} {formatted} {r['venue_name']} {r['race_no']}R"):
+                st.markdown(f"**予想3連単:** {' / '.join(r['sanren_tan'])}")
+                if r["actual"]:
+                    st.markdown(f"**実際の結果:** {r['actual']}")
+                if r["hit"]:
+                    st.markdown(f"**払戻金:** ¥{r['payout']:,}" if r["payout"] else "**払戻金:** -")
+                elif r["hit"] is False:
+                    st.markdown("**結果:** ハズレ")
+                else:
+                    st.markdown("**結果:** 未確認（結果確認タブで更新）")
+
+        if st.button("🗑 記録をリセット", type="secondary"):
+            RECORD_FILE.unlink(missing_ok=True)
+            st.success("記録をリセットしました")
+            st.rerun()
