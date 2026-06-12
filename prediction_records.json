@@ -11,9 +11,9 @@
       "5-1-4"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-4-5",
+    "payout": 1490
   },
   {
     "race_date": "20260612",
@@ -27,9 +27,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 2040
   },
   {
     "race_date": "20260612",
@@ -43,9 +43,9 @@
       "6-1-2"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-1-3",
+    "payout": 8720
   },
   {
     "race_date": "20260612",
@@ -59,9 +59,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 890
   },
   {
     "race_date": "20260612",
@@ -75,9 +75,9 @@
       "5-1-4"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-4-5",
+    "payout": 1460
   },
   {
     "race_date": "20260612",
@@ -91,9 +91,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 640
   },
   {
     "race_date": "20260612",
@@ -107,9 +107,9 @@
       "5-1-4"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-5-1",
+    "payout": 970
   },
   {
     "race_date": "20260612",
@@ -123,9 +123,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-5-6",
+    "payout": 1150
   },
   {
     "race_date": "20260612",
@@ -139,9 +139,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-5",
+    "payout": 1030
   },
   {
     "race_date": "20260612",
@@ -155,9 +155,9 @@
       "6-1-2"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-2",
+    "payout": 1500
   },
   {
     "race_date": "20260612",
@@ -171,9 +171,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-2",
+    "payout": 1550
   },
   {
     "race_date": "20260612",
@@ -187,9 +187,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-5-2",
+    "payout": 30970
   },
   {
     "race_date": "20260612",
@@ -203,9 +203,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 1280
   },
   {
     "race_date": "20260612",
@@ -219,9 +219,9 @@
       "4-1-2"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-3-1",
+    "payout": 4420
   },
   {
     "race_date": "20260612",
@@ -235,9 +235,9 @@
       "3-2-1"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-5-3",
+    "payout": 1890
   },
   {
     "race_date": "20260612",
@@ -251,9 +251,9 @@
       "5-1-4"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-3-2",
+    "payout": 7780
   },
   {
     "race_date": "20260612",
@@ -267,9 +267,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-1-6",
+    "payout": 50020
   },
   {
     "race_date": "20260612",
@@ -283,9 +283,9 @@
       "5-1-3"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-5",
+    "payout": 680
   },
   {
     "race_date": "20260612",
@@ -299,9 +299,9 @@
       "4-1-3"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-2",
+    "payout": 1140
   },
   {
     "race_date": "20260612",
@@ -315,9 +315,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "5-1-2",
+    "payout": 5130
   },
   {
     "race_date": "20260612",
@@ -331,9 +331,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "5-1-2",
+    "payout": 14730
   },
   {
     "race_date": "20260612",
@@ -347,9 +347,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 510
   },
   {
     "race_date": "20260612",
@@ -363,9 +363,9 @@
       "4-1-6"
     ],
     "sanren_fuku": "1-4-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-6",
+    "payout": 870
   },
   {
     "race_date": "20260612",
@@ -379,9 +379,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-2-1",
+    "payout": 8070
   },
   {
     "race_date": "20260612",
@@ -395,9 +395,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-6-1",
+    "payout": 82350
   },
   {
     "race_date": "20260612",
@@ -411,9 +411,9 @@
       "4-1-3"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-2",
+    "payout": 620
   },
   {
     "race_date": "20260612",
@@ -427,9 +427,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-6",
+    "payout": 4060
   },
   {
     "race_date": "20260612",
@@ -443,9 +443,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "5-1-2",
+    "payout": 2780
   },
   {
     "race_date": "20260612",
@@ -459,9 +459,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 1600
   },
   {
     "race_date": "20260612",
@@ -475,9 +475,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-1-4",
+    "payout": 3900
   },
   {
     "race_date": "20260612",
@@ -491,9 +491,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 520
   },
   {
     "race_date": "20260612",
@@ -507,9 +507,9 @@
       "6-1-3"
     ],
     "sanren_fuku": "1-3-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-4",
+    "payout": 1870
   },
   {
     "race_date": "20260612",
@@ -523,9 +523,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-4-1",
+    "payout": 10570
   },
   {
     "race_date": "20260612",
@@ -539,9 +539,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 1240
   },
   {
     "race_date": "20260612",
@@ -555,9 +555,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-5",
+    "payout": 700
   },
   {
     "race_date": "20260612",
@@ -571,9 +571,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-3",
+    "payout": 3690
   },
   {
     "race_date": "20260612",
@@ -587,9 +587,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-1-5",
+    "payout": 1910
   },
   {
     "race_date": "20260612",
@@ -603,9 +603,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-3-4",
+    "payout": 3600
   },
   {
     "race_date": "20260612",
@@ -619,9 +619,9 @@
       "3-1-4"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-1-5",
+    "payout": 1240
   },
   {
     "race_date": "20260612",
@@ -635,9 +635,9 @@
       "5-1-4"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-4-5",
+    "payout": 1300
   },
   {
     "race_date": "20260612",
@@ -651,9 +651,9 @@
       "6-1-2"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-6-5",
+    "payout": 3010
   },
   {
     "race_date": "20260612",
@@ -667,9 +667,9 @@
       "4-1-5"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-2-4",
+    "payout": 8020
   },
   {
     "race_date": "20260612",
@@ -683,9 +683,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-3",
+    "payout": 43380
   },
   {
     "race_date": "20260612",
@@ -699,9 +699,9 @@
       "4-1-2"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "5-2-6",
+    "payout": 5640
   },
   {
     "race_date": "20260612",
@@ -715,9 +715,9 @@
       "5-1-3"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-5-3",
+    "payout": 7510
   },
   {
     "race_date": "20260612",
@@ -731,9 +731,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-3-5",
+    "payout": 1260
   },
   {
     "race_date": "20260612",
@@ -747,9 +747,9 @@
       "3-1-6"
     ],
     "sanren_fuku": "1-3-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-5",
+    "payout": 3320
   },
   {
     "race_date": "20260612",
@@ -763,9 +763,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 750
   },
   {
     "race_date": "20260612",
@@ -779,9 +779,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 1850
   },
   {
     "race_date": "20260612",
@@ -795,9 +795,9 @@
       "4-1-3"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-5-4",
+    "payout": 4080
   },
   {
     "race_date": "20260612",
@@ -811,9 +811,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-4-3",
+    "payout": 960
   },
   {
     "race_date": "20260612",
@@ -827,9 +827,9 @@
       "4-1-3"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-4",
+    "payout": 1170
   },
   {
     "race_date": "20260612",
@@ -843,9 +843,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-5",
+    "payout": 1970
   },
   {
     "race_date": "20260612",
@@ -859,9 +859,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-3",
+    "payout": 2680
   },
   {
     "race_date": "20260612",
@@ -875,9 +875,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-1-4",
+    "payout": 1460
   },
   {
     "race_date": "20260612",
@@ -891,9 +891,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-4",
+    "payout": 720
   },
   {
     "race_date": "20260612",
@@ -907,9 +907,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 860
   },
   {
     "race_date": "20260612",
@@ -923,9 +923,9 @@
       "2-1-6"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-4",
+    "payout": 6720
   },
   {
     "race_date": "20260612",
@@ -939,9 +939,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-1-4",
+    "payout": 5440
   },
   {
     "race_date": "20260612",
@@ -955,9 +955,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-3",
+    "payout": 690
   },
   {
     "race_date": "20260612",
@@ -971,9 +971,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 1270
   },
   {
     "race_date": "20260612",
@@ -987,9 +987,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-1-6",
+    "payout": 5770
   },
   {
     "race_date": "20260612",
@@ -1003,9 +1003,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-3-6",
+    "payout": 25680
   },
   {
     "race_date": "20260612",
@@ -1019,9 +1019,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 1750
   },
   {
     "race_date": "20260612",
@@ -1035,9 +1035,9 @@
       "4-1-5"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-6",
+    "payout": 3370
   },
   {
     "race_date": "20260612",
@@ -1051,9 +1051,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 890
   },
   {
     "race_date": "20260612",
@@ -1067,9 +1067,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-3",
+    "payout": 850
   },
   {
     "race_date": "20260612",
@@ -1083,9 +1083,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "5-1-6",
+    "payout": 38460
   },
   {
     "race_date": "20260612",
@@ -1099,9 +1099,9 @@
       "3-1-4"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-2",
+    "payout": 1170
   },
   {
     "race_date": "20260612",
@@ -1115,9 +1115,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "5-1-2",
+    "payout": 17450
   },
   {
     "race_date": "20260612",
@@ -1131,9 +1131,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-5",
+    "payout": 770
   },
   {
     "race_date": "20260612",
@@ -1147,9 +1147,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 1040
   },
   {
     "race_date": "20260612",
@@ -1163,9 +1163,9 @@
       "3-1-4"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-2",
+    "payout": 1420
   },
   {
     "race_date": "20260612",
@@ -1179,9 +1179,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-4",
+    "payout": 8090
   },
   {
     "race_date": "20260612",
@@ -1195,9 +1195,9 @@
       "6-1-3"
     ],
     "sanren_fuku": "1-3-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "5-6-1",
+    "payout": 8320
   },
   {
     "race_date": "20260612",
@@ -1211,9 +1211,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-1-5",
+    "payout": 4870
   },
   {
     "race_date": "20260612",
@@ -1227,9 +1227,9 @@
       "6-1-2"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "6-2-1",
+    "payout": 10280
   },
   {
     "race_date": "20260612",
@@ -1243,9 +1243,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 1220
   },
   {
     "race_date": "20260612",
@@ -1259,9 +1259,9 @@
       "6-1-5"
     ],
     "sanren_fuku": "1-5-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-1-4",
+    "payout": 2740
   },
   {
     "race_date": "20260612",
@@ -1275,9 +1275,9 @@
       "4-1-6"
     ],
     "sanren_fuku": "1-4-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-4-1",
+    "payout": 2290
   },
   {
     "race_date": "20260612",
@@ -1291,9 +1291,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-4",
+    "payout": 1390
   },
   {
     "race_date": "20260612",
@@ -1307,9 +1307,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "5-2-6",
+    "payout": 25530
   },
   {
     "race_date": "20260612",
@@ -1323,9 +1323,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 1260
   },
   {
     "race_date": "20260612",
@@ -1339,9 +1339,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-5",
+    "payout": 2130
   },
   {
     "race_date": "20260612",
@@ -1355,9 +1355,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-1-4",
+    "payout": 8880
   },
   {
     "race_date": "20260612",
@@ -1371,9 +1371,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "6-1-5",
+    "payout": 16330
   },
   {
     "race_date": "20260612",
@@ -1387,9 +1387,9 @@
       "5-1-6"
     ],
     "sanren_fuku": "1-5-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-5-1",
+    "payout": 6640
   },
   {
     "race_date": "20260612",
@@ -1403,9 +1403,9 @@
       "4-1-2"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-4-2",
+    "payout": 5910
   },
   {
     "race_date": "20260612",
@@ -1419,9 +1419,9 @@
       "1-2-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-6-2",
+    "payout": 42380
   },
   {
     "race_date": "20260612",
@@ -1435,9 +1435,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-4-5",
+    "payout": 3540
   },
   {
     "race_date": "20260612",
@@ -1451,9 +1451,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-6",
+    "payout": 16620
   },
   {
     "race_date": "20260612",
@@ -1467,9 +1467,9 @@
       "6-1-3"
     ],
     "sanren_fuku": "1-3-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-6-3",
+    "payout": 1740
   },
   {
     "race_date": "20260612",
@@ -1483,9 +1483,9 @@
       "4-1-2"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-3",
+    "payout": 3630
   },
   {
     "race_date": "20260612",
@@ -1499,9 +1499,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 1500
   },
   {
     "race_date": "20260612",
@@ -1515,9 +1515,9 @@
       "3-1-4"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-1-5",
+    "payout": 2260
   },
   {
     "race_date": "20260612",
@@ -1531,9 +1531,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 4940
   },
   {
     "race_date": "20260612",
@@ -1547,9 +1547,9 @@
       "4-1-5"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-4",
+    "payout": 1650
   },
   {
     "race_date": "20260612",
@@ -1563,9 +1563,9 @@
       "6-1-4"
     ],
     "sanren_fuku": "1-4-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-4",
+    "payout": 3500
   },
   {
     "race_date": "20260612",
@@ -1579,9 +1579,9 @@
       "5-1-6"
     ],
     "sanren_fuku": "1-5-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-3-1",
+    "payout": 7480
   },
   {
     "race_date": "20260612",
@@ -1595,9 +1595,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-2",
+    "payout": 3610
   },
   {
     "race_date": "20260612",
@@ -1611,9 +1611,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-5-2",
+    "payout": 2060
   },
   {
     "race_date": "20260612",
@@ -1627,9 +1627,9 @@
       "3-1-4"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-2",
+    "payout": 5760
   },
   {
     "race_date": "20260612",
@@ -1643,9 +1643,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-4",
+    "payout": 1470
   },
   {
     "race_date": "20260612",
@@ -1659,9 +1659,9 @@
       "4-1-3"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-5",
+    "payout": 1360
   },
   {
     "race_date": "20260612",
@@ -1675,9 +1675,9 @@
       "3-1-4"
     ],
     "sanren_fuku": "1-3-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-4",
+    "payout": 3610
   },
   {
     "race_date": "20260612",
@@ -1691,9 +1691,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-3",
+    "payout": 670
   },
   {
     "race_date": "20260612",
@@ -1707,9 +1707,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 580
   },
   {
     "race_date": "20260612",
@@ -1723,9 +1723,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-3",
+    "payout": 1170
   },
   {
     "race_date": "20260612",
@@ -1739,9 +1739,9 @@
       "5-1-3"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-6",
+    "payout": 1080
   },
   {
     "race_date": "20260612",
@@ -1755,9 +1755,9 @@
       "6-1-3"
     ],
     "sanren_fuku": "1-3-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-6-2",
+    "payout": 2910
   },
   {
     "race_date": "20260612",
@@ -1771,9 +1771,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-4",
+    "payout": 1740
   },
   {
     "race_date": "20260612",
@@ -1787,9 +1787,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-6-3",
+    "payout": 23570
   },
   {
     "race_date": "20260612",
@@ -1803,9 +1803,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-4",
+    "payout": 520
   },
   {
     "race_date": "20260612",
@@ -1819,9 +1819,9 @@
       "2-1-6"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-6-2",
+    "payout": 1580
   },
   {
     "race_date": "20260612",
@@ -1835,9 +1835,9 @@
       "6-1-3"
     ],
     "sanren_fuku": "1-3-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-4",
+    "payout": 1220
   },
   {
     "race_date": "20260612",
@@ -1851,9 +1851,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-5",
+    "payout": 1520
   },
   {
     "race_date": "20260612",
@@ -1867,9 +1867,9 @@
       "2-1-6"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-6",
+    "payout": 1650
   },
   {
     "race_date": "20260612",
@@ -1883,9 +1883,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-2",
+    "payout": 1350
   },
   {
     "race_date": "20260612",
@@ -1899,9 +1899,9 @@
       "2-1-5"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-4",
+    "payout": 890
   },
   {
     "race_date": "20260612",
@@ -1915,9 +1915,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-6-3",
+    "payout": 10760
   },
   {
     "race_date": "20260612",
@@ -1931,9 +1931,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-5-3",
+    "payout": 3210
   },
   {
     "race_date": "20260612",
@@ -1947,9 +1947,9 @@
       "4-1-6"
     ],
     "sanren_fuku": "1-4-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-2",
+    "payout": 850
   },
   {
     "race_date": "20260612",
@@ -1963,9 +1963,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-2-5",
+    "payout": 4160
   },
   {
     "race_date": "20260612",
@@ -1979,9 +1979,9 @@
       "3-1-5"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-5-2",
+    "payout": 4710
   },
   {
     "race_date": "20260612",
@@ -1995,9 +1995,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-6-1",
+    "payout": 1760
   },
   {
     "race_date": "20260612",
@@ -2011,9 +2011,9 @@
       "6-1-4"
     ],
     "sanren_fuku": "1-4-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-1-4",
+    "payout": 4630
   },
   {
     "race_date": "20260612",
@@ -2027,9 +2027,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 410
   },
   {
     "race_date": "20260612",
@@ -2043,9 +2043,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-2",
+    "payout": 3090
   },
   {
     "race_date": "20260612",
@@ -2059,9 +2059,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-1-2",
+    "payout": 2810
   },
   {
     "race_date": "20260612",
@@ -2075,9 +2075,9 @@
       "3-1-6"
     ],
     "sanren_fuku": "1-3-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-4",
+    "payout": 2620
   },
   {
     "race_date": "20260612",
@@ -2091,9 +2091,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-3-4",
+    "payout": 690
   },
   {
     "race_date": "20260612",
@@ -2107,9 +2107,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-3-2",
+    "payout": 780
   },
   {
     "race_date": "20260612",
@@ -2123,9 +2123,9 @@
       "4-1-2"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-3",
+    "payout": 850
   },
   {
     "race_date": "20260612",
@@ -2139,9 +2139,9 @@
       "2-1-6"
     ],
     "sanren_fuku": "1-2-6",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-6",
+    "payout": 280
   },
   {
     "race_date": "20260612",
@@ -2155,9 +2155,9 @@
       "4-1-5"
     ],
     "sanren_fuku": "1-4-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-4-6",
+    "payout": 2470
   },
   {
     "race_date": "20260612",
@@ -2171,9 +2171,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-4-5",
+    "payout": 2060
   },
   {
     "race_date": "20260612",
@@ -2187,9 +2187,9 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 1890
   },
   {
     "race_date": "20260612",
@@ -2203,9 +2203,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "4-1-2",
+    "payout": 1910
   },
   {
     "race_date": "20260612",
@@ -2219,9 +2219,9 @@
       "5-1-3"
     ],
     "sanren_fuku": "1-3-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-3-1",
+    "payout": 5750
   },
   {
     "race_date": "20260612",
@@ -2235,9 +2235,9 @@
       "3-1-2"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "3-2-6",
+    "payout": 960
   },
   {
     "race_date": "20260612",
@@ -2251,9 +2251,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "2-5-1",
+    "payout": 7340
   },
   {
     "race_date": "20260612",
@@ -2267,9 +2267,9 @@
       "5-1-2"
     ],
     "sanren_fuku": "1-2-5",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-3",
+    "payout": 1230
   },
   {
     "race_date": "20260612",
@@ -2283,9 +2283,9 @@
       "2-1-4"
     ],
     "sanren_fuku": "1-2-4",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": false,
+    "actual": "1-2-5",
+    "payout": 1850
   },
   {
     "race_date": "20260612",
@@ -2299,8 +2299,8 @@
       "2-1-3"
     ],
     "sanren_fuku": "1-2-3",
-    "hit": null,
-    "actual": "",
-    "payout": null
+    "hit": true,
+    "actual": "1-2-3",
+    "payout": 550
   }
 ]

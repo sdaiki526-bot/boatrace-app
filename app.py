@@ -588,11 +588,11 @@ with tab4:
         st.markdown("#### 記録一覧")
         for r in sorted(records, reverse=True, key=lambda x: (x["race_date"], x["venue_code"], x["race_no"])):
             if r["hit"] is True:
-                badge = '<span class="hit-badge">🎉 的中</span>'
+                badge = '<span style="background:#065f46;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700">🎉 的中</span>'
             elif r["hit"] is False:
-                badge = '<span class="miss-badge">❌ ハズレ</span>'
+                badge = '<span style="background:#7f1d1d;border:1px solid #ef4444;color:#fca5a5;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700">❌ ハズレ</span>'
             else:
-                badge = '<span class="pending-badge">⏳ 未確認</span>'
+                badge = '<span style="background:#292524;border:1px solid #57534e;color:#d6d3d1;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700">⏳ 未確認</span>'
 
             ds = r["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
