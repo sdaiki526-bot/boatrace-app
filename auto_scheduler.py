@@ -22,6 +22,8 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import schedule
+import os
+from supabase import create_client
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
@@ -29,6 +31,16 @@ sys.path.insert(0, str(Path(__file__).parent))
 from boatrace_scraper import BoatraceScraper, VENUE_MAP
 from predictor import BoatracePredictor
 from crawler import get_holding_venues
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
 # ─────────────────────────────────────────────
 # ロギング
@@ -62,11 +74,23 @@ def save_records(records):
     RECORD_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
 
 def save_record(record):
+    # ローカルJSONにも保存（フォールバック）
     records = load_records()
     key = f"{record['race_date']}_{record['venue_code']}_{record['race_no']}"
     records = [r for r in records if f"{r['race_date']}_{r['venue_code']}_{r['race_no']}" != key]
     records.append(record)
     save_records(records)
+
+    # Supabaseに保存
+    if supabase:
+        try:
+            db_record = dict(record)
+            db_record["sanren_tan"] = json.dumps(record["sanren_tan"], ensure_ascii=False)
+            supabase.table("prediction_records").upsert(
+                db_record, on_conflict="race_date,venue_code,race_no"
+            ).execute()
+        except Exception as e:
+            logger.error(f"Supabase保存失敗: {e}")
 
 def save_cache(today_racers, target_date):
     cache_file = Path(f"cache_racers_{target_date.strftime('%Y%m%d')}.json")
@@ -192,6 +216,19 @@ def night_job():
                 logger.info(f"❌ ハズレ: {r['venue_name']} {r['race_no']}R 実際:{actual} 予想:{r['sanren_tan']}")
 
     save_records(records)
+
+    # Supabaseの該当レコードを更新
+    if supabase:
+        for r in target_records:
+            if r["hit"] is not None:
+                try:
+                    supabase.table("prediction_records").update({
+                        "hit": r["hit"],
+                        "actual": r["actual"],
+                        "payout": r["payout"],
+                    }).eq("race_date", r["race_date"]).eq("venue_code", r["venue_code"]).eq("race_no", r["race_no"]).execute()
+                except Exception as e:
+                    logger.error(f"Supabase更新失敗: {e}")
 
     total_checked = hit_count + miss_count
     hit_rate = hit_count / total_checked * 100 if total_checked > 0 else 0
