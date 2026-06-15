@@ -5,6 +5,7 @@
 
 import streamlit as st
 import json
+import os
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -17,6 +18,23 @@ sys.path.insert(0, str(Path(__file__).parent))
 from boatrace_scraper import BoatraceScraper, VENUE_MAP
 from predictor import BoatracePredictor
 from before_info_scraper import BeforeInfoScraper
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+from supabase import create_client
+
+def get_supabase():
+    url = os.getenv("SUPABASE_URL") or st.secrets.get("SUPABASE_URL", "")
+    key = os.getenv("SUPABASE_KEY") or st.secrets.get("SUPABASE_KEY", "")
+    if url and key:
+        return create_client(url, key)
+    return None
+
+supabase = get_supabase()
 
 # ─────────────────────────────────────────────
 # ページ設定
@@ -163,11 +181,50 @@ RECORD_FILE = Path("prediction_records.json")
 CACHE_FILE = Path(f"cache_racers_{date.today().strftime('%Y%m%d')}.json")
 
 def load_records():
+    # Supabaseから取得（優先）
+    if supabase:
+        try:
+            res = supabase.table("prediction_records").select("*").order("race_date", desc=True).execute()
+            records = []
+            for row in res.data:
+                sanren_tan = row.get("sanren_tan")
+                if isinstance(sanren_tan, str):
+                    sanren_tan = json.loads(sanren_tan)
+                records.append({
+                    "race_date":   row["race_date"],
+                    "venue_code":  row["venue_code"],
+                    "venue_name":  row["venue_name"],
+                    "race_no":     row["race_no"],
+                    "tansho":      row.get("tansho"),
+                    "sanren_tan":  sanren_tan or [],
+                    "sanren_fuku": row.get("sanren_fuku"),
+                    "hit":         row.get("hit"),
+                    "actual":      row.get("actual") or "",
+                    "payout":      row.get("payout"),
+                })
+            return records
+        except Exception as e:
+            st.warning(f"Supabase読み込み失敗: {e}")
+
+    # フォールバック: ローカルJSON
     if RECORD_FILE.exists():
         return json.loads(RECORD_FILE.read_text(encoding="utf-8"))
     return []
 
 def save_record(record):
+    # Supabaseに保存
+    if supabase:
+        try:
+            db_record = dict(record)
+            db_record["sanren_tan"] = json.dumps(record["sanren_tan"], ensure_ascii=False)
+            supabase.table("prediction_records").upsert(
+                db_record, on_conflict="race_date,venue_code,race_no"
+            ).execute()
+            return
+        except Exception as e:
+            st.warning(f"Supabase保存失敗: {e}")
+
+    # フォールバック: ローカルJSON
     records = load_records()
     key = f"{record['race_date']}_{record['venue_code']}_{record['race_no']}"
     records = [r for r in records if f"{r['race_date']}_{r['venue_code']}_{r['race_no']}" != key]
@@ -521,7 +578,17 @@ with tab3:
                                 st.success(f"🎉 的中！{actual}  ¥{r['payout']:,}" if r['payout'] else "🎉 的中！")
                             else:
                                 st.error(f"❌ ハズレ  実際: {actual}  予想: {' / '.join(r['sanren_tan'])}")
-                    RECORD_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+
+                            # Supabase更新
+                            if supabase:
+                                try:
+                                    supabase.table("prediction_records").update({
+                                        "hit": r["hit"], "actual": r["actual"], "payout": r["payout"],
+                                    }).eq("race_date", r["race_date"]).eq("venue_code", r["venue_code"]).eq("race_no", r["race_no"]).execute()
+                                except Exception as e:
+                                    st.warning(f"Supabase更新失敗: {e}")
+                            else:
+                                RECORD_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
                 else:
                     st.warning("結果がまだ出ていません")
 
@@ -588,30 +655,40 @@ with tab4:
         st.markdown("#### 記録一覧")
         for r in sorted(records, reverse=True, key=lambda x: (x["race_date"], x["venue_code"], x["race_no"])):
             if r["hit"] is True:
-                badge = '<span style="background:#065f46;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700">🎉 的中</span>'
+                badge = "<span style='background:#065f46;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>🎉 的中</span>"
             elif r["hit"] is False:
-                badge = '<span style="background:#7f1d1d;border:1px solid #ef4444;color:#fca5a5;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700">❌ ハズレ</span>'
+                badge = "<span style='background:#7f1d1d;border:1px solid #ef4444;color:#fca5a5;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>❌ ハズレ</span>"
             else:
-                badge = '<span style="background:#292524;border:1px solid #57534e;color:#d6d3d1;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700">⏳ 未確認</span>'
+                badge = "<span style='background:#292524;border:1px solid #57534e;color:#d6d3d1;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>⏳ 未確認</span>"
 
             ds = r["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             actual_text = f"実際: <strong>{r['actual']}</strong>" if r["actual"] else ""
             payout_text = f"払戻: <strong style='color:#3b82f6'>¥{r['payout']:,}</strong>" if r.get("payout") else ""
 
-            st.markdown(f"""
-            <div style="background:#0d1b3e;border:1px solid #1e3a8a;border-radius:10px;padding:0.8rem 1rem;margin:0.4rem 0;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-                <span style="color:#64748b;font-size:0.85rem">{formatted}</span>
-                <span style="font-weight:700;color:#e0e6ff">{r['venue_name']} {r['race_no']}R</span>
-                <span style="color:#3b82f6;font-size:0.85rem">{' / '.join(r['sanren_tan'])}</span>
-                {f'<span style="color:#94a3b8;font-size:0.85rem">{actual_text}</span>' if actual_text else ''}
-                {f'<span style="font-size:0.85rem">{payout_text}</span>' if payout_text else ''}
-                <span style="margin-left:auto">{badge}</span>
-            </div>
-            """, unsafe_allow_html=True)
+            extra1 = f"<span style='color:#94a3b8;font-size:0.85rem'>{actual_text}</span>" if actual_text else ""
+            extra2 = f"<span style='font-size:0.85rem'>{payout_text}</span>" if payout_text else ""
+
+            card_html = (
+                "<div style='background:#0d1b3e;border:1px solid #1e3a8a;border-radius:10px;"
+                "padding:0.8rem 1rem;margin:0.4rem 0;display:flex;align-items:center;"
+                "gap:1rem;flex-wrap:wrap'>"
+                f"<span style='color:#64748b;font-size:0.85rem'>{formatted}</span>"
+                f"<span style='font-weight:700;color:#e0e6ff'>{r['venue_name']} {r['race_no']}R</span>"
+                f"<span style='color:#3b82f6;font-size:0.85rem'>{' / '.join(r['sanren_tan'])}</span>"
+                f"{extra1}{extra2}"
+                f"<span style='margin-left:auto'>{badge}</span>"
+                "</div>"
+            )
+            st.markdown(card_html, unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🗑  記録をリセット", type="secondary"):
+            if supabase:
+                try:
+                    supabase.table("prediction_records").delete().neq("id", 0).execute()
+                except Exception as e:
+                    st.warning(f"Supabase削除失敗: {e}")
             RECORD_FILE.unlink(missing_ok=True)
             st.success("リセットしました")
             st.rerun()
