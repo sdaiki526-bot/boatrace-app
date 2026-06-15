@@ -351,8 +351,8 @@ tab0, tab1, tab2, tab3, tab4 = st.tabs(["🔥  ピックアップ", "🎯  予�
 # ─────────────────────────────────────────────
 # タブ0: ピックアップ
 # ─────────────────────────────────────────────
-PICKUP_TOP_SCORE_MIN = 35.0
-PICKUP_SCORE_GAP_MIN = 15.0
+PICKUP_TOP_SCORE_MIN = 25.0
+PICKUP_SCORE_GAP_MIN = 10.0
 
 with tab0:
     records = load_records()
