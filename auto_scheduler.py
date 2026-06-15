@@ -142,6 +142,15 @@ def morning_job():
 
     logger.info(f"開催会場: {', '.join([VENUE_MAP[v] for v in venues])}")
 
+    # 各会場の締切時刻を取得
+    deadlines_by_venue = {}
+    for venue in venues:
+        try:
+            deadlines_by_venue[venue] = get_deadline_times(sc, today, venue)
+        except Exception as e:
+            logger.error(f"締切時刻取得失敗 {VENUE_MAP[venue]}: {e}")
+            deadlines_by_venue[venue] = {}
+
     # 出走表を一括取得
     today_racers = {}
     for venue in venues:
@@ -160,6 +169,8 @@ def morning_job():
         from dataclasses import asdict
         for venue, races in today_racers.items():
             for rno, racers in races.items():
+                deadline_dt = deadlines_by_venue.get(venue, {}).get(rno)
+                deadline_str = deadline_dt.strftime("%H:%M") if deadline_dt else None
                 try:
                     supabase.table("today_racelist").upsert({
                         "race_date": today.strftime("%Y%m%d"),
@@ -167,6 +178,7 @@ def morning_job():
                         "venue_name": VENUE_MAP[venue],
                         "race_no": rno,
                         "racers": json.dumps([asdict(r) for r in racers], ensure_ascii=False),
+                        "deadline_time": deadline_str,
                     }, on_conflict="race_date,venue_code,race_no").execute()
                 except Exception as e:
                     logger.error(f"出走表Supabase保存失敗: {e}")
@@ -316,7 +328,7 @@ def _save_exhibition_done(done_set):
 
 def exhibition_job():
     """
-    30分おきに実行。締切時刻が60分以内のレースについて
+    10分おきに実行。締切時刻が60分以内のレースについて
     展示タイムを取得し、予想を再計算してSupabaseを更新する。
     """
     from before_info_scraper import BeforeInfoScraper
@@ -453,11 +465,11 @@ def main():
     schedule.every().day.at("18:00").do(result_check_job)
     schedule.every().day.at("23:00").do(result_check_job)
     schedule.every().day.at("23:30").do(night_job)
-    schedule.every(30).minutes.do(exhibition_job)
+    schedule.every(10).minutes.do(exhibition_job)
 
     logger.info("スケジューラー起動")
     logger.info("  08:00 → 出走表取得・一括予想・記録")
-    logger.info("  30分おき → 締切60分以内のレースの展示タイムを反映")
+    logger.info("  10分おき → 締切60分以内のレースの展示タイムを反映")
     logger.info("  12:00/15:00/18:00/23:00 → 今日の確定済みレースの的中判定")
     logger.info("  23:30 → 昨日分の最終確認")
     logger.info("Ctrl+C で停止")

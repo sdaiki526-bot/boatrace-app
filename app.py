@@ -26,6 +26,18 @@ def get_predictor():
         return MLPredictor(model_dir=Path(__file__).parent / "models")
     except FileNotFoundError:
         return BoatracePredictor()
+
+
+def _score_metrics(pred):
+    """予想結果から1位スコアと1位-2位の差を計算する"""
+    sorted_scores = sorted(pred.scores, key=lambda s: s.predicted_rank)
+    if len(sorted_scores) < 2:
+        return None, None
+    top_score = sorted_scores[0].total_score
+    score_gap = sorted_scores[0].total_score - sorted_scores[1].total_score
+    return round(top_score, 3), round(score_gap, 3)
+
+
 from before_info_scraper import BeforeInfoScraper
 
 try:
@@ -399,12 +411,36 @@ def load_today_racelist_from_supabase():
         st.warning(f"出走表Supabase読み込み失敗: {e}")
         return {}
 
+def load_deadline_times_from_supabase():
+    """{(venue_code, race_no): "HH:MM"} の辞書を返す"""
+    if not supabase:
+        return {}
+    try:
+        date_str = date.today().strftime("%Y%m%d")
+        res = supabase.table("today_racelist").select("venue_code,venue_name,race_no,deadline_time").eq("race_date", date_str).execute()
+        result = {}
+        for row in res.data or []:
+            if row.get("deadline_time"):
+                result[(row["venue_code"], row["race_no"])] = {
+                    "deadline_time": row["deadline_time"],
+                    "venue_name": row["venue_name"],
+                }
+        return result
+    except Exception as e:
+        return {}
+
 if "today_racers" not in st.session_state:
     cached = load_cache()
     if cached:
         st.session_state.today_racers = restore_cache(cached)
     else:
         st.session_state.today_racers = load_today_racelist_from_supabase()
+
+if "deadline_times" not in st.session_state:
+    st.session_state.deadline_times = load_deadline_times_from_supabase()
+
+if "selected_race" not in st.session_state:
+    st.session_state.selected_race = None
 
 # ─────────────────────────────────────────────
 # ヘッダー
@@ -518,11 +554,20 @@ with tab1:
             sc = get_scraper()
             if sc:
                 from crawler import get_holding_venues
+                from boatrace_scraper import get_deadline_times
                 with st.spinner("開催会場を確認中..."):
                     venues = get_holding_venues(sc, date.today())
                 if not venues:
                     st.warning("本日の開催会場が見つかりませんでした")
                 else:
+                    # 締切時刻取得
+                    deadlines_by_venue = {}
+                    for venue in venues:
+                        try:
+                            deadlines_by_venue[venue] = get_deadline_times(sc, date.today(), venue)
+                        except Exception:
+                            deadlines_by_venue[venue] = {}
+
                     progress = st.progress(0, text="取得中...")
                     today_racers = {}
                     total = len(venues) * 12
@@ -543,6 +588,8 @@ with tab1:
                         from dataclasses import asdict
                         for venue, races in today_racers.items():
                             for rno, racers in races.items():
+                                deadline_dt = deadlines_by_venue.get(venue, {}).get(rno)
+                                deadline_str = deadline_dt.strftime("%H:%M") if deadline_dt else None
                                 try:
                                     supabase.table("today_racelist").upsert({
                                         "race_date": date.today().strftime("%Y%m%d"),
@@ -550,63 +597,97 @@ with tab1:
                                         "venue_name": VENUE_MAP[venue],
                                         "race_no": rno,
                                         "racers": json.dumps([asdict(r) for r in racers], ensure_ascii=False),
+                                        "deadline_time": deadline_str,
                                     }, on_conflict="race_date,venue_code,race_no").execute()
                                 except Exception as e:
                                     st.warning(f"出走表Supabase保存失敗: {e}")
 
+                    st.session_state.deadline_times = load_deadline_times_from_supabase()
                     total_races = sum(len(v) for v in today_racers.values())
                     st.success(f"✅  {len(venues)}会場 {total_races}レース取得完了")
                     st.rerun()
 
     if st.session_state.today_racers:
-        col_v, col_r = st.columns(2)
-        with col_v:
-            available_venues = list(st.session_state.today_racers.keys())
-            venue_labels = [f"{VENUE_MAP[v]}（{v}）" for v in available_venues]
-            sel_label = st.selectbox("会場", venue_labels)
-            sel_venue = available_venues[venue_labels.index(sel_label)]
-        with col_r:
-            available_races = sorted(st.session_state.today_racers[sel_venue].keys())
-            sel_race = st.selectbox("レース", available_races, format_func=lambda x: f"{x}R")
+        # 締切時刻順のレース一覧
+        deadline_times = st.session_state.deadline_times
+        race_list = []
+        for venue, races in st.session_state.today_racers.items():
+            for rno in races.keys():
+                info = deadline_times.get((venue, rno))
+                deadline_str = info["deadline_time"] if info else None
+                race_list.append((deadline_str, venue, rno))
 
-        racers = st.session_state.today_racers[sel_venue][sel_race]
+        # 締切時刻あり→時刻順、無し→末尾に会場・レース番号順
+        race_list_with_time = sorted(
+            [r for r in race_list if r[0]], key=lambda r: r[0]
+        )
+        race_list_without_time = sorted(
+            [r for r in race_list if not r[0]], key=lambda r: (r[1], r[2])
+        )
+        race_list_sorted = race_list_with_time + race_list_without_time
 
-        # 出走表（カラー枠番付き）
-        st.markdown("#### 出走表")
-        for r in racers:
-            st.markdown(f"""
-            <div class="racer-row">
-                <div class="lane-badge lane-{r.lane}">{r.lane}</div>
-                <div style="flex:1">
-                    <span style="font-weight:700;color:#e0e6ff">{r.name}</span>
-                    <span style="margin-left:8px;font-size:0.8rem;color:#64748b">{r.rank}</span>
-                </div>
-                <div style="text-align:right">
-                    <span style="font-size:0.85rem;color:#64748b">勝率 </span>
-                    <span style="font-weight:700;color:#3b82f6">{r.win_rate_all or '-'}</span>
-                </div>
-                <div style="text-align:right;min-width:80px">
-                    <span style="font-size:0.85rem;color:#64748b">モーター </span>
-                    <span style="font-weight:600;color:#94a3b8">{r.motor_2rate or '-'}%</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown("#### 本日のレース一覧（出走時刻順）")
+        for deadline_str, venue, rno in race_list_sorted:
+            time_label = deadline_str if deadline_str else "--:--"
+            is_selected = st.session_state.selected_race == (venue, rno)
+
+            col_btn, = st.columns(1)
+            with col_btn:
+                label = f"⏰ {time_label}　{VENUE_MAP[venue]} {rno}R"
+                if st.button(label, key=f"race_select_{venue}_{rno}",
+                              type="primary" if is_selected else "secondary",
+                              use_container_width=True):
+                    if is_selected:
+                        st.session_state.selected_race = None
+                        st.session_state.prediction = None
+                    else:
+                        st.session_state.selected_race = (venue, rno)
+                        st.session_state.prediction = None
+                    st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🎯  このレースを予想する", type="primary", use_container_width=True):
-            predictor = get_predictor()
-            pred = predictor.predict(racers, race_date=date.today().strftime("%Y%m%d"),
-                                      venue_name=VENUE_MAP[sel_venue], race_no=sel_race)
-            st.session_state.prediction = pred
-            st.session_state.last_venue = sel_venue
-            st.session_state.last_race = sel_race
-            save_record({
-                "race_date": date.today().strftime("%Y%m%d"),
-                "venue_code": sel_venue, "venue_name": VENUE_MAP[sel_venue], "race_no": sel_race,
-                "tansho": pred.tansho, "sanren_tan": pred.sanren_tan,
-                "sanren_fuku": pred.sanren_fuku, "hit": None, "actual": "", "payout": None,
-            })
-            st.success("✅  予想を記録しました")
+
+        if st.session_state.selected_race:
+            sel_venue, sel_race = st.session_state.selected_race
+            racers = st.session_state.today_racers[sel_venue][sel_race]
+
+            st.markdown(f"#### {VENUE_MAP[sel_venue]} {sel_race}R 出走表")
+            for r in racers:
+                st.markdown(f"""
+                <div class="racer-row">
+                    <div class="lane-badge lane-{r.lane}">{r.lane}</div>
+                    <div style="flex:1">
+                        <span style="font-weight:700;color:#e0e6ff">{r.name}</span>
+                        <span style="margin-left:8px;font-size:0.8rem;color:#64748b">{r.rank}</span>
+                    </div>
+                    <div style="text-align:right">
+                        <span style="font-size:0.85rem;color:#64748b">勝率 </span>
+                        <span style="font-weight:700;color:#3b82f6">{r.win_rate_all or '-'}</span>
+                    </div>
+                    <div style="text-align:right;min-width:80px">
+                        <span style="font-size:0.85rem;color:#64748b">モーター </span>
+                        <span style="font-weight:600;color:#94a3b8">{r.motor_2rate or '-'}%</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🎯  このレースを予想する", type="primary", use_container_width=True, key="predict_btn"):
+                predictor = get_predictor()
+                pred = predictor.predict(racers, race_date=date.today().strftime("%Y%m%d"),
+                                          venue_name=VENUE_MAP[sel_venue], race_no=sel_race)
+                st.session_state.prediction = pred
+                st.session_state.last_venue = sel_venue
+                st.session_state.last_race = sel_race
+                top_score, score_gap = _score_metrics(pred)
+                save_record({
+                    "race_date": date.today().strftime("%Y%m%d"),
+                    "venue_code": sel_venue, "venue_name": VENUE_MAP[sel_venue], "race_no": sel_race,
+                    "tansho": pred.tansho, "sanren_tan": pred.sanren_tan,
+                    "sanren_fuku": pred.sanren_fuku, "hit": None, "actual": "", "payout": None,
+                    "top_score": top_score, "score_gap": score_gap,
+                })
+                st.success("✅  予想を記録しました")
 
     else:
         st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
