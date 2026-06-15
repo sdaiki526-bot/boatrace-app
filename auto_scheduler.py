@@ -432,6 +432,50 @@ def exhibition_job():
 
 
 # ─────────────────────────────────────────────
+# 週次再学習: データセット再構築 + モデル再学習
+# ─────────────────────────────────────────────
+def retrain_job():
+    import subprocess
+
+    base_dir = Path(__file__).parent
+    logger.info("=== 週次再学習バッチ開始 ===")
+
+    try:
+        logger.info("build_dataset.py 実行中...")
+        result = subprocess.run(
+            ["python", str(base_dir / "build_dataset.py")],
+            cwd=str(base_dir), capture_output=True, text=True, timeout=3600,
+        )
+        if result.returncode != 0:
+            logger.error(f"build_dataset.py 失敗: {result.stderr[-2000:]}")
+            return
+        logger.info("build_dataset.py 完了")
+    except Exception as e:
+        logger.error(f"build_dataset.py 実行エラー: {e}")
+        return
+
+    try:
+        logger.info("train_model.py 実行中...")
+        result = subprocess.run(
+            ["python", str(base_dir / "train_model.py")],
+            cwd=str(base_dir), capture_output=True, text=True, timeout=3600,
+        )
+        if result.returncode != 0:
+            logger.error(f"train_model.py 失敗: {result.stderr[-2000:]}")
+            return
+        logger.info("train_model.py 完了")
+        # train_model.pyの出力からAUC等を抜粋してログに残す
+        for line in result.stdout.splitlines():
+            if "AUC" in line or "保存完了" in line:
+                logger.info(f"  {line.strip()}")
+    except Exception as e:
+        logger.error(f"train_model.py 実行エラー: {e}")
+        return
+
+    logger.info("✅ 週次再学習バッチ完了")
+
+
+# ─────────────────────────────────────────────
 # スケジューラー起動
 # ─────────────────────────────────────────────
 def main():
@@ -440,6 +484,7 @@ def main():
     parser.add_argument("--run-night",   action="store_true", help="夜の処理（昨日分の最終確認）を今すぐ実行")
     parser.add_argument("--run-result-check", action="store_true", help="結果確認（今日分）を今すぐ実行")
     parser.add_argument("--run-exhibition", action="store_true", help="展示タイム更新を今すぐ実行")
+    parser.add_argument("--run-retrain", action="store_true", help="モデル再学習を今すぐ実行")
     args = parser.parse_args()
 
     if args.run_morning:
@@ -458,6 +503,10 @@ def main():
         exhibition_job()
         return
 
+    if args.run_retrain:
+        retrain_job()
+        return
+
     # スケジュール登録
     schedule.every().day.at("08:00").do(morning_job)
     schedule.every().day.at("12:00").do(result_check_job)
@@ -466,12 +515,14 @@ def main():
     schedule.every().day.at("23:00").do(result_check_job)
     schedule.every().day.at("23:30").do(night_job)
     schedule.every(10).minutes.do(exhibition_job)
+    schedule.every().monday.at("05:00").do(retrain_job)
 
     logger.info("スケジューラー起動")
     logger.info("  08:00 → 出走表取得・一括予想・記録")
     logger.info("  10分おき → 締切60分以内のレースの展示タイムを反映")
     logger.info("  12:00/15:00/18:00/23:00 → 今日の確定済みレースの的中判定")
     logger.info("  23:30 → 昨日分の最終確認")
+    logger.info("  月曜 05:00 → データセット再構築・モデル週次再学習")
     logger.info("Ctrl+C で停止")
 
     try:
