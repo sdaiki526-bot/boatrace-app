@@ -471,12 +471,46 @@ def retrain_job():
             return
         logger.info("train_model.py 完了")
         # train_model.pyの出力からAUC等を抜粋してログに残す
+        auc_lines = []
         for line in result.stdout.splitlines():
             if "AUC" in line or "保存完了" in line:
                 logger.info(f"  {line.strip()}")
+                if "AUC" in line:
+                    auc_lines.append(line.strip())
     except Exception as e:
         logger.error(f"train_model.py 実行エラー: {e}")
         return
+
+    # モデルをGitへ自動コミット・プッシュ
+    try:
+        commit_msg = "weekly model retrain"
+        if auc_lines:
+            commit_msg += " (" + ", ".join(auc_lines) + ")"
+
+        subprocess.run(["git", "add", "models/"], cwd=str(base_dir),
+                        capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+        diff_check = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=str(base_dir))
+        if diff_check.returncode == 0:
+            logger.info("モデルに変更なし。Gitコミットはスキップします")
+        else:
+            commit_result = subprocess.run(
+                ["git", "commit", "-m", commit_msg], cwd=str(base_dir),
+                capture_output=True, text=True, encoding="utf-8", errors="replace",
+            )
+            if commit_result.returncode != 0:
+                logger.error(f"git commit 失敗: {commit_result.stderr.strip()}")
+            else:
+                push_result = subprocess.run(
+                    ["git", "push"], cwd=str(base_dir),
+                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
+                )
+                if push_result.returncode != 0:
+                    logger.error(f"git push 失敗: {push_result.stderr.strip()}")
+                else:
+                    logger.info("✅ モデルをGitにコミット・プッシュしました")
+    except Exception as e:
+        logger.error(f"Git自動コミット失敗: {e}")
 
     logger.info("✅ 週次再学習バッチ完了")
 
@@ -528,7 +562,7 @@ def main():
     logger.info("  10分おき → 締切60分以内のレースの展示タイムを反映")
     logger.info("  12:00/15:00/18:00/23:00 → 今日の確定済みレースの的中判定")
     logger.info("  23:30 → 昨日分の最終確認")
-    logger.info("  月曜 05:00 → データセット再構築・モデル週次再学習")
+    logger.info("  月曜 05:00 → データセット再構築・モデル週次再学習・Git自動push")
     logger.info("Ctrl+C で停止")
 
     try:
