@@ -69,17 +69,61 @@ st.markdown("""
 
     /* ヘッダー */
     .header-box {
-        background: #1f2937;
-        border-left: 4px solid #3b82f6;
-        border-radius: 0 12px 12px 0;
-        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+        border-radius: 14px;
+        padding: 1.2rem 1.8rem;
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 1.2rem;
+        box-shadow: 0 4px 16px rgba(29,78,216,0.35);
+        position: relative;
+        overflow: hidden;
     }
-    .header-title { font-size: 1.6rem; font-weight: 800; color: #f3f4f6; margin: 0; }
-    .header-date { color: #6b7280; font-size: 0.85rem; margin: 0; }
+    .header-box::after {
+        content: "";
+        position: absolute;
+        right: -40px;
+        top: -40px;
+        width: 160px;
+        height: 160px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 50%;
+    }
+    .header-icon {
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+    }
+    .header-title {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+        letter-spacing: 0.02em;
+    }
+    .header-date {
+        color: #bfdbfe;
+        font-size: 0.85rem;
+        margin: 0.2rem 0 0;
+        font-weight: 600;
+    }
+    .header-meta {
+        margin-left: auto;
+        text-align: right;
+        z-index: 1;
+    }
+    .header-meta-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1;
+    }
+    .header-meta-label {
+        font-size: 0.75rem;
+        color: #bfdbfe;
+        font-weight: 600;
+        margin-top: 0.2rem;
+    }
 
     /* カード */
     .stat-card {
@@ -365,13 +409,42 @@ if "today_racers" not in st.session_state:
 # ─────────────────────────────────────────────
 # ヘッダー
 # ─────────────────────────────────────────────
+_venue_count = len(st.session_state.today_racers) if st.session_state.today_racers else 0
+_race_count = sum(len(v) for v in st.session_state.today_racers.values()) if st.session_state.today_racers else 0
+
+_meta_html = ""
+if _venue_count:
+    _meta_html = f"""
+    <div class="header-meta">
+        <div class="header-meta-value">{_venue_count}会場</div>
+        <div class="header-meta-label">{_race_count}レース取得済み</div>
+    </div>
+    """
+
+_BOAT_SVG = """
+<svg class="header-icon" width="64" height="56" viewBox="0 0 64 56" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="14" cy="46" rx="13" ry="5" fill="#ffffff" opacity="0.18"/>
+  <ellipse cx="30" cy="50" rx="16" ry="4" fill="#ffffff" opacity="0.12"/>
+  <path d="M2 40 C8 34, 14 34, 18 38 C22 42, 28 42, 32 38" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+  <path d="M6 46 C12 41, 18 41, 22 45 C26 49, 32 49, 36 45" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+  <path d="M16 38 L52 30 C56 29, 59 31, 59 35 L59 38 C59 41, 56 43, 52 42 L18 42 Z" fill="#fbbf24"/>
+  <path d="M18 42 L52 42 C56 43, 56 47, 52 47 L24 47 C20 47, 17 45, 18 42 Z" fill="#f97316"/>
+  <rect x="30" y="18" width="4" height="13" rx="1" fill="#1f2937"/>
+  <path d="M34 19 L50 26 L34 28 Z" fill="#ef4444"/>
+  <circle cx="46" cy="34" r="2.2" fill="#1f2937"/>
+  <path d="M58 36 C62 35, 64 33, 63 30 C61 33, 58 33, 56 35 Z" fill="#bfdbfe" opacity="0.85"/>
+  <path d="M60 33 C64 31, 66 28, 64 25 C62 29, 59 30, 57 32 Z" fill="#bfdbfe" opacity="0.6"/>
+</svg>
+"""
+
 st.markdown(f"""
 <div class="header-box">
-    <span style="font-size:2.5rem">🚤</span>
+    {_BOAT_SVG}
     <div>
         <p class="header-title">競艇予想ツール</p>
         <p class="header-date">📅 {date.today().strftime('%Y年%m月%d日')}</p>
     </div>
+    {_meta_html}
 </div>
 """, unsafe_allow_html=True)
 
