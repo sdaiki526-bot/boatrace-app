@@ -358,14 +358,64 @@ class BoatraceScraper:
         return tan, fuku
 
     def _get_sanren_tan(self, race_date, vc, rno):
+        """
+        3連単オッズページをパースする。
+
+        テーブルは6つの列ブロックに分かれており、各ブロックのヘッダ（1〜6）が
+        「3着艇番号」を表す。各ブロック内の各行は
+        [1着艇番号(rowspanあり), 2着艇番号, オッズ] の3セル組で構成される。
+
+        例: ブロック1(3着=1)の最初の行が [2, 3, 69.7] なら
+            "2-3-1" のオッズが 69.7
+        """
         soup = self._get(f"{BASE_URL}/odds3t", {"hd": self._fmt_date(race_date), "jcd": vc, "rno": rno})
         result = {}
-        if not soup: return result
-        for row in soup.select("table.is-w748 tbody tr"):
+        if not soup:
+            return result
+
+        # is-w748が無い場合に対応: div.table1内の素のtableを探す
+        table = soup.select_one("table.is-w748") or soup.select_one(".table1 table")
+        if not table:
+            return result
+
+        rows = table.select("tbody tr")
+        if not rows:
+            return result
+
+        n_blocks = 6
+        # 各ブロックの「現在の1着艇番号」（rowspanで複数行に渡るため保持）
+        current_first = [None] * n_blocks
+
+        for row in rows:
             cells = row.select("td")
-            for i in range(0, len(cells) - 1, 2):
-                k = cells[i].text.strip()
-                if k: result[k] = self._safe_float(cells[i+1].text)
+            cell_idx = 0
+            for block in range(n_blocks):
+                third = block + 1  # 3着艇番号 (列ブロック = 3着)
+                if cell_idx >= len(cells):
+                    break
+
+                cell = cells[cell_idx]
+                # rowspan付きセル = 新しい1着艇番号
+                if cell.get("rowspan"):
+                    current_first[block] = cell.text.strip()
+                    cell_idx += 1
+                    if cell_idx >= len(cells):
+                        break
+                    cell = cells[cell_idx]
+
+                first = current_first[block]
+                second = cell.text.strip()
+                cell_idx += 1
+
+                if cell_idx >= len(cells):
+                    break
+                odds_cell = cells[cell_idx]
+                cell_idx += 1
+
+                if first and second and first.isdigit() and second.isdigit():
+                    key = f"{first}-{second}-{third}"
+                    result[key] = self._safe_float(odds_cell.text)
+
         return result
 
     def _get_sanren_fuku(self, race_date, vc, rno):
