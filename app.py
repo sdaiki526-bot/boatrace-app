@@ -16,7 +16,16 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from boatrace_scraper import BoatraceScraper, VENUE_MAP
-from predictor import BoatracePredictor
+from predictor import BoatracePredictor, MLPredictor
+
+
+@st.cache_resource
+def get_predictor():
+    """LightGBMモデルがあればMLPredictor、無ければルールベースにフォールバック"""
+    try:
+        return MLPredictor(model_dir=Path(__file__).parent / "models")
+    except FileNotFoundError:
+        return BoatracePredictor()
 from before_info_scraper import BeforeInfoScraper
 
 try:
@@ -50,7 +59,7 @@ st.markdown("""
 <style>
     /* ネイビー・スポーティーテーマ */
     .stApp { background-color: #111827; }
-    .main .block-container { padding: 1.5rem 2rem; max-width: 1100px; }
+    .main .block-container { padding: 1.5rem 2rem; max-width: 1400px; }
 
     /* Streamlitデフォルト要素を統一 */
     .stSelectbox > div > div { background: #374151 !important; border-color: #4b5563 !important; }
@@ -281,9 +290,36 @@ for key, val in {
     if key not in st.session_state:
         st.session_state[key] = val
 
+def load_today_racelist_from_supabase():
+    if not supabase:
+        return {}
+    try:
+        date_str = date.today().strftime("%Y%m%d")
+        res = supabase.table("today_racelist").select("*").eq("race_date", date_str).execute()
+        if not res.data:
+            return {}
+        from boatrace_scraper import RacerInfo
+        result = {}
+        for row in res.data:
+            venue = row["venue_code"]
+            rno = row["race_no"]
+            racers_data = row["racers"]
+            if isinstance(racers_data, str):
+                racers_data = json.loads(racers_data)
+            if venue not in result:
+                result[venue] = {}
+            result[venue][rno] = [RacerInfo(**r) for r in racers_data]
+        return result
+    except Exception as e:
+        st.warning(f"出走表Supabase読み込み失敗: {e}")
+        return {}
+
 if "today_racers" not in st.session_state:
     cached = load_cache()
-    st.session_state.today_racers = restore_cache(cached) if cached else {}
+    if cached:
+        st.session_state.today_racers = restore_cache(cached)
+    else:
+        st.session_state.today_racers = load_today_racelist_from_supabase()
 
 # ─────────────────────────────────────────────
 # ヘッダー
@@ -307,9 +343,9 @@ tab1, tab2, tab3, tab4 = st.tabs(["🎯  予想", "📊  直前情報", "📋  �
 # タブ1: 予想
 # ─────────────────────────────────────────────
 with tab1:
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        if st.button("📥  今日の出走表を一括取得", type="primary", use_container_width=True):
+    # 出走表データが無ければ手動取得ボタンを表示（バッチが08:00に自動取得）
+    if not st.session_state.today_racers:
+        if st.button("📥  出走表を取得（通常はバッチが自動取得します）", type="secondary", use_container_width=True):
             sc = get_scraper()
             if sc:
                 from crawler import get_holding_venues
@@ -332,28 +368,26 @@ with tab1:
                             progress.progress(count / total, text=f"{VENUE_MAP[venue]} {rno}R 取得中...")
                     st.session_state.today_racers = today_racers
                     save_cache(today_racers)
+
+                    # Supabaseにも保存
+                    if supabase:
+                        from dataclasses import asdict
+                        for venue, races in today_racers.items():
+                            for rno, racers in races.items():
+                                try:
+                                    supabase.table("today_racelist").upsert({
+                                        "race_date": date.today().strftime("%Y%m%d"),
+                                        "venue_code": venue,
+                                        "venue_name": VENUE_MAP[venue],
+                                        "race_no": rno,
+                                        "racers": json.dumps([asdict(r) for r in racers], ensure_ascii=False),
+                                    }, on_conflict="race_date,venue_code,race_no").execute()
+                                except Exception as e:
+                                    st.warning(f"出走表Supabase保存失敗: {e}")
+
                     total_races = sum(len(v) for v in today_racers.values())
                     st.success(f"✅  {len(venues)}会場 {total_races}レース取得完了")
-
-    with col_btn2:
-        if st.session_state.today_racers:
-            if st.button("🎯  今日の全レースを一括予想", type="secondary", use_container_width=True):
-                predictor = BoatracePredictor()
-                count = 0
-                for venue, races in st.session_state.today_racers.items():
-                    for rno, racers in races.items():
-                        pred = predictor.predict(racers, race_date=date.today().strftime("%Y%m%d"),
-                                                  venue_name=VENUE_MAP[venue], race_no=rno)
-                        save_record({
-                            "race_date": date.today().strftime("%Y%m%d"),
-                            "venue_code": venue, "venue_name": VENUE_MAP[venue], "race_no": rno,
-                            "tansho": pred.tansho, "sanren_tan": pred.sanren_tan,
-                            "sanren_fuku": pred.sanren_fuku, "hit": None, "actual": "", "payout": None,
-                        })
-                        count += 1
-                st.success(f"✅  {count}レース分を予想・記録しました")
-
-    st.divider()
+                    st.rerun()
 
     if st.session_state.today_racers:
         col_v, col_r = st.columns(2)
@@ -391,7 +425,7 @@ with tab1:
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🎯  このレースを予想する", type="primary", use_container_width=True):
-            predictor = BoatracePredictor()
+            predictor = get_predictor()
             pred = predictor.predict(racers, race_date=date.today().strftime("%Y%m%d"),
                                       venue_name=VENUE_MAP[sel_venue], race_no=sel_race)
             st.session_state.prediction = pred
@@ -406,7 +440,7 @@ with tab1:
             st.success("✅  予想を記録しました")
 
     else:
-        st.info("「今日の出走表を一括取得」ボタンを押してください")
+        st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
 
     # 予想結果表示
     if st.session_state.prediction:

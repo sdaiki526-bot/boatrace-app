@@ -1,0 +1,11 @@
+data/
+dataset/
+__pycache__/
+*.pyc
+logs/
+cache_racers_*.json
+crawler_progress*.json
+prediction_records.json
+exhibition_done.json
+.env
+raceindex.html
