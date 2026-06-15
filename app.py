@@ -219,6 +219,7 @@ def load_records():
                     "payout":      row.get("payout"),
                     "top_score":   row.get("top_score"),
                     "score_gap":   row.get("score_gap"),
+                    "odds_value":  row.get("odds_value"),
                 })
             return records
         except Exception as e:
@@ -411,6 +412,12 @@ with tab0:
     else:
         pickups_sorted = sorted(pickups, key=lambda r: r["top_score"], reverse=True)
         for r in pickups_sorted:
+            odds_val = r.get("odds_value")
+            odds_text = f"<span style='color:#9ca3af;font-size:0.95rem'>オッズ <strong style='color:#34d399'>{odds_val:.1f}倍</strong></span>" if odds_val else ""
+            value_badge = ""
+            if odds_val and odds_val >= 5.0:
+                value_badge = "<span style='background:#064e3b;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 10px;font-size:0.78rem;font-weight:700;margin-left:0.5rem'>💎 妙味</span>"
+
             card_html = (
                 "<div style='background:#1f2937;border:1px solid #f59e0b;border-radius:10px;"
                 "padding:1rem 1.2rem;margin:0.5rem 0;display:flex;align-items:center;"
@@ -418,6 +425,7 @@ with tab0:
                 f"<span style='font-size:1.1rem;font-weight:800;color:#fbbf24'>🔥 {r['venue_name']} {r['race_no']}R</span>"
                 f"<span style='color:#93c5fd;font-size:0.95rem'>単勝 <strong>{r['tansho']}</strong></span>"
                 f"<span style='color:#93c5fd;font-size:0.95rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                f"{odds_text}{value_badge}"
                 f"<span style='margin-left:auto;color:#9ca3af;font-size:0.85rem'>"
                 f"1位確信度 <strong style='color:#fbbf24'>{r['top_score']:.1f}</strong>"
                 f" / 差 <strong style='color:#fbbf24'>{r['score_gap']:.1f}</strong>pt</span>"
@@ -816,6 +824,78 @@ with tab4:
             st.markdown("#### 的中率推移")
             st.plotly_chart(fig3, use_container_width=True)
 
+        # 会場別・レース番号別 集計
+        if len(checked) >= 5:
+            st.markdown("#### 会場別・レース別 的中率")
+            col_v, col_r = st.columns(2)
+
+            with col_v:
+                venue_stats = {}
+                for r in checked:
+                    vn = r["venue_name"]
+                    venue_stats.setdefault(vn, {"hit": 0, "total": 0})
+                    venue_stats[vn]["total"] += 1
+                    if r["hit"]:
+                        venue_stats[vn]["hit"] += 1
+
+                venue_names = list(venue_stats.keys())
+                venue_rates = [venue_stats[v]["hit"] / venue_stats[v]["total"] * 100 for v in venue_names]
+                venue_totals = [venue_stats[v]["total"] for v in venue_names]
+
+                order = sorted(range(len(venue_names)), key=lambda i: venue_rates[i], reverse=True)
+                venue_names = [venue_names[i] for i in order]
+                venue_rates = [venue_rates[i] for i in order]
+                venue_totals = [venue_totals[i] for i in order]
+
+                fig_venue = go.Figure(go.Bar(
+                    x=venue_rates,
+                    y=[f"{n} ({t}件)" for n, t in zip(venue_names, venue_totals)],
+                    orientation='h',
+                    marker_color='#3b82f6',
+                    text=[f"{r:.1f}%" for r in venue_rates],
+                    textposition='outside',
+                ))
+                fig_venue.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#94a3b8', height=max(200, 30 * len(venue_names)),
+                    margin=dict(l=10, r=40, t=30, b=10),
+                    xaxis=dict(gridcolor='#1e293b', title="的中率(%)", range=[0, 100]),
+                    yaxis=dict(autorange='reversed'),
+                    showlegend=False,
+                    title=dict(text="会場別", font=dict(size=12)),
+                )
+                st.plotly_chart(fig_venue, use_container_width=True)
+
+            with col_r:
+                race_stats = {}
+                for r in checked:
+                    rn = r["race_no"]
+                    race_stats.setdefault(rn, {"hit": 0, "total": 0})
+                    race_stats[rn]["total"] += 1
+                    if r["hit"]:
+                        race_stats[rn]["hit"] += 1
+
+                race_nos = sorted(race_stats.keys())
+                race_rates = [race_stats[rn]["hit"] / race_stats[rn]["total"] * 100 for rn in race_nos]
+                race_totals = [race_stats[rn]["total"] for rn in race_nos]
+
+                fig_race = go.Figure(go.Bar(
+                    x=[f"{rn}R" for rn in race_nos],
+                    y=race_rates,
+                    marker_color='#60a5fa',
+                    text=[f"{r:.0f}%" for r in race_rates],
+                    textposition='outside',
+                ))
+                fig_race.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#94a3b8', height=max(200, 30 * len(venue_names) if False else 240),
+                    margin=dict(l=10, r=10, t=30, b=10),
+                    yaxis=dict(gridcolor='#1e293b', title="的中率(%)", range=[0, 100]),
+                    showlegend=False,
+                    title=dict(text="レース番号別", font=dict(size=12)),
+                )
+                st.plotly_chart(fig_race, use_container_width=True)
+
         # 記録一覧
         st.markdown("#### 記録一覧")
         for r in sorted(records, reverse=True, key=lambda x: (x["race_date"], x["venue_code"], x["race_no"])):
@@ -834,8 +914,11 @@ with tab4:
             extra1 = f"<span style='color:#94a3b8;font-size:0.85rem'>{actual_text}</span>" if actual_text else ""
             extra2 = f"<span style='font-size:0.85rem'>{payout_text}</span>" if payout_text else ""
 
+            border_color = "#f59e0b" if r["hit"] is True else "#1e3a8a"
+            border_width = "2px" if r["hit"] is True else "1px"
+
             card_html = (
-                "<div style='background:#0d1b3e;border:1px solid #1e3a8a;border-radius:10px;"
+                f"<div style='background:#0d1b3e;border:{border_width} solid {border_color};border-radius:10px;"
                 "padding:0.8rem 1rem;margin:0.4rem 0;display:flex;align-items:center;"
                 "gap:1rem;flex-wrap:wrap'>"
                 f"<span style='color:#64748b;font-size:0.85rem'>{formatted}</span>"

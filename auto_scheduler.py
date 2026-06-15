@@ -205,7 +205,22 @@ def morning_job():
 
 
 # ─────────────────────────────────────────────
-# 夜の処理: 昨日の結果取得 + 的中判定
+# 結果確認処理: 今日の確定済みレースを判定（12:00/15:00/18:00/23:00）
+# ─────────────────────────────────────────────
+def result_check_job():
+    today = date.today()
+    logger.info(f"=== 結果確認バッチ開始 {today} ===")
+
+    sc = BoatraceScraper(delay=1.0)
+    if not sc.login():
+        logger.error("ログイン失敗。結果確認バッチを中断します")
+        return
+
+    _check_and_update_results(sc, today)
+
+
+# ─────────────────────────────────────────────
+# 夜の処理: 昨日の結果取得 + 的中判定（最終確認）
 # ─────────────────────────────────────────────
 def night_job():
     yesterday = date.today() - timedelta(days=1)
@@ -216,21 +231,26 @@ def night_job():
         logger.error("ログイン失敗。夜バッチを中断します")
         return
 
+    _check_and_update_results(sc, yesterday)
+
+
+def _check_and_update_results(sc, target_date):
     records = load_records()
-    date_str = yesterday.strftime("%Y%m%d")
+    date_str = target_date.strftime("%Y%m%d")
     target_records = [r for r in records if r["race_date"] == date_str and r["hit"] is None]
 
     if not target_records:
-        logger.info("昨日の未確認レースはありません")
+        logger.info(f"{target_date} の未確認レースはありません")
         return
 
-    logger.info(f"昨日の未確認レース: {len(target_records)}件")
+    logger.info(f"{target_date} の未確認レース: {len(target_records)}件")
 
     hit_count = 0
     miss_count = 0
+    checked_records = []
 
     for r in target_records:
-        result = sc.get_result(yesterday, r["venue_code"], r["race_no"])
+        result = sc.get_result(target_date, r["venue_code"], r["race_no"])
         if not result or not result.arrival:
             continue
 
@@ -253,24 +273,25 @@ def night_job():
                 miss_count += 1
                 logger.info(f"❌ ハズレ: {r['venue_name']} {r['race_no']}R 実際:{actual} 予想:{r['sanren_tan']}")
 
+            checked_records.append(r)
+
     save_records(records)
 
     # Supabaseの該当レコードを更新
     if supabase:
-        for r in target_records:
-            if r["hit"] is not None:
-                try:
-                    supabase.table("prediction_records").update({
-                        "hit": r["hit"],
-                        "actual": r["actual"],
-                        "payout": r["payout"],
-                    }).eq("race_date", r["race_date"]).eq("venue_code", r["venue_code"]).eq("race_no", r["race_no"]).execute()
-                except Exception as e:
-                    logger.error(f"Supabase更新失敗: {e}")
+        for r in checked_records:
+            try:
+                supabase.table("prediction_records").update({
+                    "hit": r["hit"],
+                    "actual": r["actual"],
+                    "payout": r["payout"],
+                }).eq("race_date", r["race_date"]).eq("venue_code", r["venue_code"]).eq("race_no", r["race_no"]).execute()
+            except Exception as e:
+                logger.error(f"Supabase更新失敗: {e}")
 
     total_checked = hit_count + miss_count
     hit_rate = hit_count / total_checked * 100 if total_checked > 0 else 0
-    logger.info(f"✅ 夜バッチ完了: {total_checked}レース確認 的中{hit_count}件 ({hit_rate:.1f}%)")
+    logger.info(f"✅ 結果確認完了({target_date}): {total_checked}レース確認 的中{hit_count}件 ({hit_rate:.1f}%)")
 
 
 # ─────────────────────────────────────────────
@@ -362,6 +383,17 @@ def exhibition_job():
             )
 
             top_score, score_gap = _score_metrics(pred)
+
+            # オッズ取得（最有力3連単候補のオッズ）
+            odds_value = None
+            try:
+                odds = sc.get_odds(today, venue, rno)
+                if odds and odds.sanren_tan and pred.sanren_tan:
+                    top_combo = pred.sanren_tan[0]
+                    odds_value = odds.sanren_tan.get(top_combo)
+            except Exception as e:
+                logger.error(f"オッズ取得失敗 {VENUE_MAP[venue]} {rno}R: {e}")
+
             save_record({
                 "race_date":   date_str,
                 "venue_code":  venue,
@@ -375,6 +407,7 @@ def exhibition_job():
                 "payout":      None,
                 "top_score":   top_score,
                 "score_gap":   score_gap,
+                "odds_value":  odds_value,
             })
 
             done.add(key)
@@ -392,7 +425,8 @@ def exhibition_job():
 def main():
     parser = argparse.ArgumentParser(description="競艇 毎日自動バッチ")
     parser.add_argument("--run-morning", action="store_true", help="朝の処理を今すぐ実行")
-    parser.add_argument("--run-night",   action="store_true", help="夜の処理を今すぐ実行")
+    parser.add_argument("--run-night",   action="store_true", help="夜の処理（昨日分の最終確認）を今すぐ実行")
+    parser.add_argument("--run-result-check", action="store_true", help="結果確認（今日分）を今すぐ実行")
     parser.add_argument("--run-exhibition", action="store_true", help="展示タイム更新を今すぐ実行")
     args = parser.parse_args()
 
@@ -404,19 +438,28 @@ def main():
         night_job()
         return
 
+    if args.run_result_check:
+        result_check_job()
+        return
+
     if args.run_exhibition:
         exhibition_job()
         return
 
     # スケジュール登録
     schedule.every().day.at("08:00").do(morning_job)
-    schedule.every().day.at("23:00").do(night_job)
+    schedule.every().day.at("12:00").do(result_check_job)
+    schedule.every().day.at("15:00").do(result_check_job)
+    schedule.every().day.at("18:00").do(result_check_job)
+    schedule.every().day.at("23:00").do(result_check_job)
+    schedule.every().day.at("23:30").do(night_job)
     schedule.every(30).minutes.do(exhibition_job)
 
     logger.info("スケジューラー起動")
     logger.info("  08:00 → 出走表取得・一括予想・記録")
     logger.info("  30分おき → 締切60分以内のレースの展示タイムを反映")
-    logger.info("  23:00 → 昨日の結果取得・的中判定")
+    logger.info("  12:00/15:00/18:00/23:00 → 今日の確定済みレースの的中判定")
+    logger.info("  23:30 → 昨日分の最終確認")
     logger.info("Ctrl+C で停止")
 
     try:
