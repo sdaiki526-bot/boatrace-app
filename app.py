@@ -136,8 +136,15 @@ st.markdown("""
         padding: 3px;
         gap: 2px;
         border: 1px solid #374151;
+        width: 100%;
     }
-    .stTabs [data-baseweb="tab"] { border-radius: 6px; color: #9ca3af !important; font-weight: 600; }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 6px;
+        color: #9ca3af !important;
+        font-weight: 600;
+        flex: 1;
+        justify-content: center;
+    }
     .stTabs [aria-selected="true"] { background: #1d4ed8 !important; color: #fff !important; }
 
     /* 出走表行 */
