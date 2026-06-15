@@ -436,15 +436,20 @@ def exhibition_job():
 # ─────────────────────────────────────────────
 def retrain_job():
     import subprocess
+    import os as _os
 
     base_dir = Path(__file__).parent
     logger.info("=== 週次再学習バッチ開始 ===")
+
+    env = _os.environ.copy()
+    env["PYTHONIOENCODING"] = "utf-8"
 
     try:
         logger.info("build_dataset.py 実行中...")
         result = subprocess.run(
             ["python", str(base_dir / "build_dataset.py")],
-            cwd=str(base_dir), capture_output=True, text=True, timeout=3600,
+            cwd=str(base_dir), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", env=env, timeout=3600,
         )
         if result.returncode != 0:
             logger.error(f"build_dataset.py 失敗: {result.stderr[-2000:]}")
@@ -458,7 +463,8 @@ def retrain_job():
         logger.info("train_model.py 実行中...")
         result = subprocess.run(
             ["python", str(base_dir / "train_model.py")],
-            cwd=str(base_dir), capture_output=True, text=True, timeout=3600,
+            cwd=str(base_dir), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", env=env, timeout=3600,
         )
         if result.returncode != 0:
             logger.error(f"train_model.py 失敗: {result.stderr[-2000:]}")
