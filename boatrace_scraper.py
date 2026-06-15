@@ -455,3 +455,58 @@ class BoatraceScraper:
     def save_all_json(self, races, path):
         Path(path).write_text(json.dumps(races, ensure_ascii=False, indent=2), encoding="utf-8")
         logger.info(f"全レース → {path}")
+
+
+# ─────────────────────────────────────────────
+# 締切時刻取得（展示タイム取得タイミング判定用）
+# ─────────────────────────────────────────────
+def get_deadline_times(scraper: "BoatraceScraper", race_date, venue_code: str) -> dict:
+    """
+    指定会場の各レースの締切予定時刻を取得する。
+    raceindexページの各レース行（1R〜12R）から締切時刻を取得する。
+    戻り値: {race_no: datetime} の辞書（取得できなければ空辞書）
+    """
+    import re as _re
+    from datetime import datetime as _dt
+    vc = venue_code.zfill(2)
+    soup = scraper._get(f"{BASE_URL}/raceindex", {"hd": scraper._fmt_date(race_date), "jcd": vc})
+    if soup is None:
+        return {}
+
+    result = {}
+    tables = soup.select("table")
+    if not tables:
+        return result
+
+    # 最も行数が多いテーブルがレース一覧テーブル
+    target = max(tables, key=lambda t: len(t.select("tbody tr")), default=None)
+    if not target:
+        return result
+
+    for tbody in target.select("tbody"):
+        row = tbody.select_one("tr")
+        if not row:
+            continue
+        cells = row.select("td")
+        if len(cells) < 2:
+            continue
+
+        # 1列目: "1R" のようなレース番号リンク
+        race_link = cells[0].select_one("a")
+        race_text = race_link.text.strip() if race_link else cells[0].text.strip()
+        m = _re.match(r'(\d+)R', race_text)
+        if not m:
+            continue
+        rno = int(m.group(1))
+
+        # 2列目: "15:25" のような締切時刻
+        time_text = cells[1].text.strip()
+        tm = _re.match(r'(\d{1,2}):(\d{2})', time_text)
+        if not tm:
+            continue
+
+        hh, mm = int(tm.group(1)), int(tm.group(2))
+        dt = _dt.combine(race_date, _dt.min.time()).replace(hour=hh, minute=mm)
+        result[rno] = dt
+
+    return result

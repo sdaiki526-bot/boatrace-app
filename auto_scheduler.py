@@ -28,8 +28,8 @@ from supabase import create_client
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
-from boatrace_scraper import BoatraceScraper, VENUE_MAP
-from predictor import BoatracePredictor
+from boatrace_scraper import BoatraceScraper, VENUE_MAP, get_deadline_times
+from predictor import BoatracePredictor, MLPredictor
 from crawler import get_holding_venues
 
 try:
@@ -41,6 +41,15 @@ except ImportError:
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+
+
+def get_predictor():
+    """LightGBMモデルがあればMLPredictor、無ければルールベースにフォールバック"""
+    try:
+        return MLPredictor(model_dir=Path(__file__).parent / "models")
+    except FileNotFoundError as e:
+        logger.warning(f"MLモデル未検出。ルールベース予想を使用します: {e}")
+        return BoatracePredictor()
 
 # ─────────────────────────────────────────────
 # ロギング
@@ -133,11 +142,27 @@ def morning_job():
                 today_racers[venue][rno] = racers
                 logger.info(f"取得: {VENUE_MAP[venue]} {rno}R {len(racers)}艇")
 
-    # キャッシュ保存
+    # キャッシュ保存（ローカル）
     save_cache(today_racers, today)
 
+    # Supabaseにも保存
+    if supabase:
+        from dataclasses import asdict
+        for venue, races in today_racers.items():
+            for rno, racers in races.items():
+                try:
+                    supabase.table("today_racelist").upsert({
+                        "race_date": today.strftime("%Y%m%d"),
+                        "venue_code": venue,
+                        "venue_name": VENUE_MAP[venue],
+                        "race_no": rno,
+                        "racers": json.dumps([asdict(r) for r in racers], ensure_ascii=False),
+                    }, on_conflict="race_date,venue_code,race_no").execute()
+                except Exception as e:
+                    logger.error(f"出走表Supabase保存失敗: {e}")
+
     # 一括予想 + 記録
-    predictor = BoatracePredictor()
+    predictor = get_predictor()
     count = 0
     for venue, races in today_racers.items():
         for rno, racers in races.items():
@@ -236,12 +261,123 @@ def night_job():
 
 
 # ─────────────────────────────────────────────
+# 展示タイム更新処理: 締切60分以内のレースを更新
+# ─────────────────────────────────────────────
+EXHIBITION_DONE_FILE = Path("exhibition_done.json")
+
+def _load_exhibition_done():
+    if EXHIBITION_DONE_FILE.exists():
+        try:
+            data = json.loads(EXHIBITION_DONE_FILE.read_text(encoding="utf-8"))
+            today_str = date.today().strftime("%Y%m%d")
+            # 今日以外のキーは捨てる（日付が変わったらリセット）
+            return set(k for k in data if k.startswith(today_str))
+        except Exception:
+            return set()
+    return set()
+
+def _save_exhibition_done(done_set):
+    EXHIBITION_DONE_FILE.write_text(json.dumps(list(done_set), ensure_ascii=False), encoding="utf-8")
+
+
+def exhibition_job():
+    """
+    30分おきに実行。締切時刻が60分以内のレースについて
+    展示タイムを取得し、予想を再計算してSupabaseを更新する。
+    """
+    from before_info_scraper import BeforeInfoScraper
+    from datetime import datetime as _dt
+
+    today = date.today()
+    date_str = today.strftime("%Y%m%d")
+    done = _load_exhibition_done()
+
+    sc = BoatraceScraper(delay=1.0)
+    if not sc.login():
+        logger.error("ログイン失敗。展示タイム更新を中断します")
+        return
+
+    venues = get_holding_venues(sc, today)
+    if not venues:
+        return
+
+    now = _dt.now()
+    before_scraper = BeforeInfoScraper(delay=1.0)
+    predictor = get_predictor()
+    updated_count = 0
+
+    for venue in venues:
+        try:
+            deadlines = get_deadline_times(sc, today, venue)
+        except Exception as e:
+            logger.error(f"締切時刻取得失敗 {VENUE_MAP.get(venue, venue)}: {e}")
+            continue
+
+        for rno, deadline in deadlines.items():
+            key = f"{date_str}_{venue}_{rno}"
+            if key in done:
+                continue
+
+            minutes_to_deadline = (deadline - now).total_seconds() / 60
+            # 締切60分前〜締切後10分の間に処理対象とする
+            if not (-10 <= minutes_to_deadline <= 60):
+                continue
+
+            # 展示タイム取得
+            info = before_scraper.get_before_info(today, venue, rno)
+            if not info or not info.exhibitions:
+                continue
+
+            exhibition_times = {
+                e.lane: e.exhibition_time for e in info.exhibitions
+                if e.exhibition_time is not None
+            }
+            if not exhibition_times:
+                continue
+
+            # 出走表（既存予想の元データ）を再取得して予想更新
+            racers = sc.get_racelist(today, venue, rno)
+            if not racers:
+                continue
+
+            pred = predictor.predict(
+                racers,
+                race_date=date_str,
+                venue_name=VENUE_MAP[venue],
+                race_no=rno,
+                exhibition_times=exhibition_times,
+            )
+
+            save_record({
+                "race_date":   date_str,
+                "venue_code":  venue,
+                "venue_name":  VENUE_MAP[venue],
+                "race_no":     rno,
+                "tansho":      pred.tansho,
+                "sanren_tan":  pred.sanren_tan,
+                "sanren_fuku": pred.sanren_fuku,
+                "hit":         None,
+                "actual":      "",
+                "payout":      None,
+            })
+
+            done.add(key)
+            updated_count += 1
+            logger.info(f"展示タイム反映: {VENUE_MAP[venue]} {rno}R → {pred.sanren_tan}")
+
+    _save_exhibition_done(done)
+    if updated_count:
+        logger.info(f"✅ 展示タイム更新完了: {updated_count}レース")
+
+
+# ─────────────────────────────────────────────
 # スケジューラー起動
 # ─────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="競艇 毎日自動バッチ")
     parser.add_argument("--run-morning", action="store_true", help="朝の処理を今すぐ実行")
     parser.add_argument("--run-night",   action="store_true", help="夜の処理を今すぐ実行")
+    parser.add_argument("--run-exhibition", action="store_true", help="展示タイム更新を今すぐ実行")
     args = parser.parse_args()
 
     if args.run_morning:
@@ -252,12 +388,18 @@ def main():
         night_job()
         return
 
+    if args.run_exhibition:
+        exhibition_job()
+        return
+
     # スケジュール登録
     schedule.every().day.at("08:00").do(morning_job)
     schedule.every().day.at("23:00").do(night_job)
+    schedule.every(30).minutes.do(exhibition_job)
 
     logger.info("スケジューラー起動")
     logger.info("  08:00 → 出走表取得・一括予想・記録")
+    logger.info("  30分おき → 締切60分以内のレースの展示タイムを反映")
     logger.info("  23:00 → 昨日の結果取得・的中判定")
     logger.info("Ctrl+C で停止")
 
