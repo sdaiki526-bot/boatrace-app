@@ -217,6 +217,8 @@ def load_records():
                     "hit":         row.get("hit"),
                     "actual":      row.get("actual") or "",
                     "payout":      row.get("payout"),
+                    "top_score":   row.get("top_score"),
+                    "score_gap":   row.get("score_gap"),
                 })
             return records
         except Exception as e:
@@ -344,7 +346,54 @@ st.markdown(f"""
 # ─────────────────────────────────────────────
 # タブ
 # ─────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs(["🎯  予想", "📊  直前情報", "📋  結果確認", "📈  成績記録"])
+tab0, tab1, tab2, tab3, tab4 = st.tabs(["🔥  ピックアップ", "🎯  予想", "📊  直前情報", "📋  結果確認", "📈  成績記録"])
+
+# ─────────────────────────────────────────────
+# タブ0: ピックアップ
+# ─────────────────────────────────────────────
+PICKUP_TOP_SCORE_MIN = 35.0
+PICKUP_SCORE_GAP_MIN = 15.0
+
+with tab0:
+    records = load_records()
+    today_str = date.today().strftime("%Y%m%d")
+    today_records = [r for r in records if r["race_date"] == today_str]
+
+    pickups = [
+        r for r in today_records
+        if r.get("top_score") is not None and r.get("score_gap") is not None
+        and r["top_score"] >= PICKUP_TOP_SCORE_MIN
+        and r["score_gap"] >= PICKUP_SCORE_GAP_MIN
+    ]
+
+    st.markdown(
+        f"<p style='color:#9ca3af;font-size:0.85rem;margin-bottom:1rem'>"
+        f"1位確信度 {PICKUP_TOP_SCORE_MIN:.0f}%以上 かつ 2位との差 {PICKUP_SCORE_GAP_MIN:.0f}pt以上 のレースを表示"
+        f"</p>",
+        unsafe_allow_html=True,
+    )
+
+    if not today_records:
+        st.info("本日の予想データがまだありません。08:00のバッチを待つか、予想タブで取得してください。")
+    elif not pickups:
+        st.info("本日、条件を満たすレースはまだありません。")
+    else:
+        pickups_sorted = sorted(pickups, key=lambda r: r["top_score"], reverse=True)
+        for r in pickups_sorted:
+            card_html = (
+                "<div style='background:#1f2937;border:1px solid #f59e0b;border-radius:10px;"
+                "padding:1rem 1.2rem;margin:0.5rem 0;display:flex;align-items:center;"
+                "gap:1.2rem;flex-wrap:wrap'>"
+                f"<span style='font-size:1.1rem;font-weight:800;color:#fbbf24'>🔥 {r['venue_name']} {r['race_no']}R</span>"
+                f"<span style='color:#93c5fd;font-size:0.95rem'>単勝 <strong>{r['tansho']}</strong></span>"
+                f"<span style='color:#93c5fd;font-size:0.95rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                f"<span style='margin-left:auto;color:#9ca3af;font-size:0.85rem'>"
+                f"1位確信度 <strong style='color:#fbbf24'>{r['top_score']:.1f}</strong>"
+                f" / 差 <strong style='color:#fbbf24'>{r['score_gap']:.1f}</strong>pt</span>"
+                "</div>"
+            )
+            st.markdown(card_html, unsafe_allow_html=True)
+
 
 # ─────────────────────────────────────────────
 # タブ1: 予想

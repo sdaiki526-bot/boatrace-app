@@ -51,6 +51,16 @@ def get_predictor():
         logger.warning(f"MLモデル未検出。ルールベース予想を使用します: {e}")
         return BoatracePredictor()
 
+
+def _score_metrics(pred):
+    """予想結果から1位スコアと1位-2位の差を計算する"""
+    sorted_scores = sorted(pred.scores, key=lambda s: s.predicted_rank)
+    if len(sorted_scores) < 2:
+        return None, None
+    top_score = sorted_scores[0].total_score
+    score_gap = sorted_scores[0].total_score - sorted_scores[1].total_score
+    return round(top_score, 3), round(score_gap, 3)
+
 # ─────────────────────────────────────────────
 # ロギング
 # ─────────────────────────────────────────────
@@ -172,6 +182,7 @@ def morning_job():
                 venue_name=VENUE_MAP[venue],
                 race_no=rno,
             )
+            top_score, score_gap = _score_metrics(pred)
             record = {
                 "race_date":   today.strftime("%Y%m%d"),
                 "venue_code":  venue,
@@ -183,6 +194,8 @@ def morning_job():
                 "hit":         None,
                 "actual":      "",
                 "payout":      None,
+                "top_score":   top_score,
+                "score_gap":   score_gap,
             }
             save_record(record)
             count += 1
@@ -348,6 +361,7 @@ def exhibition_job():
                 exhibition_times=exhibition_times,
             )
 
+            top_score, score_gap = _score_metrics(pred)
             save_record({
                 "race_date":   date_str,
                 "venue_code":  venue,
@@ -359,6 +373,8 @@ def exhibition_job():
                 "hit":         None,
                 "actual":      "",
                 "payout":      None,
+                "top_score":   top_score,
+                "score_gap":   score_gap,
             })
 
             done.add(key)
