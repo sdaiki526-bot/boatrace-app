@@ -289,6 +289,37 @@ def get_scraper():
             return None
     return st.session_state.scraper
 
+def save_fetch_history(fetch_type, race_date_str, venue_code, venue_name, race_no):
+    if not supabase:
+        return
+    try:
+        supabase.table("fetch_history").insert({
+            "fetch_type":  fetch_type,
+            "race_date":   race_date_str,
+            "venue_code":  venue_code,
+            "venue_name":  venue_name,
+            "race_no":     race_no,
+        }).execute()
+    except Exception as e:
+        st.warning(f"履歴保存失敗: {e}")
+
+def load_fetch_history(fetch_type, limit=10):
+    if not supabase:
+        return []
+    try:
+        res = (
+            supabase.table("fetch_history")
+            .select("*")
+            .eq("fetch_type", fetch_type)
+            .order("fetched_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+        return res.data
+    except Exception as e:
+        st.warning(f"履歴読み込み失敗: {e}")
+        return []
+
 # ─────────────────────────────────────────────
 # セッション初期化
 # ─────────────────────────────────────────────
@@ -569,6 +600,7 @@ with tab2:
             info = before_scraper.get_before_info(date.today(), vc2, rno2)
             if info:
                 st.session_state.before_info = info
+                save_fetch_history("before_info", date.today().strftime("%Y%m%d"), vc2, VENUE_MAP[vc2], rno2)
                 st.success("✅  取得しました")
             else:
                 st.warning("直前情報がまだ公開されていません")
@@ -623,6 +655,27 @@ with tab2:
                 </div>
                 """, unsafe_allow_html=True)
 
+    # 取得履歴
+    st.markdown("---")
+    st.markdown("#### 📜 取得履歴")
+    history = load_fetch_history("before_info", limit=10)
+    if not history:
+        st.caption("まだ取得履歴がありません")
+    else:
+        for h in history:
+            ds = h["race_date"]
+            formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
+            fetched_at = h.get("fetched_at", "")
+            time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
+            st.markdown(
+                f"<div style='background:#1f2937;border:1px solid #374151;border-radius:8px;"
+                f"padding:0.5rem 1rem;margin:0.3rem 0;display:flex;gap:1rem;align-items:center;flex-wrap:wrap'>"
+                f"<span style='color:#64748b;font-size:0.85rem'>{formatted} {time_str}</span>"
+                f"<span style='font-weight:700;color:#e0e6ff'>{h['venue_name']} {h['race_no']}R</span>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
 # ─────────────────────────────────────────────
 # タブ3: 結果確認
 # ─────────────────────────────────────────────
@@ -658,6 +711,7 @@ with tab3:
                     # 記録更新
                     records = load_records()
                     date_str = date.today().strftime("%Y%m%d")
+                    save_fetch_history("result", date_str, vc3, VENUE_MAP[vc3], rno3)
                     for r in records:
                         if r["race_date"] == date_str and r["venue_code"] == vc3 and r["race_no"] == rno3:
                             hit, actual = check_hit(r["sanren_tan"], result.arrival)
@@ -681,6 +735,27 @@ with tab3:
                                 RECORD_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
                 else:
                     st.warning("結果がまだ出ていません")
+
+    # 取得履歴
+    st.markdown("---")
+    st.markdown("#### 📜 取得履歴")
+    history3 = load_fetch_history("result", limit=10)
+    if not history3:
+        st.caption("まだ取得履歴がありません")
+    else:
+        for h in history3:
+            ds = h["race_date"]
+            formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
+            fetched_at = h.get("fetched_at", "")
+            time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
+            st.markdown(
+                f"<div style='background:#1f2937;border:1px solid #374151;border-radius:8px;"
+                f"padding:0.5rem 1rem;margin:0.3rem 0;display:flex;gap:1rem;align-items:center;flex-wrap:wrap'>"
+                f"<span style='color:#64748b;font-size:0.85rem'>{formatted} {time_str}</span>"
+                f"<span style='font-weight:700;color:#e0e6ff'>{h['venue_name']} {h['race_no']}R</span>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
 
 # ─────────────────────────────────────────────
 # タブ4: 成績記録
