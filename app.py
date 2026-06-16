@@ -394,9 +394,11 @@ def load_today_racelist_from_supabase():
         date_str = date.today().strftime("%Y%m%d")
         res = supabase.table("today_racelist").select("*").eq("race_date", date_str).execute()
         if not res.data:
+            st.warning(f"DEBUG2: res.data が空 date={date_str}")
             return {}
         from boatrace_scraper import RacerInfo
         result = {}
+        error_count = 0
         for row in res.data:
             venue = row["venue_code"]
             rno = row["race_no"]
@@ -408,7 +410,11 @@ def load_today_racelist_from_supabase():
             try:
                 result[venue][rno] = [RacerInfo(**r) for r in racers_data]
             except Exception as e2:
-                st.warning(f"RacerInfo展開失敗 {venue} {rno}R: {e2}")
+                error_count += 1
+                if error_count <= 3:
+                    st.warning(f"DEBUG2: RacerInfo展開失敗 {venue} {rno}R: {e2} / keys={list(racers_data[0].keys()) if racers_data else []}")
+        if error_count > 0:
+            st.warning(f"DEBUG2: 展開失敗合計 {error_count}件")
         return result
     except Exception as e:
         st.warning(f"出走表Supabase読み込み失敗: {e}")
