@@ -422,6 +422,19 @@ def exhibition_job():
                 "odds_value":  odds_value,
             })
 
+            # 取得履歴に記録
+            if supabase:
+                try:
+                    supabase.table("fetch_history").insert({
+                        "fetch_type":  "before_info",
+                        "race_date":   date_str,
+                        "venue_code":  venue,
+                        "venue_name":  VENUE_MAP[venue],
+                        "race_no":     rno,
+                    }).execute()
+                except Exception as e:
+                    logger.warning(f"fetch_history保存失敗: {e}")
+
             done.add(key)
             updated_count += 1
             logger.info(f"展示タイム反映: {VENUE_MAP[venue]} {rno}R → {pred.sanren_tan}")
