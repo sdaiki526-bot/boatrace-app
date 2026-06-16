@@ -1118,6 +1118,7 @@ if page == "📈 成績記録":
             else:
                 badge = "<span style='background:#292524;border:1px solid #57534e;color:#d6d3d1;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>⏳ 未確認</span>"
 
+
             ds = r["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             actual_text = f"実際: <strong>{r['actual']}</strong>" if r["actual"] else ""
