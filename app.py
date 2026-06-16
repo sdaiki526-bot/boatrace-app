@@ -389,14 +389,12 @@ for key, val in {
 
 def load_today_racelist_from_supabase():
     if not supabase:
-        st.warning("DEBUG: Supabaseクライアントがありません")
         return {}
     try:
         date_str = date.today().strftime("%Y%m%d")
         res = supabase.table("today_racelist").select("*").eq("race_date", date_str).execute()
         if not res.data:
-            st.warning(f"DEBUG2: res.data が空 date={date_str}")
-            return {}
+                return {}
         from boatrace_scraper import RacerInfo
         result = {}
         error_count = 0
@@ -412,10 +410,6 @@ def load_today_racelist_from_supabase():
                 result[venue][rno] = [RacerInfo(**r) for r in racers_data]
             except Exception as e2:
                 error_count += 1
-                if error_count <= 3:
-                    st.warning(f"DEBUG2: RacerInfo展開失敗 {venue} {rno}R: {e2} / keys={list(racers_data[0].keys()) if racers_data else []}")
-        if error_count > 0:
-            st.warning(f"DEBUG2: 展開失敗合計 {error_count}件")
         return result
     except Exception as e:
         st.warning(f"出走表Supabase読み込み失敗: {e}")
@@ -452,10 +446,8 @@ if "today_racers" not in st.session_state or not st.session_state.today_racers:
     cached = load_cache()
     if cached:
         st.session_state.today_racers = restore_cache(cached)
-        st.info(f"DEBUG: キャッシュから読み込み 会場数={len(st.session_state.today_racers)}")
     else:
         st.session_state.today_racers = load_today_racelist_from_supabase()
-        st.info(f"DEBUG: Supabaseから読み込み 会場数={len(st.session_state.today_racers)}")
 
 if "deadline_times" not in st.session_state or not st.session_state.deadline_times:
     st.session_state.deadline_times = load_deadline_times_from_supabase()
