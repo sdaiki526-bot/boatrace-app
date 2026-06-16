@@ -663,7 +663,6 @@ with tab1:
                     else:
                         st.session_state.selected_race = (venue, rno)
                         st.session_state.prediction = None
-                    st.rerun()
 
         if past:
             with st.expander(f"終了済みレース ({len(past)}件)", expanded=False):
@@ -680,7 +679,6 @@ with tab1:
                         else:
                             st.session_state.selected_race = (venue, rno)
                             st.session_state.prediction = None
-                        st.rerun()
 
         if not upcoming and not past:
             st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
