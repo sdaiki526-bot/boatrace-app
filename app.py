@@ -700,7 +700,7 @@ if page == "🎯 予想":
                     st.rerun()
 
     if st.session_state.today_racers:
-        # 締切時刻順のレース一覧
+        # 締切時刻順のレース一覧（未来のレースのみ）
         from datetime import datetime as _dt
         now_time = _dt.now().strftime("%H:%M")
 
@@ -711,9 +711,10 @@ if page == "🎯 予想":
                 info = deadline_times.get((venue, rno))
                 deadline_str = info["deadline_time"] if info else None
                 is_past = deadline_str is not None and deadline_str < now_time
-                race_list.append((deadline_str, venue, rno, is_past))
+                if not is_past:  # 終了済みは除外
+                    race_list.append((deadline_str, venue, rno))
 
-        # 締切時刻あり→時刻順、無し→末尾に会場・レース番号順
+        # 締切時刻あり→時刻順（現在に近い順）、無し→末尾
         race_list_with_time = sorted(
             [r for r in race_list if r[0]], key=lambda r: r[0]
         )
@@ -722,18 +723,14 @@ if page == "🎯 予想":
         )
         race_list_sorted = race_list_with_time + race_list_without_time
 
-        # 未来のレースのみ表示（過去は非表示）
-        upcoming = [r for r in race_list_sorted if not r[3]]
-        past = [r for r in race_list_sorted if r[3]]
-
         st.markdown("#### 本日のレース一覧（出走時刻順）")
 
         def _show_race_detail(venue, rno):
-            """選択レースの出走表・予想ボタンを表示"""
+            """選択レースの出走表・予想ボタン・予想結果をインライン表示"""
             racers = st.session_state.today_racers[venue][rno]
             st.markdown(
-                f"<div style='background:#0f172a;border:1px solid #1d4ed8;border-radius:10px;"
-                f"padding:1rem 1.2rem;margin:0.3rem 0 0.8rem'>",
+                "<div style='background:#0f172a;border:1px solid #1d4ed8;border-radius:10px;"
+                "padding:1rem 1.2rem;margin:0.3rem 0 0.8rem'>",
                 unsafe_allow_html=True,
             )
             st.markdown(f"**{VENUE_MAP[venue]} {rno}R 出走表**")
@@ -756,6 +753,7 @@ if page == "🎯 予想":
                 </div>
                 """, unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
+
             if st.button("🎯 このレースを予想する", type="primary",
                          use_container_width=True, key=f"predict_{venue}_{rno}"):
                 predictor = get_predictor()
@@ -772,10 +770,56 @@ if page == "🎯 予想":
                     "sanren_fuku": pred.sanren_fuku, "hit": None, "actual": "", "payout": None,
                     "top_score": top_score, "score_gap": score_gap,
                 })
-                st.success("✅  予想を記録しました")
 
-        if upcoming:
-            for deadline_str, venue, rno, is_past in upcoming:
+            # 予想結果もインライン表示
+            pred = st.session_state.get("prediction")
+            if pred and st.session_state.get("last_venue") == venue and st.session_state.get("last_race") == rno:
+                sorted_scores = sorted(pred.scores, key=lambda s: s.predicted_rank)
+                medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣"]
+                st.markdown("---")
+                st.markdown("### 🏆 予想結果")
+
+                fig = go.Figure(go.Bar(
+                    x=[s.total_score for s in sorted_scores],
+                    y=[f"{s.lane}枠 {s.name}" for s in sorted_scores],
+                    orientation='h',
+                    marker_color=['#f59e0b','#94a3b8','#b45309','#475569','#475569','#475569'],
+                    text=[f"{s.total_score:.1f}" for s in sorted_scores],
+                    textposition='outside',
+                ))
+                fig.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                    font_color='#94a3b8', height=220,
+                    margin=dict(l=10, r=60, t=10, b=10),
+                    xaxis=dict(gridcolor='#1e293b', showgrid=True),
+                    yaxis=dict(autorange='reversed'),
+                    showlegend=False,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    st.markdown(f"""
+                    <div class="buy-box">
+                        <p class="buy-title">💰 推奨買い目</p>
+                        <p style="color:#94a3b8;font-size:0.85rem;margin:0">単勝</p>
+                        <div class="buy-combo">{pred.tansho}</div>
+                        <p style="color:#94a3b8;font-size:0.85rem;margin:0.8rem 0 0">3連単</p>
+                        {''.join([f'<div class="buy-combo">{c}</div>' for c in pred.sanren_tan])}
+                        <p style="color:#94a3b8;font-size:0.85rem;margin:0.8rem 0 0">3連複</p>
+                        <div class="buy-combo">{pred.sanren_fuku}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col_b:
+                    st.markdown(f"""
+                    <div class="buy-box">
+                        <p class="buy-title">📊 予想順位</p>
+                        {''.join([f'<p style="margin:0.4rem 0;color:#e0e6ff">{medals[s.predicted_rank-1]} {s.lane}枠 {s.name} <span style="color:#3b82f6;font-weight:700">{s.total_score:.1f}pt</span></p>' for s in sorted_scores])}
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        if race_list_sorted:
+            for deadline_str, venue, rno in race_list_sorted:
                 time_label = deadline_str if deadline_str else "--:--"
                 is_selected = st.session_state.selected_race == (venue, rno)
                 label = f"⏰ {time_label}　{VENUE_MAP[venue]} {rno}R"
@@ -789,86 +833,13 @@ if page == "🎯 予想":
                         st.session_state.selected_race = (venue, rno)
                         st.session_state.prediction = None
                     st.rerun()
-                # 選択中のレースのすぐ下に出走表を展開
                 if is_selected:
                     _show_race_detail(venue, rno)
-
-        if past:
-            with st.expander(f"終了済みレース ({len(past)}件)", expanded=False):
-                for deadline_str, venue, rno, is_past in past:
-                    time_label = deadline_str if deadline_str else "--:--"
-                    is_selected = st.session_state.selected_race == (venue, rno)
-                    label = f"✅ {time_label}　{VENUE_MAP[venue]} {rno}R"
-                    if st.button(label, key=f"race_select_{venue}_{rno}",
-                                  type="primary" if is_selected else "secondary",
-                                  use_container_width=True):
-                        if is_selected:
-                            st.session_state.selected_race = None
-                            st.session_state.prediction = None
-                        else:
-                            st.session_state.selected_race = (venue, rno)
-                            st.session_state.prediction = None
-                        st.rerun()
-                    if is_selected:
-                        _show_race_detail(venue, rno)
-
-        if not upcoming and not past:
-            st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
+        else:
+            st.info("本日のレースは全て終了しました。")
 
     else:
         st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
-
-    # 予想結果表示
-    if st.session_state.prediction:
-        pred = st.session_state.prediction
-        st.markdown("---")
-        st.markdown("### 🏆  予想結果")
-
-        sorted_scores = sorted(pred.scores, key=lambda s: s.predicted_rank)
-        medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣"]
-
-        # スコアバーチャート
-        fig = go.Figure(go.Bar(
-            x=[s.total_score for s in sorted_scores],
-            y=[f"{s.lane}枠 {s.name}" for s in sorted_scores],
-            orientation='h',
-            marker_color=['#f59e0b','#94a3b8','#b45309','#475569','#475569','#475569'],
-            text=[f"{s.total_score:.1f}" for s in sorted_scores],
-            textposition='outside',
-        ))
-        fig.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font_color='#94a3b8',
-            height=220,
-            margin=dict(l=10, r=60, t=10, b=10),
-            xaxis=dict(gridcolor='#1e293b', showgrid=True),
-            yaxis=dict(autorange='reversed'),
-            showlegend=False,
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-        # 買い目
-        col_a, col_b = st.columns(2)
-        with col_a:
-            st.markdown(f"""
-            <div class="buy-box">
-                <p class="buy-title">💰 推奨買い目</p>
-                <p style="color:#94a3b8;font-size:0.85rem;margin:0">単勝</p>
-                <div class="buy-combo">{pred.tansho}</div>
-                <p style="color:#94a3b8;font-size:0.85rem;margin:0.8rem 0 0">3連単</p>
-                {''.join([f'<div class="buy-combo">{c}</div>' for c in pred.sanren_tan])}
-                <p style="color:#94a3b8;font-size:0.85rem;margin:0.8rem 0 0">3連複</p>
-                <div class="buy-combo">{pred.sanren_fuku}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with col_b:
-            st.markdown(f"""
-            <div class="buy-box">
-                <p class="buy-title">📊 予想順位</p>
-                {''.join([f'<p style="margin:0.4rem 0;color:#e0e6ff">{medals[s.predicted_rank-1]} {s.lane}枠 {s.name} <span style="color:#3b82f6;font-weight:700">{s.total_score:.1f}pt</span></p>' for s in sorted_scores])}
-            </div>
-            """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # タブ2: 直前情報
