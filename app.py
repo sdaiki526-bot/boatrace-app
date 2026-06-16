@@ -389,10 +389,12 @@ for key, val in {
 
 def load_today_racelist_from_supabase():
     if not supabase:
+        st.warning("Supabaseクライアントが初期化されていません")
         return {}
     try:
         date_str = date.today().strftime("%Y%m%d")
         res = supabase.table("today_racelist").select("*").eq("race_date", date_str).execute()
+        st.info(f"DEBUG: today_racelist取得 date={date_str} 件数={len(res.data) if res.data else 0}")
         if not res.data:
             return {}
         from boatrace_scraper import RacerInfo
@@ -405,7 +407,10 @@ def load_today_racelist_from_supabase():
                 racers_data = json.loads(racers_data)
             if venue not in result:
                 result[venue] = {}
-            result[venue][rno] = [RacerInfo(**r) for r in racers_data]
+            try:
+                result[venue][rno] = [RacerInfo(**r) for r in racers_data]
+            except Exception as e2:
+                st.warning(f"RacerInfo展開失敗 {venue} {rno}R: {e2}")
         return result
     except Exception as e:
         st.warning(f"出走表Supabase読み込み失敗: {e}")
