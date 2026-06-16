@@ -146,7 +146,7 @@ st.markdown("""
         text-align: center;
     }
     .stat-value { font-size: 1.8rem; font-weight: 800; color: #60a5fa; }
-    .stat-label { font-size: 0.78rem; color: #6b7280; margin-top: 0.2rem; }
+    .stat-label { font-size: 0.78rem; color: #94a3b8; margin-top: 0.2rem; }
 
     /* 買い目ボックス */
     .buy-box {
@@ -242,7 +242,7 @@ st.markdown("""
         gap: 1rem;
         flex-wrap: wrap;
     }
-    hr { border-color: #374151 !important; }
+    hr { border-color: #94a3b8 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -552,7 +552,7 @@ st.markdown("""
     [data-testid="stSidebar"] .stRadio > label > div:first-child { display: none; }
 
     /* サイドバーのキャプション */
-    [data-testid="stSidebar"] .stCaption { color: #64748b !important; font-size: 0.78rem; }
+    [data-testid="stSidebar"] .stCaption { color: #94a3b8 !important; font-size: 0.78rem; }
     [data-testid="stSidebar"] hr { border-color: #1e3a8a !important; margin: 1rem 0; }
 </style>
 """, unsafe_allow_html=True)
@@ -744,14 +744,14 @@ if page == "🎯 予想":
                     <div class="lane-badge lane-{r.lane}">{r.lane}</div>
                     <div style="flex:1">
                         <span style="font-weight:700;color:#e0e6ff">{r.name}</span>
-                        <span style="margin-left:8px;font-size:0.8rem;color:#64748b">{r.rank}</span>
+                        <span style="margin-left:8px;font-size:0.8rem;color:#94a3b8">{r.rank}</span>
                     </div>
                     <div style="text-align:right">
-                        <span style="font-size:0.85rem;color:#64748b">勝率 </span>
+                        <span style="font-size:0.85rem;color:#94a3b8">勝率 </span>
                         <span style="font-weight:700;color:#3b82f6">{r.win_rate_all or '-'}</span>
                     </div>
                     <div style="text-align:right;min-width:80px">
-                        <span style="font-size:0.85rem;color:#64748b">モーター </span>
+                        <span style="font-size:0.85rem;color:#94a3b8">モーター </span>
                         <span style="font-weight:600;color:#94a3b8">{r.motor_2rate or '-'}%</span>
                     </div>
                 </div>
@@ -1232,7 +1232,7 @@ if page == "📈 成績記録":
                 f"<div style='background:#0d1b3e;border:{border_width} solid {border_color};border-radius:10px;"
                 "padding:0.8rem 1rem;margin:0.4rem 0;display:flex;align-items:center;"
                 "gap:1rem;flex-wrap:wrap'>"
-                f"<span style='color:#64748b;font-size:0.85rem'>{formatted}</span>"
+                f"<span style='color:#94a3b8;font-size:0.85rem'>{formatted}</span>"
                 f"<span style='font-weight:700;color:#e0e6ff'>{r['venue_name']} {r['race_no']}R</span>"
                 f"<span style='color:#3b82f6;font-size:0.85rem'>{' / '.join(r['sanren_tan'])}</span>"
                 f"{extra1}{extra2}"
