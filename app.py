@@ -510,6 +510,9 @@ st.markdown("""
     }
     [data-testid="stSidebar"] > div { padding-top: 1.5rem; }
 
+    /* サイドバー全体のテキストを白に */
+    [data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+
     /* ラジオボタンをナビメニュー風に */
     [data-testid="stSidebar"] .stRadio > div {
         gap: 0.3rem;
@@ -519,7 +522,7 @@ st.markdown("""
         border: none;
         border-radius: 10px;
         padding: 0.65rem 1rem;
-        color: #94a3b8 !important;
+        color: #cbd5e1 !important;
         font-weight: 600;
         font-size: 0.95rem;
         cursor: pointer;
@@ -530,10 +533,11 @@ st.markdown("""
         gap: 0.5rem;
     }
     [data-testid="stSidebar"] .stRadio label:hover {
-        background: rgba(59,130,246,0.12);
-        color: #e0e6ff !important;
+        background: rgba(59,130,246,0.15);
+        color: #ffffff !important;
     }
-    [data-testid="stSidebar"] .stRadio label[data-testid="stMarkdownContainer"] p {
+    [data-testid="stSidebar"] .stRadio label p,
+    [data-testid="stSidebar"] .stRadio label span {
         color: inherit !important;
     }
     /* 選択中のラジオ */
@@ -548,7 +552,7 @@ st.markdown("""
     [data-testid="stSidebar"] .stRadio > label > div:first-child { display: none; }
 
     /* サイドバーのキャプション */
-    [data-testid="stSidebar"] .stCaption { color: #475569 !important; font-size: 0.78rem; }
+    [data-testid="stSidebar"] .stCaption { color: #64748b !important; font-size: 0.78rem; }
     [data-testid="stSidebar"] hr { border-color: #1e3a8a !important; margin: 1rem 0; }
 </style>
 """, unsafe_allow_html=True)
