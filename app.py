@@ -950,14 +950,28 @@ if page == "📊 直前情報":
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             fetched_at = h.get("fetched_at", "")
             time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
-            st.markdown(
-                f"<div style='background:#1f2937;border:1px solid #374151;border-radius:8px;"
-                f"padding:0.5rem 1rem;margin:0.3rem 0;display:flex;gap:1rem;align-items:center;flex-wrap:wrap'>"
-                f"<span style='color:#64748b;font-size:0.85rem'>{formatted} {time_str}</span>"
-                f"<span style='font-weight:700;color:#e0e6ff'>{h['venue_name']} {h['race_no']}R</span>"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
+            race_date_obj = date(int(ds[:4]), int(ds[4:6]), int(ds[6:]))
+            with st.expander(f"📊 {formatted} {time_str}　{h['venue_name']} {h['race_no']}R"):
+                sc2 = get_scraper()
+                if sc2:
+                    before_scraper2 = BeforeInfoScraper(delay=1.0)
+                    with st.spinner("取得中..."):
+                        info2 = before_scraper2.get_before_info(race_date_obj, h["venue_code"], h["race_no"])
+                    if info2:
+                        if info2.weather:
+                            w = info2.weather
+                            c1, c2, c3, c4 = st.columns(4)
+                            with c1: st.metric("🌡 気温", f"{w.temperature}℃" if w.temperature else "-")
+                            with c2: st.metric("💨 風速", f"{w.wind_speed}m" if w.wind_speed else "-")
+                            with c3: st.metric("🌊 波高", f"{w.wave_height}cm" if w.wave_height else "-")
+                            with c4: st.metric("💧 水温", f"{w.water_temp}℃" if w.water_temp else "-")
+                        if info2.exhibitions:
+                            st.markdown("**展示タイム**")
+                            for e in info2.exhibitions:
+                                if e.exhibition_time:
+                                    st.markdown(f"<div class='racer-row'><div class='lane-badge lane-{e.lane}'>{e.lane}</div><span style='color:#e0e6ff'>{e.name or ''}</span><span style='margin-left:auto;font-weight:700;color:#3b82f6'>{e.exhibition_time}</span></div>", unsafe_allow_html=True)
+                    else:
+                        st.caption("データが取得できませんでした")
 
 # ─────────────────────────────────────────────
 # タブ3: 結果確認
@@ -1026,19 +1040,34 @@ if page == "📋 結果確認":
     if not history3:
         st.markdown("<span style='color:#94a3b8;font-size:0.85rem'>まだ取得履歴がありません</span>", unsafe_allow_html=True)
     else:
+        all_records = load_records()
         for h in history3:
             ds = h["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             fetched_at = h.get("fetched_at", "")
             time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
-            st.markdown(
-                f"<div style='background:#1f2937;border:1px solid #374151;border-radius:8px;"
-                f"padding:0.5rem 1rem;margin:0.3rem 0;display:flex;gap:1rem;align-items:center;flex-wrap:wrap'>"
-                f"<span style='color:#64748b;font-size:0.85rem'>{formatted} {time_str}</span>"
-                f"<span style='font-weight:700;color:#e0e6ff'>{h['venue_name']} {h['race_no']}R</span>"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
+            with st.expander(f"📋 {formatted} {time_str}　{h['venue_name']} {h['race_no']}R"):
+                matched = [r for r in all_records
+                           if r["race_date"] == h["race_date"]
+                           and r["venue_code"] == h["venue_code"]
+                           and r["race_no"] == h["race_no"]]
+                if matched:
+                    r = matched[0]
+                    medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣"]
+                    if r.get("actual"):
+                        parts = r["actual"].split("-")
+                        for i, p in enumerate(parts[:3]):
+                            st.markdown(f"<p style='margin:0.2rem 0;color:#e0e6ff'>{medals[i]} <strong>{p}号艇</strong></p>", unsafe_allow_html=True)
+                    if r.get("payout"):
+                        st.markdown(f"<p style='color:#3b82f6;font-weight:700;margin-top:0.5rem'>払戻: ¥{r['payout']:,}</p>", unsafe_allow_html=True)
+                    if r.get("hit") is True:
+                        st.success("🎉 的中！")
+                    elif r.get("hit") is False:
+                        st.error(f"❌ ハズレ　予想: {' / '.join(r['sanren_tan'])}")
+                    else:
+                        st.caption("未確認")
+                else:
+                    st.caption("予想記録が見つかりません")
 
 # ─────────────────────────────────────────────
 # タブ4: 成績記録
