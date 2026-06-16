@@ -949,7 +949,7 @@ if page == "📊 直前情報":
     st.markdown("#### 📜 取得履歴")
     history = load_fetch_history("before_info", limit=10)
     if not history:
-        st.caption("まだ取得履歴がありません")
+        st.markdown("<span style='color:#94a3b8;font-size:0.85rem'>まだ取得履歴がありません</span>", unsafe_allow_html=True)
     else:
         for h in history:
             ds = h["race_date"]
@@ -1030,7 +1030,7 @@ if page == "📋 結果確認":
     st.markdown("#### 📜 取得履歴")
     history3 = load_fetch_history("result", limit=10)
     if not history3:
-        st.caption("まだ取得履歴がありません")
+        st.markdown("<span style='color:#94a3b8;font-size:0.85rem'>まだ取得履歴がありません</span>", unsafe_allow_html=True)
     else:
         for h in history3:
             ds = h["race_date"]
