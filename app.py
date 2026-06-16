@@ -973,10 +973,13 @@ with tab4:
         hits = [r for r in checked if r["hit"]]
         hit_rate = len(hits) / len(checked) * 100 if checked else 0
         total_payout = sum(r["payout"] or 0 for r in hits)
-        total_cost = len(checked) * 100  # 仮に1レース100円
+        total_cost = len(checked) * 300  # 1レース300円（3連単3点）
+        profit = total_payout - total_cost
+        profit_color = "#10b981" if profit >= 0 else "#ef4444"
+        profit_sign = "+" if profit >= 0 else ""
 
         # サマリーカード
-        c1, c2, c3, c4 = st.columns(4)
+        c1, c2, c3, c4, c5, c6 = st.columns(6)
         with c1:
             st.markdown(f'<div class="stat-card"><div class="stat-value">{len(records)}</div><div class="stat-label">総予想数</div></div>', unsafe_allow_html=True)
         with c2:
@@ -985,6 +988,10 @@ with tab4:
             st.markdown(f'<div class="stat-card"><div class="stat-value">{hit_rate:.1f}%</div><div class="stat-label">的中率</div></div>', unsafe_allow_html=True)
         with c4:
             st.markdown(f'<div class="stat-card"><div class="stat-value">¥{total_payout:,}</div><div class="stat-label">総払戻金</div></div>', unsafe_allow_html=True)
+        with c5:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">¥{total_cost:,}</div><div class="stat-label">総投資額</div></div>', unsafe_allow_html=True)
+        with c6:
+            st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{profit_color}">{profit_sign}¥{profit:,}</div><div class="stat-label">収支</div></div>', unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 

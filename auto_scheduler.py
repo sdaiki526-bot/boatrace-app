@@ -289,7 +289,7 @@ def _check_and_update_results(sc, target_date):
 
     save_records(records)
 
-    # Supabaseの該当レコードを更新
+    # Supabaseの該当レコードを更新 + 結果履歴を保存
     if supabase:
         for r in checked_records:
             try:
@@ -300,6 +300,18 @@ def _check_and_update_results(sc, target_date):
                 }).eq("race_date", r["race_date"]).eq("venue_code", r["venue_code"]).eq("race_no", r["race_no"]).execute()
             except Exception as e:
                 logger.error(f"Supabase更新失敗: {e}")
+
+            # 取得履歴に記録
+            try:
+                supabase.table("fetch_history").insert({
+                    "fetch_type":  "result",
+                    "race_date":   r["race_date"],
+                    "venue_code":  r["venue_code"],
+                    "venue_name":  r["venue_name"],
+                    "race_no":     r["race_no"],
+                }).execute()
+            except Exception as e:
+                logger.warning(f"fetch_history保存失敗: {e}")
 
     total_checked = hit_count + miss_count
     hit_rate = hit_count / total_checked * 100 if total_checked > 0 else 0
