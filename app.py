@@ -621,12 +621,18 @@ with tab1:
 
     if st.session_state.today_racers:
         # 締切時刻順のレース一覧
+        from datetime import datetime as _dt
+        now_time = _dt.now().strftime("%H:%M")
+
         deadline_times = st.session_state.deadline_times
         race_list = []
         for venue, races in st.session_state.today_racers.items():
             for rno in races.keys():
                 info = deadline_times.get((venue, rno))
                 deadline_str = info["deadline_time"] if info else None
+                # 締切時刻が過ぎたレースは除外
+                if deadline_str and deadline_str < now_time:
+                    continue
                 race_list.append((deadline_str, venue, rno))
 
         # 締切時刻あり→時刻順、無し→末尾に会場・レース番号順
