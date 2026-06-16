@@ -630,10 +630,8 @@ with tab1:
             for rno in races.keys():
                 info = deadline_times.get((venue, rno))
                 deadline_str = info["deadline_time"] if info else None
-                # 締切時刻が過ぎたレースは除外
-                if deadline_str and deadline_str < now_time:
-                    continue
-                race_list.append((deadline_str, venue, rno))
+                is_past = deadline_str is not None and deadline_str < now_time
+                race_list.append((deadline_str, venue, rno, is_past))
 
         # 締切時刻あり→時刻順、無し→末尾に会場・レース番号順
         race_list_with_time = sorted(
@@ -644,13 +642,16 @@ with tab1:
         )
         race_list_sorted = race_list_with_time + race_list_without_time
 
-        st.markdown("#### 本日のレース一覧（出走時刻順）")
-        for deadline_str, venue, rno in race_list_sorted:
-            time_label = deadline_str if deadline_str else "--:--"
-            is_selected = st.session_state.selected_race == (venue, rno)
+        # 未来のレースのみ表示（過去は非表示）
+        upcoming = [r for r in race_list_sorted if not r[3]]
+        past = [r for r in race_list_sorted if r[3]]
 
-            col_btn, = st.columns(1)
-            with col_btn:
+        st.markdown("#### 本日のレース一覧（出走時刻順）")
+
+        if upcoming:
+            for deadline_str, venue, rno, is_past in upcoming:
+                time_label = deadline_str if deadline_str else "--:--"
+                is_selected = st.session_state.selected_race == (venue, rno)
                 label = f"⏰ {time_label}　{VENUE_MAP[venue]} {rno}R"
                 if st.button(label, key=f"race_select_{venue}_{rno}",
                               type="primary" if is_selected else "secondary",
@@ -662,6 +663,26 @@ with tab1:
                         st.session_state.selected_race = (venue, rno)
                         st.session_state.prediction = None
                     st.rerun()
+
+        if past:
+            with st.expander(f"終了済みレース ({len(past)}件)", expanded=False):
+                for deadline_str, venue, rno, is_past in past:
+                    time_label = deadline_str if deadline_str else "--:--"
+                    is_selected = st.session_state.selected_race == (venue, rno)
+                    label = f"✅ {time_label}　{VENUE_MAP[venue]} {rno}R"
+                    if st.button(label, key=f"race_select_{venue}_{rno}",
+                                  type="primary" if is_selected else "secondary",
+                                  use_container_width=True):
+                        if is_selected:
+                            st.session_state.selected_race = None
+                            st.session_state.prediction = None
+                        else:
+                            st.session_state.selected_race = (venue, rno)
+                            st.session_state.prediction = None
+                        st.rerun()
+
+        if not upcoming and not past:
+            st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
