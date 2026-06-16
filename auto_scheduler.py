@@ -590,6 +590,7 @@ def main():
     logger.info("  月曜 05:00 → データセット再構築・モデル週次再学習・Git自動push")
     logger.info("Ctrl+C で停止")
 
+
     try:
         while True:
             schedule.run_pending()
