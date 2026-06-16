@@ -700,28 +700,32 @@ if page == "🎯 予想":
                     st.rerun()
 
     if st.session_state.today_racers:
-        # 締切時刻順のレース一覧（未来のレースのみ）
+        # 締切時刻順のレース一覧
         from datetime import datetime as _dt
-        now_time = _dt.now().strftime("%H:%M")
+        from datetime import timezone, timedelta
+        JST = timezone(timedelta(hours=9))
+        now_time = _dt.now(JST).strftime("%H:%M")
 
         deadline_times = st.session_state.deadline_times
-        race_list = []
+        upcoming_list = []
+        past_list = []
         for venue, races in st.session_state.today_racers.items():
             for rno in races.keys():
                 info = deadline_times.get((venue, rno))
                 deadline_str = info["deadline_time"] if info else None
                 is_past = deadline_str is not None and deadline_str < now_time
-                if not is_past:  # 終了済みは除外
-                    race_list.append((deadline_str, venue, rno))
+                if is_past:
+                    past_list.append((deadline_str, venue, rno))
+                else:
+                    upcoming_list.append((deadline_str, venue, rno))
 
-        # 締切時刻あり→時刻順（現在に近い順）、無し→末尾
-        race_list_with_time = sorted(
-            [r for r in race_list if r[0]], key=lambda r: r[0]
-        )
-        race_list_without_time = sorted(
-            [r for r in race_list if not r[0]], key=lambda r: (r[1], r[2])
-        )
-        race_list_sorted = race_list_with_time + race_list_without_time
+        upcoming_sorted = sorted(
+            [r for r in upcoming_list if r[0]], key=lambda r: r[0]
+        ) + sorted([r for r in upcoming_list if not r[0]], key=lambda r: (r[1], r[2]))
+
+        past_sorted = sorted(
+            [r for r in past_list if r[0]], key=lambda r: r[0], reverse=True
+        ) + sorted([r for r in past_list if not r[0]], key=lambda r: (r[1], r[2]))
 
         st.markdown("#### 本日のレース一覧（出走時刻順）")
 
@@ -818,8 +822,8 @@ if page == "🎯 予想":
                     </div>
                     """, unsafe_allow_html=True)
 
-        if race_list_sorted:
-            for deadline_str, venue, rno in race_list_sorted:
+        if upcoming_sorted:
+            for deadline_str, venue, rno in upcoming_sorted:
                 time_label = deadline_str if deadline_str else "--:--"
                 is_selected = st.session_state.selected_race == (venue, rno)
                 label = f"⏰ {time_label}　{VENUE_MAP[venue]} {rno}R"
@@ -835,8 +839,27 @@ if page == "🎯 予想":
                     st.rerun()
                 if is_selected:
                     _show_race_detail(venue, rno)
-        else:
+        elif past_sorted:
             st.info("本日のレースは全て終了しました。")
+            with st.expander(f"終了済みレース ({len(past_sorted)}件)", expanded=False):
+                for deadline_str, venue, rno in past_sorted:
+                    time_label = deadline_str if deadline_str else "--:--"
+                    is_selected = st.session_state.selected_race == (venue, rno)
+                    label = f"✅ {time_label}　{VENUE_MAP[venue]} {rno}R"
+                    if st.button(label, key=f"race_select_{venue}_{rno}",
+                                  type="primary" if is_selected else "secondary",
+                                  use_container_width=True):
+                        if is_selected:
+                            st.session_state.selected_race = None
+                            st.session_state.prediction = None
+                        else:
+                            st.session_state.selected_race = (venue, rno)
+                            st.session_state.prediction = None
+                        st.rerun()
+                    if is_selected:
+                        _show_race_detail(venue, rno)
+        else:
+            st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
 
     else:
         st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
