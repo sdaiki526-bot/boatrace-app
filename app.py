@@ -501,13 +501,78 @@ st.markdown(header_html, unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 # サイドバーナビゲーション
 # ─────────────────────────────────────────────
+st.markdown("""
+<style>
+    /* サイドバー背景 */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        border-right: 1px solid #1e3a8a;
+    }
+    [data-testid="stSidebar"] > div { padding-top: 1.5rem; }
+
+    /* ラジオボタンをナビメニュー風に */
+    [data-testid="stSidebar"] .stRadio > div {
+        gap: 0.3rem;
+    }
+    [data-testid="stSidebar"] .stRadio label {
+        background: transparent;
+        border: none;
+        border-radius: 10px;
+        padding: 0.65rem 1rem;
+        color: #94a3b8 !important;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    [data-testid="stSidebar"] .stRadio label:hover {
+        background: rgba(59,130,246,0.12);
+        color: #e0e6ff !important;
+    }
+    [data-testid="stSidebar"] .stRadio label[data-testid="stMarkdownContainer"] p {
+        color: inherit !important;
+    }
+    /* 選択中のラジオ */
+    [data-testid="stSidebar"] .stRadio [aria-checked="true"] + label,
+    [data-testid="stSidebar"] .stRadio input:checked + label {
+        background: linear-gradient(90deg, #1d4ed8, #2563eb);
+        color: #fff !important;
+        box-shadow: 0 2px 8px rgba(29,78,216,0.4);
+    }
+    /* ラジオボタンの丸を非表示 */
+    [data-testid="stSidebar"] .stRadio input[type="radio"] { display: none; }
+    [data-testid="stSidebar"] .stRadio > label > div:first-child { display: none; }
+
+    /* サイドバーのキャプション */
+    [data-testid="stSidebar"] .stCaption { color: #475569 !important; font-size: 0.78rem; }
+    [data-testid="stSidebar"] hr { border-color: #1e3a8a !important; margin: 1rem 0; }
+</style>
+""", unsafe_allow_html=True)
+
 with st.sidebar:
-    st.markdown("## 🚤 メニュー")
+    st.markdown(
+        "<div style='display:flex;align-items:center;gap:0.7rem;margin-bottom:1.5rem'>"
+        "<svg width='32' height='28' viewBox='0 0 64 56' xmlns='http://www.w3.org/2000/svg'>"
+        "<path d='M16 38 L52 30 C56 29, 59 31, 59 35 L59 38 C59 41, 56 43, 52 42 L18 42 Z' fill='#fbbf24'/>"
+        "<path d='M18 42 L52 42 C56 43, 56 47, 52 47 L24 47 C20 47, 17 45, 18 42 Z' fill='#f97316'/>"
+        "<path d='M34 19 L50 26 L34 28 Z' fill='#ef4444'/>"
+        "<rect x='30' y='18' width='4' height='13' rx='1' fill='#1f2937'/>"
+        "</svg>"
+        "<span style='font-size:1.2rem;font-weight:800;color:#f1f5f9;letter-spacing:0.02em'>競艇予想ツール</span>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
     page = st.radio(
         "",
         ["🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録"],
         label_visibility="collapsed",
     )
+
     st.markdown("---")
     st.caption(f"📅 {date.today().strftime('%Y年%m月%d日')}")
     if _venue_count:
@@ -659,6 +724,52 @@ if page == "🎯 予想":
 
         st.markdown("#### 本日のレース一覧（出走時刻順）")
 
+        def _show_race_detail(venue, rno):
+            """選択レースの出走表・予想ボタンを表示"""
+            racers = st.session_state.today_racers[venue][rno]
+            st.markdown(
+                f"<div style='background:#0f172a;border:1px solid #1d4ed8;border-radius:10px;"
+                f"padding:1rem 1.2rem;margin:0.3rem 0 0.8rem'>",
+                unsafe_allow_html=True,
+            )
+            st.markdown(f"**{VENUE_MAP[venue]} {rno}R 出走表**")
+            for r in racers:
+                st.markdown(f"""
+                <div class="racer-row" style="margin:2px 0;padding:0.5rem 0.8rem">
+                    <div class="lane-badge lane-{r.lane}">{r.lane}</div>
+                    <div style="flex:1">
+                        <span style="font-weight:700;color:#e0e6ff">{r.name}</span>
+                        <span style="margin-left:8px;font-size:0.8rem;color:#64748b">{r.rank}</span>
+                    </div>
+                    <div style="text-align:right">
+                        <span style="font-size:0.85rem;color:#64748b">勝率 </span>
+                        <span style="font-weight:700;color:#3b82f6">{r.win_rate_all or '-'}</span>
+                    </div>
+                    <div style="text-align:right;min-width:80px">
+                        <span style="font-size:0.85rem;color:#64748b">モーター </span>
+                        <span style="font-weight:600;color:#94a3b8">{r.motor_2rate or '-'}%</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+            if st.button("🎯 このレースを予想する", type="primary",
+                         use_container_width=True, key=f"predict_{venue}_{rno}"):
+                predictor = get_predictor()
+                pred = predictor.predict(racers, race_date=date.today().strftime("%Y%m%d"),
+                                          venue_name=VENUE_MAP[venue], race_no=rno)
+                st.session_state.prediction = pred
+                st.session_state.last_venue = venue
+                st.session_state.last_race = rno
+                top_score, score_gap = _score_metrics(pred)
+                save_record({
+                    "race_date": date.today().strftime("%Y%m%d"),
+                    "venue_code": venue, "venue_name": VENUE_MAP[venue], "race_no": rno,
+                    "tansho": pred.tansho, "sanren_tan": pred.sanren_tan,
+                    "sanren_fuku": pred.sanren_fuku, "hit": None, "actual": "", "payout": None,
+                    "top_score": top_score, "score_gap": score_gap,
+                })
+                st.success("✅  予想を記録しました")
+
         if upcoming:
             for deadline_str, venue, rno, is_past in upcoming:
                 time_label = deadline_str if deadline_str else "--:--"
@@ -674,6 +785,9 @@ if page == "🎯 予想":
                         st.session_state.selected_race = (venue, rno)
                         st.session_state.prediction = None
                     st.rerun()
+                # 選択中のレースのすぐ下に出走表を展開
+                if is_selected:
+                    _show_race_detail(venue, rno)
 
         if past:
             with st.expander(f"終了済みレース ({len(past)}件)", expanded=False):
@@ -691,53 +805,11 @@ if page == "🎯 予想":
                             st.session_state.selected_race = (venue, rno)
                             st.session_state.prediction = None
                         st.rerun()
+                    if is_selected:
+                        _show_race_detail(venue, rno)
 
         if not upcoming and not past:
             st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        if st.session_state.selected_race:
-            sel_venue, sel_race = st.session_state.selected_race
-            racers = st.session_state.today_racers[sel_venue][sel_race]
-
-            st.markdown(f"#### {VENUE_MAP[sel_venue]} {sel_race}R 出走表")
-            for r in racers:
-                st.markdown(f"""
-                <div class="racer-row">
-                    <div class="lane-badge lane-{r.lane}">{r.lane}</div>
-                    <div style="flex:1">
-                        <span style="font-weight:700;color:#e0e6ff">{r.name}</span>
-                        <span style="margin-left:8px;font-size:0.8rem;color:#64748b">{r.rank}</span>
-                    </div>
-                    <div style="text-align:right">
-                        <span style="font-size:0.85rem;color:#64748b">勝率 </span>
-                        <span style="font-weight:700;color:#3b82f6">{r.win_rate_all or '-'}</span>
-                    </div>
-                    <div style="text-align:right;min-width:80px">
-                        <span style="font-size:0.85rem;color:#64748b">モーター </span>
-                        <span style="font-weight:600;color:#94a3b8">{r.motor_2rate or '-'}%</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🎯  このレースを予想する", type="primary", use_container_width=True, key="predict_btn"):
-                predictor = get_predictor()
-                pred = predictor.predict(racers, race_date=date.today().strftime("%Y%m%d"),
-                                          venue_name=VENUE_MAP[sel_venue], race_no=sel_race)
-                st.session_state.prediction = pred
-                st.session_state.last_venue = sel_venue
-                st.session_state.last_race = sel_race
-                top_score, score_gap = _score_metrics(pred)
-                save_record({
-                    "race_date": date.today().strftime("%Y%m%d"),
-                    "venue_code": sel_venue, "venue_name": VENUE_MAP[sel_venue], "race_no": sel_race,
-                    "tansho": pred.tansho, "sanren_tan": pred.sanren_tan,
-                    "sanren_fuku": pred.sanren_fuku, "hit": None, "actual": "", "payout": None,
-                    "top_score": top_score, "score_gap": score_gap,
-                })
-                st.success("✅  予想を記録しました")
 
     else:
         st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
@@ -1117,7 +1189,6 @@ if page == "📈 成績記録":
                 badge = "<span style='background:#7f1d1d;border:1px solid #ef4444;color:#fca5a5;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>❌ ハズレ</span>"
             else:
                 badge = "<span style='background:#292524;border:1px solid #57534e;color:#d6d3d1;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>⏳ 未確認</span>"
-
 
             ds = r["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
