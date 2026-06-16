@@ -64,7 +64,7 @@ st.set_page_config(
     page_title="競艇予想ツール",
     page_icon="🚤",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 st.markdown("""
@@ -499,17 +499,27 @@ header_html = (
 st.markdown(header_html, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
-# タブ
+# サイドバーナビゲーション
 # ─────────────────────────────────────────────
-tab0, tab1, tab2, tab3, tab4 = st.tabs(["🔥  ピックアップ", "🎯  予想", "📊  直前情報", "📋  結果確認", "📈  成績記録"])
+with st.sidebar:
+    st.markdown("## 🚤 メニュー")
+    page = st.radio(
+        "",
+        ["🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録"],
+        label_visibility="collapsed",
+    )
+    st.markdown("---")
+    st.caption(f"📅 {date.today().strftime('%Y年%m月%d日')}")
+    if _venue_count:
+        st.caption(f"🏟 {_venue_count}会場 {_race_count}レース取得済み")
 
 # ─────────────────────────────────────────────
-# タブ0: ピックアップ
+# ピックアップ
 # ─────────────────────────────────────────────
 PICKUP_TOP_SCORE_MIN = 25.0
 PICKUP_SCORE_GAP_MIN = 10.0
 
-with tab0:
+if page == "🔥 ピックアップ":
     records = load_records()
     today_str = date.today().strftime("%Y%m%d")
     today_records = [r for r in records if r["race_date"] == today_str]
@@ -560,7 +570,7 @@ with tab0:
 # ─────────────────────────────────────────────
 # タブ1: 予想
 # ─────────────────────────────────────────────
-with tab1:
+if page == "🎯 予想":
     # 出走表データが無ければ手動取得ボタンを表示（バッチが08:00に自動取得）
     if not st.session_state.today_racers:
         if st.button("📥  出走表を取得（通常はバッチが自動取得します）", type="secondary", use_container_width=True):
@@ -663,6 +673,7 @@ with tab1:
                     else:
                         st.session_state.selected_race = (venue, rno)
                         st.session_state.prediction = None
+                    st.rerun()
 
         if past:
             with st.expander(f"終了済みレース ({len(past)}件)", expanded=False):
@@ -679,6 +690,7 @@ with tab1:
                         else:
                             st.session_state.selected_race = (venue, rno)
                             st.session_state.prediction = None
+                        st.rerun()
 
         if not upcoming and not past:
             st.info("本日の出走表データがまだありません。08:00のバッチを待つか、上のボタンで取得してください。")
@@ -785,7 +797,7 @@ with tab1:
 # ─────────────────────────────────────────────
 # タブ2: 直前情報
 # ─────────────────────────────────────────────
-with tab2:
+if page == "📊 直前情報":
     col1, col2 = st.columns(2)
     with col1:
         venue_options2 = {v: k for k, v in VENUE_MAP.items()}
@@ -880,7 +892,7 @@ with tab2:
 # ─────────────────────────────────────────────
 # タブ3: 結果確認
 # ─────────────────────────────────────────────
-with tab3:
+if page == "📋 結果確認":
     col1, col2 = st.columns(2)
     with col1:
         venue_options3 = {v: k for k, v in VENUE_MAP.items()}
@@ -961,7 +973,7 @@ with tab3:
 # ─────────────────────────────────────────────
 # タブ4: 成績記録
 # ─────────────────────────────────────────────
-with tab4:
+if page == "📈 成績記録":
     records = load_records()
 
     if not records:
