@@ -612,28 +612,45 @@ if page == "🔥 ピックアップ":
     elif not pickups:
         st.info("本日、条件を満たすレースはまだありません。")
     else:
-        pickups_sorted = sorted(pickups, key=lambda r: r["top_score"], reverse=True)
-        for r in pickups_sorted:
-            odds_val = r.get("odds_value")
-            odds_text = f"<span style='color:#9ca3af;font-size:0.95rem'>オッズ <strong style='color:#34d399'>{odds_val:.1f}倍</strong></span>" if odds_val else ""
-            value_badge = ""
-            if odds_val and odds_val >= 5.0:
-                value_badge = "<span style='background:#064e3b;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 10px;font-size:0.78rem;font-weight:700;margin-left:0.5rem'>💎 妙味</span>"
+        # 会場ごとにグループ化（race_no順）
+        from collections import defaultdict
+        venue_groups = defaultdict(list)
+        for r in sorted(pickups, key=lambda r: r["race_no"]):
+            venue_groups[r["venue_name"]].append(r)
 
-            card_html = (
-                "<div style='background:#1f2937;border:1px solid #f59e0b;border-radius:10px;"
-                "padding:1rem 1.2rem;margin:0.5rem 0;display:flex;align-items:center;"
-                "gap:1.2rem;flex-wrap:wrap'>"
-                f"<span style='font-size:1.1rem;font-weight:800;color:#fbbf24'>🔥 {r['venue_name']} {r['race_no']}R</span>"
-                f"<span style='color:#93c5fd;font-size:0.95rem'>単勝 <strong>{r['tansho']}</strong></span>"
-                f"<span style='color:#93c5fd;font-size:0.95rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
-                f"{odds_text}{value_badge}"
-                f"<span style='margin-left:auto;color:#9ca3af;font-size:0.85rem'>"
-                f"1位確信度 <strong style='color:#fbbf24'>{r['top_score']:.1f}</strong>"
-                f" / 差 <strong style='color:#fbbf24'>{r['score_gap']:.1f}</strong>pt</span>"
-                "</div>"
+        for venue_name, races in sorted(venue_groups.items()):
+            st.markdown(
+                f"<div style='margin:1.2rem 0 0.5rem;padding:0.4rem 0.8rem;"
+                f"border-left:3px solid #3b82f6;color:#e0e6ff;font-weight:700;font-size:1rem'>"
+                f"🏟 {venue_name}</div>",
+                unsafe_allow_html=True,
             )
-            st.markdown(card_html, unsafe_allow_html=True)
+            for r in races:
+                # 締切時刻を deadline_times から取得
+                dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
+                time_label = dl_info["deadline_time"] if dl_info else "--:--"
+
+                odds_val = r.get("odds_value")
+                odds_text = f"<span style='color:#94a3b8;font-size:0.9rem'>オッズ <strong style='color:#34d399'>{odds_val:.1f}倍</strong></span>" if odds_val else ""
+                value_badge = ""
+                if odds_val and odds_val >= 5.0:
+                    value_badge = "<span style='background:#064e3b;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 8px;font-size:0.75rem;font-weight:700'>💎 妙味</span>"
+
+                card_html = (
+                    "<div style='background:#1f2937;border:1px solid #f59e0b;border-radius:10px;"
+                    "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
+                    "gap:1rem;flex-wrap:wrap'>"
+                    f"<span style='color:#94a3b8;font-size:0.85rem'>⏰ {time_label}</span>"
+                    f"<span style='font-size:1rem;font-weight:800;color:#fbbf24'>🔥 {r['race_no']}R</span>"
+                    f"<span style='color:#93c5fd;font-size:0.9rem'>単勝 <strong>{r['tansho']}</strong></span>"
+                    f"<span style='color:#93c5fd;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                    f"{odds_text}{value_badge}"
+                    f"<span style='margin-left:auto;color:#94a3b8;font-size:0.82rem'>"
+                    f"確信度 <strong style='color:#fbbf24'>{r['top_score']:.1f}</strong>"
+                    f" / 差 <strong style='color:#fbbf24'>{r['score_gap']:.1f}</strong>pt</span>"
+                    "</div>"
+                )
+                st.markdown(card_html, unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
