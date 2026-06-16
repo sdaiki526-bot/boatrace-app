@@ -445,8 +445,10 @@ if "today_racers" not in st.session_state or not st.session_state.today_racers:
     cached = load_cache()
     if cached:
         st.session_state.today_racers = restore_cache(cached)
+        st.info(f"DEBUG: キャッシュから読み込み 会場数={len(st.session_state.today_racers)}")
     else:
         st.session_state.today_racers = load_today_racelist_from_supabase()
+        st.info(f"DEBUG: Supabaseから読み込み 会場数={len(st.session_state.today_racers)}")
 
 if "deadline_times" not in st.session_state or not st.session_state.deadline_times:
     st.session_state.deadline_times = load_deadline_times_from_supabase()
