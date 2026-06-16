@@ -585,8 +585,8 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 # ピックアップ
 # ─────────────────────────────────────────────
-PICKUP_TOP_SCORE_MIN = 25.0
-PICKUP_SCORE_GAP_MIN = 10.0
+PICKUP_TOP_SCORE_MIN = 35.0
+PICKUP_SCORE_GAP_MIN = 15.0
 
 if page == "🔥 ピックアップ":
     records = load_records()
