@@ -429,14 +429,23 @@ def load_deadline_times_from_supabase():
     except Exception as e:
         return {}
 
-if "today_racers" not in st.session_state:
+today_str_check = date.today().strftime("%Y%m%d")
+
+# 日付が変わったらセッションをリセット
+if st.session_state.get("cache_date") != today_str_check:
+    st.session_state.cache_date = today_str_check
+    st.session_state.today_racers = {}
+    st.session_state.deadline_times = {}
+    st.session_state.selected_race = None
+
+if "today_racers" not in st.session_state or not st.session_state.today_racers:
     cached = load_cache()
     if cached:
         st.session_state.today_racers = restore_cache(cached)
     else:
         st.session_state.today_racers = load_today_racelist_from_supabase()
 
-if "deadline_times" not in st.session_state:
+if "deadline_times" not in st.session_state or not st.session_state.deadline_times:
     st.session_state.deadline_times = load_deadline_times_from_supabase()
 
 if "selected_race" not in st.session_state:
