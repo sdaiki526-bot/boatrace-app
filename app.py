@@ -69,15 +69,20 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* ネイビー・スポーティーテーマ */
-    .stApp { background-color: #111827; }
+    /* ライト・スポーティーテーマ */
+    .stApp { background-color: #f0f4f8; font-size: 16px; }
     .main .block-container { padding: 1.5rem 2rem; max-width: 1400px; }
+    p, span, div, label, li { font-size: 1rem; }
+    h1 { font-size: 1.8rem !important; }
+    h2 { font-size: 1.5rem !important; }
+    h3 { font-size: 1.3rem !important; }
+    h4 { font-size: 1.1rem !important; }
 
-    /* Streamlitデフォルト要素を統一 */
-    .stSelectbox > div > div { background: #374151 !important; border-color: #4b5563 !important; }
-    .stSelectbox > div > div > div { color: #f3f4f6 !important; }
-    .stSelectbox svg { color: #9ca3af !important; }
-    .stSelectbox label, .stMultiSelect label { color: #9ca3af !important; }
+    /* Streamlitデフォルト要素 */
+    .stSelectbox > div > div { background: #ffffff !important; border-color: #cbd5e1 !important; }
+    .stSelectbox > div > div > div { color: #1e293b !important; }
+    .stSelectbox svg { color: #64748b !important; }
+    .stSelectbox label, .stMultiSelect label { color: #475569 !important; }
 
     /* ヘッダー */
     .header-box {
@@ -88,83 +93,56 @@ st.markdown("""
         display: flex;
         align-items: center;
         gap: 1.2rem;
-        box-shadow: 0 4px 16px rgba(29,78,216,0.35);
+        box-shadow: 0 4px 16px rgba(29,78,216,0.25);
         position: relative;
         overflow: hidden;
     }
     .header-box::after {
         content: "";
         position: absolute;
-        right: -40px;
-        top: -40px;
-        width: 160px;
-        height: 160px;
-        background: rgba(255,255,255,0.06);
+        right: -40px; top: -40px;
+        width: 160px; height: 160px;
+        background: rgba(255,255,255,0.08);
         border-radius: 50%;
     }
-    .header-icon {
-        flex-shrink: 0;
-        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
-    }
-    .header-title {
-        font-size: 1.7rem;
-        font-weight: 800;
-        color: #ffffff;
-        margin: 0;
-        letter-spacing: 0.02em;
-    }
-    .header-date {
-        color: #bfdbfe;
-        font-size: 0.85rem;
-        margin: 0.2rem 0 0;
-        font-weight: 600;
-    }
-    .header-meta {
-        margin-left: auto;
-        text-align: right;
-        z-index: 1;
-    }
-    .header-meta-value {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #fff;
-        line-height: 1;
-    }
-    .header-meta-label {
-        font-size: 0.75rem;
-        color: #bfdbfe;
-        font-weight: 600;
-        margin-top: 0.2rem;
-    }
+    .header-icon { flex-shrink: 0; }
+    .header-title { font-size: 1.7rem; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: 0.02em; }
+    .header-date { color: #bfdbfe; font-size: 0.85rem; margin: 0.2rem 0 0; font-weight: 600; }
+    .header-meta { margin-left: auto; text-align: right; z-index: 1; }
+    .header-meta-value { font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; }
+    .header-meta-label { font-size: 0.75rem; color: #bfdbfe; font-weight: 600; margin-top: 0.2rem; }
 
     /* カード */
     .stat-card {
-        background: #1f2937;
-        border: 1px solid #374151;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 10px;
         padding: 1rem;
         text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
-    .stat-value { font-size: 1.8rem; font-weight: 800; color: #60a5fa; }
-    .stat-label { font-size: 0.78rem; color: #94a3b8; margin-top: 0.2rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #1d4ed8; }
+    .stat-label { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
 
     /* 買い目ボックス */
     .buy-box {
-        background: #1f2937;
-        border: 1px solid #3b82f6;
+        background: #ffffff;
+        border: 1px solid #bfdbfe;
         border-radius: 10px;
         padding: 1.2rem;
         margin: 0.8rem 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .buy-title { font-size: 1rem; font-weight: 700; color: #93c5fd; margin-bottom: 0.8rem; }
+    .buy-title { font-size: 1rem; font-weight: 700; color: #1d4ed8; margin-bottom: 0.8rem; }
     .buy-combo {
-        background: #1e3a8a;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
         border-radius: 6px;
         padding: 0.4rem 0.9rem;
         margin: 0.3rem 0.2rem;
         font-size: 1rem;
         font-weight: 700;
-        color: #bfdbfe;
+        color: #1e40af;
         display: inline-block;
         letter-spacing: 0.05em;
     }
@@ -174,9 +152,10 @@ st.markdown("""
         border-radius: 8px;
         font-weight: 700;
         font-size: 0.95rem;
-        border: 1px solid #374151 !important;
-        background: #1f2937 !important;
-        color: #f3f4f6 !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #1e293b !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     .stButton > button[kind="primary"] {
         background: #1d4ed8 !important;
@@ -185,33 +164,17 @@ st.markdown("""
     }
     .stButton > button:hover { opacity: 0.85; }
 
-    /* タブ */
-    .stTabs [data-baseweb="tab-list"] {
-        background: #1f2937;
-        border-radius: 8px;
-        padding: 3px;
-        gap: 2px;
-        border: 1px solid #374151;
-        width: 100%;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 6px;
-        color: #9ca3af !important;
-        font-weight: 600;
-        flex: 1;
-        justify-content: center;
-    }
-    .stTabs [aria-selected="true"] { background: #1d4ed8 !important; color: #fff !important; }
-
     /* 出走表行 */
     .racer-row {
         display: flex;
         align-items: center;
         padding: 0.7rem 1rem;
-        background: #1f2937;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 8px;
         margin: 4px 0;
         gap: 1rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
     .lane-badge {
         width: 30px; height: 30px; border-radius: 50%;
@@ -226,14 +189,14 @@ st.markdown("""
     .lane-6 { background: #16a34a; color: #fff; }
 
     /* 的中・ハズレ */
-    .hit-badge { background: #065f46; border: 1px solid #10b981; color: #6ee7b7; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
-    .miss-badge { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
-    .pending-badge { background: #292524; border: 1px solid #57534e; color: #d6d3d1; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .hit-badge { background: #dcfce7; border: 1px solid #16a34a; color: #15803d; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .miss-badge { background: #fee2e2; border: 1px solid #dc2626; color: #b91c1c; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .pending-badge { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
 
     /* 記録カード */
     .record-card {
-        background: #1f2937;
-        border: 1px solid #374151;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 0.7rem 1rem;
         margin: 4px 0;
@@ -242,16 +205,27 @@ st.markdown("""
         gap: 1rem;
         flex-wrap: wrap;
     }
-    hr { border-color: #94a3b8 !important; }
+    hr { border-color: #e2e8f0 !important; }
 
-    /* Expanderラベルを白に */
+    /* Expander */
+    [data-testid="stExpander"] {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
     [data-testid="stExpander"] summary {
-        color: #e0e6ff !important;
+        color: #1e293b !important;
         font-weight: 600 !important;
     }
     [data-testid="stExpander"] summary span {
-        color: #e0e6ff !important;
+        color: #1e293b !important;
     }
+
+    /* メトリクス */
+    [data-testid="stMetric"] { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.8rem; }
+    [data-testid="stMetricLabel"] { color: #64748b !important; }
+    [data-testid="stMetricValue"] { color: #1e293b !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -516,57 +490,41 @@ st.markdown(header_html, unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* サイドバー背景 */
+    /* サイドバー - ブルーグラデーション（ライトテーマに映える） */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-        border-right: 1px solid #1e3a8a;
+        background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
+        border-right: none;
     }
     [data-testid="stSidebar"] > div { padding-top: 1.5rem; }
-
-    /* サイドバー全体のテキストを白に */
     [data-testid="stSidebar"] * { color: #e2e8f0 !important; }
-
-    /* ラジオボタンをナビメニュー風に */
-    [data-testid="stSidebar"] .stRadio > div {
-        gap: 0.3rem;
-    }
+    [data-testid="stSidebar"] .stRadio > div { gap: 0.3rem; }
     [data-testid="stSidebar"] .stRadio label {
-        background: transparent;
+        background: rgba(255,255,255,0.08);
         border: none;
         border-radius: 10px;
         padding: 0.65rem 1rem;
-        color: #cbd5e1 !important;
+        color: #e2e8f0 !important;
         font-weight: 600;
         font-size: 0.95rem;
         cursor: pointer;
         transition: all 0.15s;
         width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
     }
     [data-testid="stSidebar"] .stRadio label:hover {
-        background: rgba(59,130,246,0.15);
+        background: rgba(255,255,255,0.18);
         color: #ffffff !important;
     }
     [data-testid="stSidebar"] .stRadio label p,
-    [data-testid="stSidebar"] .stRadio label span {
-        color: inherit !important;
-    }
-    /* 選択中のラジオ */
+    [data-testid="stSidebar"] .stRadio label span { color: inherit !important; }
     [data-testid="stSidebar"] .stRadio [aria-checked="true"] + label,
     [data-testid="stSidebar"] .stRadio input:checked + label {
-        background: linear-gradient(90deg, #1d4ed8, #2563eb);
+        background: rgba(255,255,255,0.25);
         color: #fff !important;
-        box-shadow: 0 2px 8px rgba(29,78,216,0.4);
     }
-    /* ラジオボタンの丸を非表示 */
     [data-testid="stSidebar"] .stRadio input[type="radio"] { display: none; }
     [data-testid="stSidebar"] .stRadio > label > div:first-child { display: none; }
-
-    /* サイドバーのキャプション */
-    [data-testid="stSidebar"] .stCaption { color: #94a3b8 !important; font-size: 0.78rem; }
-    [data-testid="stSidebar"] hr { border-color: #1e3a8a !important; margin: 1rem 0; }
+    [data-testid="stSidebar"] .stCaption { color: #bfdbfe !important; font-size: 0.78rem; }
+    [data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.2) !important; margin: 1rem 0; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -614,7 +572,7 @@ if page == "🔥 ピックアップ":
     ]
 
     st.markdown(
-        f"<p style='color:#9ca3af;font-size:0.85rem;margin-bottom:1rem'>"
+        f"<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
         f"1位確信度 {PICKUP_TOP_SCORE_MIN:.0f}%以上 かつ 2位との差 {PICKUP_SCORE_GAP_MIN:.0f}pt以上 のレースを表示"
         f"</p>",
         unsafe_allow_html=True,
@@ -632,45 +590,36 @@ if page == "🔥 ピックアップ":
             venue_groups[r["venue_name"]].append(r)
 
         for venue_name, races in sorted(venue_groups.items()):
-            st.markdown(
-                f"<div style='margin:1.2rem 0 0.5rem;padding:0.4rem 0.8rem;"
-                f"border-left:3px solid #3b82f6;color:#e0e6ff;font-weight:700;font-size:1rem'>"
-                f"🏟 {venue_name}</div>",
-                unsafe_allow_html=True,
-            )
-            for r in races:
-                # 締切時刻を deadline_times から取得
-                dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
-                time_label = dl_info["deadline_time"] if dl_info else "--:--"
-
-                odds_val = r.get("odds_value")
-                odds_text = f"<span style='color:#94a3b8;font-size:0.9rem'>オッズ <strong style='color:#34d399'>{odds_val:.1f}倍</strong></span>" if odds_val else ""
-                value_badge = ""
-                if odds_val and odds_val >= 5.0:
-                    value_badge = "<span style='background:#064e3b;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 8px;font-size:0.75rem;font-weight:700'>💎 妙味</span>"
-
-                weather_text2 = ""
-                if r.get("wind_speed") or r.get("wave_height"):
-                    parts = []
-                    if r.get("wind_speed"): parts.append(f"風{r['wind_speed']}m")
-                    if r.get("wave_height"): parts.append(f"波{r['wave_height']}cm")
-                    weather_text2 = f"<span style='color:#94a3b8;font-size:0.82rem'>{'　'.join(parts)}</span>"
-
-                card_html = (
-                    "<div style='background:#1f2937;border:1px solid #f59e0b;border-radius:10px;"
-                    "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
-                    "gap:1rem;flex-wrap:wrap'>"
-                    f"<span style='color:#94a3b8;font-size:0.85rem'>⏰ {time_label}</span>"
-                    f"<span style='font-size:1rem;font-weight:800;color:#fbbf24'>🔥 {r['race_no']}R</span>"
-                    f"<span style='color:#93c5fd;font-size:0.9rem'>単勝 <strong>{r['tansho']}</strong></span>"
-                    f"<span style='color:#93c5fd;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
-                    f"{odds_text}{value_badge}{weather_text2}"
-                    f"<span style='margin-left:auto;color:#94a3b8;font-size:0.82rem'>"
-                    f"確信度 <strong style='color:#fbbf24'>{r['top_score']:.1f}</strong>"
-                    f" / 差 <strong style='color:#fbbf24'>{r['score_gap']:.1f}</strong>pt</span>"
-                    "</div>"
-                )
-                st.markdown(card_html, unsafe_allow_html=True)
+            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=True):
+                for r in races:
+                    dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
+                    time_label = dl_info["deadline_time"] if dl_info else "--:--"
+                    odds_val = r.get("odds_value")
+                    odds_text = f"<span style='color:#475569;font-size:0.9rem'>オッズ <strong style='color:#059669'>{odds_val:.1f}倍</strong></span>" if odds_val else ""
+                    value_badge = ""
+                    if odds_val and odds_val >= 5.0:
+                        value_badge = "<span style='background:#d1fae5;border:1px solid #10b981;color:#065f46;border-radius:6px;padding:2px 8px;font-size:0.75rem;font-weight:700'>💎 妙味</span>"
+                    weather_text2 = ""
+                    if r.get("wind_speed") or r.get("wave_height"):
+                        parts = []
+                        if r.get("wind_speed"): parts.append(f"風{r['wind_speed']}m")
+                        if r.get("wave_height"): parts.append(f"波{r['wave_height']}cm")
+                        weather_text2 = f"<span style='color:#475569;font-size:0.82rem'>{'　'.join(parts)}</span>"
+                    card_html = (
+                        "<div style='background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;"
+                        "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
+                        "gap:1rem;flex-wrap:wrap'>"
+                        f"<span style='color:#92400e;font-size:0.85rem'>⏰ {time_label}</span>"
+                        f"<span style='font-size:1rem;font-weight:800;color:#d97706'>🔥 {r['race_no']}R</span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>単勝 <strong>{r['tansho']}</strong></span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                        f"{odds_text}{value_badge}{weather_text2}"
+                        f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
+                        f"確信度 <strong style='color:#d97706'>{r['top_score']:.1f}</strong>"
+                        f" / 差 <strong style='color:#d97706'>{r['score_gap']:.1f}</strong>pt</span>"
+                        "</div>"
+                    )
+                    st.markdown(card_html, unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
@@ -770,7 +719,7 @@ if page == "🎯 予想":
             """選択レースの出走表・予想ボタン・予想結果をインライン表示"""
             racers = st.session_state.today_racers[venue][rno]
             st.markdown(
-                "<div style='background:#0f172a;border:1px solid #1d4ed8;border-radius:10px;"
+                "<div style='background:#f8fafc;border:1px solid #1d4ed8;border-radius:10px;"
                 "padding:1rem 1.2rem;margin:0.3rem 0 0.8rem'>",
                 unsafe_allow_html=True,
             )
@@ -780,16 +729,16 @@ if page == "🎯 予想":
                 <div class="racer-row" style="margin:2px 0;padding:0.5rem 0.8rem">
                     <div class="lane-badge lane-{r.lane}">{r.lane}</div>
                     <div style="flex:1">
-                        <span style="font-weight:700;color:#e0e6ff">{r.name}</span>
-                        <span style="margin-left:8px;font-size:0.8rem;color:#94a3b8">{r.rank}</span>
+                        <span style="font-weight:700;color:#1e293b">{r.name}</span>
+                        <span style="margin-left:8px;font-size:0.8rem;color:#475569">{r.rank}</span>
                     </div>
                     <div style="text-align:right">
-                        <span style="font-size:0.85rem;color:#94a3b8">勝率 </span>
+                        <span style="font-size:0.85rem;color:#475569">勝率 </span>
                         <span style="font-weight:700;color:#3b82f6">{r.win_rate_all or '-'}</span>
                     </div>
                     <div style="text-align:right;min-width:80px">
-                        <span style="font-size:0.85rem;color:#94a3b8">モーター </span>
-                        <span style="font-weight:600;color:#94a3b8">{r.motor_2rate or '-'}%</span>
+                        <span style="font-size:0.85rem;color:#475569">モーター </span>
+                        <span style="font-weight:600;color:#475569">{r.motor_2rate or '-'}%</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -843,11 +792,11 @@ if page == "🎯 予想":
                     st.markdown(f"""
                     <div class="buy-box">
                         <p class="buy-title">💰 推奨買い目</p>
-                        <p style="color:#94a3b8;font-size:0.85rem;margin:0">単勝</p>
+                        <p style="color:#475569;font-size:0.85rem;margin:0">単勝</p>
                         <div class="buy-combo">{pred.tansho}</div>
-                        <p style="color:#94a3b8;font-size:0.85rem;margin:0.8rem 0 0">3連単</p>
+                        <p style="color:#475569;font-size:0.85rem;margin:0.8rem 0 0">3連単</p>
                         {''.join([f'<div class="buy-combo">{c}</div>' for c in pred.sanren_tan])}
-                        <p style="color:#94a3b8;font-size:0.85rem;margin:0.8rem 0 0">3連複</p>
+                        <p style="color:#475569;font-size:0.85rem;margin:0.8rem 0 0">3連複</p>
                         <div class="buy-combo">{pred.sanren_fuku}</div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -855,7 +804,7 @@ if page == "🎯 予想":
                     st.markdown(f"""
                     <div class="buy-box">
                         <p class="buy-title">📊 予想順位</p>
-                        {''.join([f'<p style="margin:0.4rem 0;color:#e0e6ff">{medals[s.predicted_rank-1]} {s.lane}枠 {s.name} <span style="color:#3b82f6;font-weight:700">{s.total_score:.1f}pt</span></p>' for s in sorted_scores])}
+                        {''.join([f'<p style="margin:0.4rem 0;color:#1e293b">{medals[s.predicted_rank-1]} {s.lane}枠 {s.name} <span style="color:#3b82f6;font-weight:700">{s.total_score:.1f}pt</span></p>' for s in sorted_scores])}
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -970,7 +919,7 @@ if page == "📊 直前情報":
                 st.markdown(f"""
                 <div class="racer-row">
                     <div class="lane-badge lane-{s.boat_no}">{s.boat_no}</div>
-                    <span style="color:#94a3b8">{s.course}コース</span>
+                    <span style="color:#475569">{s.course}コース</span>
                     <span style="font-weight:700;color:#3b82f6;margin-left:auto">ST: {s.st or '-'}</span>
                 </div>
                 """, unsafe_allow_html=True)
@@ -980,7 +929,7 @@ if page == "📊 直前情報":
     st.markdown("#### 📜 取得履歴")
     history = load_fetch_history("before_info", limit=10)
     if not history:
-        st.markdown("<span style='color:#94a3b8;font-size:0.85rem'>まだ取得履歴がありません</span>", unsafe_allow_html=True)
+        st.markdown("<span style='color:#475569;font-size:0.85rem'>まだ取得履歴がありません</span>", unsafe_allow_html=True)
     else:
         for h in history:
             ds = h["race_date"]
@@ -1006,7 +955,7 @@ if page == "📊 直前情報":
                             st.markdown("**展示タイム**")
                             for e in info2.exhibitions:
                                 if e.exhibition_time:
-                                    st.markdown(f"<div class='racer-row'><div class='lane-badge lane-{e.lane}'>{e.lane}</div><span style='color:#e0e6ff'>{e.name or ''}</span><span style='margin-left:auto;font-weight:700;color:#3b82f6'>{e.exhibition_time}</span></div>", unsafe_allow_html=True)
+                                    st.markdown(f"<div class='racer-row'><div class='lane-badge lane-{e.lane}'>{e.lane}</div><span style='color:#1e293b'>{e.name or ''}</span><span style='margin-left:auto;font-weight:700;color:#3b82f6'>{e.exhibition_time}</span></div>", unsafe_allow_html=True)
                     else:
                         st.caption("データが取得できませんでした")
 
@@ -1034,13 +983,13 @@ if page == "📋 結果確認":
                     with col_r1:
                         st.markdown("#### 着順")
                         for i, boat in enumerate(result.arrival):
-                            st.markdown(f"<p style='margin:0.3rem 0;color:#e0e6ff'>{medals[i]} <strong>{boat}号艇</strong></p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='margin:0.3rem 0;color:#1e293b'>{medals[i]} <strong>{boat}号艇</strong></p>", unsafe_allow_html=True)
                     with col_r2:
                         if result.payouts:
                             st.markdown("#### 払戻金")
                             for key, val in result.payouts.items():
                                 if val:
-                                    st.markdown(f"<p style='margin:0.2rem 0;color:#94a3b8'>{key}: <strong style='color:#3b82f6'>¥{val:,}</strong></p>", unsafe_allow_html=True)
+                                    st.markdown(f"<p style='margin:0.2rem 0;color:#475569'>{key}: <strong style='color:#3b82f6'>¥{val:,}</strong></p>", unsafe_allow_html=True)
 
                     # 記録更新
                     records = load_records()
@@ -1075,7 +1024,7 @@ if page == "📋 結果確認":
     st.markdown("#### 📜 取得履歴")
     history3 = load_fetch_history("result", limit=10)
     if not history3:
-        st.markdown("<span style='color:#94a3b8;font-size:0.85rem'>まだ取得履歴がありません</span>", unsafe_allow_html=True)
+        st.markdown("<span style='color:#475569;font-size:0.85rem'>まだ取得履歴がありません</span>", unsafe_allow_html=True)
     else:
         all_records = load_records()
         for h in history3:
@@ -1094,7 +1043,7 @@ if page == "📋 結果確認":
                     if r.get("actual"):
                         parts = r["actual"].split("-")
                         for i, p in enumerate(parts[:3]):
-                            st.markdown(f"<p style='margin:0.2rem 0;color:#e0e6ff'>{medals[i]} <strong>{p}号艇</strong></p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='margin:0.2rem 0;color:#1e293b'>{medals[i]} <strong>{p}号艇</strong></p>", unsafe_allow_html=True)
                     if r.get("payout"):
                         st.markdown(f"<p style='color:#3b82f6;font-weight:700;margin-top:0.5rem'>払戻: ¥{r['payout']:,}</p>", unsafe_allow_html=True)
                     if r.get("hit") is True:
@@ -1259,18 +1208,18 @@ if page == "📈 成績記録":
             actual_text = f"実際: <strong>{r['actual']}</strong>" if r["actual"] else ""
             payout_text = f"払戻: <strong style='color:#3b82f6'>¥{r['payout']:,}</strong>" if r.get("payout") else ""
 
-            extra1 = f"<span style='color:#94a3b8;font-size:0.85rem'>{actual_text}</span>" if actual_text else ""
+            extra1 = f"<span style='color:#475569;font-size:0.85rem'>{actual_text}</span>" if actual_text else ""
             extra2 = f"<span style='font-size:0.85rem'>{payout_text}</span>" if payout_text else ""
 
             border_color = "#f59e0b" if r["hit"] is True else "#1e3a8a"
             border_width = "2px" if r["hit"] is True else "1px"
 
             card_html = (
-                f"<div style='background:#0d1b3e;border:{border_width} solid {border_color};border-radius:10px;"
+                f"<div style='background:#f8fafc;border:{border_width} solid {border_color};border-radius:10px;"
                 "padding:0.8rem 1rem;margin:0.4rem 0;display:flex;align-items:center;"
                 "gap:1rem;flex-wrap:wrap'>"
-                f"<span style='color:#94a3b8;font-size:0.85rem'>{formatted}</span>"
-                f"<span style='font-weight:700;color:#e0e6ff'>{r['venue_name']} {r['race_no']}R</span>"
+                f"<span style='color:#475569;font-size:0.85rem'>{formatted}</span>"
+                f"<span style='font-weight:700;color:#1e293b'>{r['venue_name']} {r['race_no']}R</span>"
                 f"<span style='color:#3b82f6;font-size:0.85rem'>{' / '.join(r['sanren_tan'])}</span>"
                 f"{extra1}{extra2}"
                 f"<span style='margin-left:auto'>{badge}</span>"
