@@ -594,7 +594,7 @@ if page == "🔥 ピックアップ":
         for r in sorted(high_odds_pickups, key=lambda r: r.get("odds_value", 0), reverse=True):
             ho_groups[r["venue_name"]].append(r)
         for venue_name, races in sorted(ho_groups.items()):
-            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=True):
+            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=False):
                 for r in races:
                     dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
                     time_label = dl_info["deadline_time"] if dl_info else "--:--"
@@ -636,7 +636,7 @@ if page == "🔥 ピックアップ":
             venue_groups[r["venue_name"]].append(r)
 
         for venue_name, races in sorted(venue_groups.items()):
-            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=True):
+            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=False):
                 for r in races:
                     dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
                     time_label = dl_info["deadline_time"] if dl_info else "--:--"
