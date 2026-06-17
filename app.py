@@ -243,6 +243,15 @@ st.markdown("""
         flex-wrap: wrap;
     }
     hr { border-color: #94a3b8 !important; }
+
+    /* Expanderラベルを白に */
+    [data-testid="stExpander"] summary {
+        color: #e0e6ff !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stExpander"] summary span {
+        color: #e0e6ff !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
