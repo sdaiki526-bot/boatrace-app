@@ -393,6 +393,18 @@ def exhibition_job():
             if not exhibition_times:
                 continue
 
+            # 天候・水面情報を取得
+            weather_text = None
+            wind_speed = None
+            wave_height = None
+            water_temp = None
+            if info.weather:
+                w = info.weather
+                weather_text = w.weather if hasattr(w, 'weather') else None
+                wind_speed = w.wind_speed
+                wave_height = w.wave_height
+                water_temp = w.water_temp
+
             # 出走表（既存予想の元データ）を再取得して予想更新
             racers = sc.get_racelist(today, venue, rno)
             if not racers:
@@ -432,6 +444,10 @@ def exhibition_job():
                 "top_score":   top_score,
                 "score_gap":   score_gap,
                 "odds_value":  odds_value,
+                "weather":     weather_text,
+                "wind_speed":  wind_speed,
+                "wave_height": wave_height,
+                "water_temp":  water_temp,
             })
 
             # 取得履歴に記録
@@ -589,7 +605,6 @@ def main():
     logger.info("  23:30 → 昨日分の最終確認")
     logger.info("  月曜 05:00 → データセット再構築・モデル週次再学習・Git自動push")
     logger.info("Ctrl+C で停止")
-
 
     try:
         while True:
