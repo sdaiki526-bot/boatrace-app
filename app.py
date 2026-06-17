@@ -276,6 +276,10 @@ def load_records():
                     "top_score":   row.get("top_score"),
                     "score_gap":   row.get("score_gap"),
                     "odds_value":  row.get("odds_value"),
+                    "weather":     row.get("weather"),
+                    "wind_speed":  row.get("wind_speed"),
+                    "wave_height": row.get("wave_height"),
+                    "water_temp":  row.get("water_temp"),
                 })
             return records
         except Exception as e:
@@ -636,6 +640,13 @@ if page == "🔥 ピックアップ":
                 if odds_val and odds_val >= 5.0:
                     value_badge = "<span style='background:#064e3b;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 8px;font-size:0.75rem;font-weight:700'>💎 妙味</span>"
 
+                weather_text2 = ""
+                if r.get("wind_speed") or r.get("wave_height"):
+                    parts = []
+                    if r.get("wind_speed"): parts.append(f"風{r['wind_speed']}m")
+                    if r.get("wave_height"): parts.append(f"波{r['wave_height']}cm")
+                    weather_text2 = f"<span style='color:#94a3b8;font-size:0.82rem'>{'　'.join(parts)}</span>"
+
                 card_html = (
                     "<div style='background:#1f2937;border:1px solid #f59e0b;border-radius:10px;"
                     "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
@@ -644,7 +655,7 @@ if page == "🔥 ピックアップ":
                     f"<span style='font-size:1rem;font-weight:800;color:#fbbf24'>🔥 {r['race_no']}R</span>"
                     f"<span style='color:#93c5fd;font-size:0.9rem'>単勝 <strong>{r['tansho']}</strong></span>"
                     f"<span style='color:#93c5fd;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
-                    f"{odds_text}{value_badge}"
+                    f"{odds_text}{value_badge}{weather_text2}"
                     f"<span style='margin-left:auto;color:#94a3b8;font-size:0.82rem'>"
                     f"確信度 <strong style='color:#fbbf24'>{r['top_score']:.1f}</strong>"
                     f" / 差 <strong style='color:#fbbf24'>{r['score_gap']:.1f}</strong>pt</span>"
