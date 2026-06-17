@@ -571,10 +571,56 @@ if page == "🔥 ピックアップ":
         and r["score_gap"] >= PICKUP_SCORE_GAP_MIN
     ]
 
+    # 高配当狙いピックアップ（odds_value >= 20 かつ top_score >= 25）
+    high_odds_pickups = [
+        r for r in today_records
+        if r.get("odds_value") is not None and r.get("top_score") is not None
+        and r["odds_value"] >= 20.0
+        and r["top_score"] >= 25.0
+    ]
+
+    # 高配当狙いセクション
+    st.markdown("### 💎 高配当狙い（オッズ20倍以上）")
+    st.markdown(
+        "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
+        "確信度25以上 かつ オッズ20倍以上の穴狙いレース</p>",
+        unsafe_allow_html=True,
+    )
+    if not high_odds_pickups:
+        st.info("本日、条件を満たす高配当レースはまだありません。")
+    else:
+        from collections import defaultdict
+        ho_groups = defaultdict(list)
+        for r in sorted(high_odds_pickups, key=lambda r: r.get("odds_value", 0), reverse=True):
+            ho_groups[r["venue_name"]].append(r)
+        for venue_name, races in sorted(ho_groups.items()):
+            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=True):
+                for r in races:
+                    dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
+                    time_label = dl_info["deadline_time"] if dl_info else "--:--"
+                    odds_val = r.get("odds_value", 0)
+                    card_html = (
+                        "<div style='background:#fdf4ff;border:2px solid #a855f7;border-radius:10px;"
+                        "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
+                        "gap:1rem;flex-wrap:wrap'>"
+                        f"<span style='color:#6b21a8;font-size:0.85rem'>⏰ {time_label}</span>"
+                        f"<span style='font-size:1rem;font-weight:800;color:#a855f7'>💎 {r['race_no']}R</span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>単勝 <strong>{r['tansho']}</strong></span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                        f"<span style='color:#7e22ce;font-weight:700'>オッズ {odds_val:.1f}倍</span>"
+                        f"<span style='margin-left:auto;color:#64748b;font-size:0.82rem'>"
+                        f"確信度 <strong style='color:#a855f7'>{r['top_score']:.1f}</strong>pt</span>"
+                        "</div>"
+                    )
+                    st.markdown(card_html, unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # 通常ピックアップセクション
+    st.markdown("### 🔥 通常ピックアップ")
     st.markdown(
         f"<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
-        f"1位確信度 {PICKUP_TOP_SCORE_MIN:.0f}%以上 かつ 2位との差 {PICKUP_SCORE_GAP_MIN:.0f}pt以上 のレースを表示"
-        f"</p>",
+        f"1位確信度 {PICKUP_TOP_SCORE_MIN:.0f}%以上 かつ 2位との差 {PICKUP_SCORE_GAP_MIN:.0f}pt以上</p>",
         unsafe_allow_html=True,
     )
 
