@@ -333,7 +333,7 @@ import numpy as np
 import pandas as pd
 
 ML_FEATURE_COLS = [
-    "lane", "course_base_winrate", "rank_num", "age", "weight",
+    "lane", "rank_num", "age", "weight",
     "flying_count", "late_count", "avg_start_time",
     "win_rate_all", "win_rate_2", "win_rate_3",
     "local_win_rate", "local_win_rate_2", "local_win_rate_3",
@@ -378,7 +378,6 @@ class MLPredictor:
     def _racer_to_features(racer: RacerInfo) -> dict:
         return {
             "lane":               racer.lane,
-            "course_base_winrate": COURSE_WIN_RATE.get(racer.lane, 0.03),
             "rank_num":           ML_RANK_MAP.get(racer.rank, 1),
             "age":                racer.age,
             "weight":             racer.weight,

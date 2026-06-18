@@ -32,7 +32,6 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 FEATURE_COLS = [
     "lane",
-    "course_base_winrate",
     "rank_num",
     "age",
     "weight",
