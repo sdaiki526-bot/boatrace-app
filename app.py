@@ -1037,7 +1037,13 @@ if page == "📊 直前情報":
             ds = h["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             fetched_at = h.get("fetched_at", "")
-            time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
+            try:
+                from datetime import datetime as _dt2, timezone, timedelta as _td
+                _jst = timezone(_td(hours=9))
+                _dt_utc = _dt2.fromisoformat(fetched_at.replace("Z", "+00:00"))
+                time_str = _dt_utc.astimezone(_jst).strftime("%H:%M")
+            except Exception:
+                time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
             race_date_obj = date(int(ds[:4]), int(ds[4:6]), int(ds[6:]))
             with st.expander(f"📊 {formatted} {time_str}　{h['venue_name']} {h['race_no']}R"):
                 sc2 = get_scraper()
@@ -1133,7 +1139,13 @@ if page == "📋 結果確認":
             ds = h["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             fetched_at = h.get("fetched_at", "")
-            time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
+            try:
+                from datetime import datetime as _dt2, timezone, timedelta as _td
+                _jst = timezone(_td(hours=9))
+                _dt_utc = _dt2.fromisoformat(fetched_at.replace("Z", "+00:00"))
+                time_str = _dt_utc.astimezone(_jst).strftime("%H:%M")
+            except Exception:
+                time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
             with st.expander(f"📋 {formatted} {time_str}　{h['venue_name']} {h['race_no']}R"):
                 matched = [r for r in all_records
                            if r["race_date"] == h["race_date"]
