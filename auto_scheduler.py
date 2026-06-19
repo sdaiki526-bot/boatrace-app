@@ -344,6 +344,9 @@ def exhibition_job():
     展示タイムを取得し、予想を再計算してSupabaseを更新する。
     """
     from before_info_scraper import BeforeInfoScraper
+    from datetime import datetime as _dt2
+    if _dt2.now().hour < 8:
+        return
     from datetime import datetime as _dt
 
     today = date.today()
