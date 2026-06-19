@@ -374,7 +374,13 @@ class BoatraceScraper:
             return result
 
         # is-w748が無い場合に対応: div.table1内の素のtableを探す
-        table = soup.select_one("table.is-w748") or soup.select_one(".table1 table")
+        table = soup.select_one("table.is-w748")
+        if not table:
+            # 締切時刻テーブルを除外し、3連単オッズテーブル（theadにis-boatColorを含む）を探す
+            for cand in soup.select(".table1 table"):
+                if cand.select_one("th.is-boatColor1"):
+                    table = cand
+                    break
         if not table:
             return result
 
