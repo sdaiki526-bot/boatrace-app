@@ -427,9 +427,13 @@ def exhibition_job():
             odds_value = None
             try:
                 odds = sc.get_odds(today, venue, rno)
+                if odds:
+                    logger.info(f"DEBUG: odds.sanren_tan keys (一部)={list(odds.sanren_tan.keys())[:5]}")
+                    logger.info(f"DEBUG: pred.sanren_tan={pred.sanren_tan}")
                 if odds and odds.sanren_tan and pred.sanren_tan:
                     top_combo = pred.sanren_tan[0]
                     odds_value = odds.sanren_tan.get(top_combo)
+                    logger.info(f"DEBUG: top_combo={top_combo} odds_value={odds_value}")
             except Exception as e:
                 logger.error(f"オッズ取得失敗 {VENUE_MAP[venue]} {rno}R: {e}")
 
