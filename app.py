@@ -9,11 +9,9 @@ import os
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import date
+from datetime import date, datetime, timezone, timedelta as _td
 from pathlib import Path
 import sys
-
-from datetime import timezone, timedelta as _td
 
 JST = timezone(_td(hours=9))
 
@@ -249,7 +247,7 @@ def load_records():
             res = supabase.table("prediction_records").select("*").order("race_date", desc=True).execute()
             records = []
             for row in res.data:
-                sanren_tan = row.get("sanren_tan")
+                sanren_tan = row.get("sanren_tan")Q
                 if isinstance(sanren_tan, str):
                     sanren_tan = json.loads(sanren_tan)
                 records.append({
