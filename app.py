@@ -247,7 +247,7 @@ def load_records():
             res = supabase.table("prediction_records").select("*").order("race_date", desc=True).execute()
             records = []
             for row in res.data:
-                sanren_tan = row.get("sanren_tan")Q
+                sanren_tan = row.get("sanren_tan")
                 if isinstance(sanren_tan, str):
                     sanren_tan = json.loads(sanren_tan)
                 records.append({
