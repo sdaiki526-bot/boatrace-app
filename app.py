@@ -13,6 +13,13 @@ from datetime import date
 from pathlib import Path
 import sys
 
+from datetime import timezone, timedelta as _td
+
+JST = timezone(_td(hours=9))
+
+def today_jst():
+    return datetime.now(JST).date()
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 from boatrace_scraper import BoatraceScraper, VENUE_MAP
