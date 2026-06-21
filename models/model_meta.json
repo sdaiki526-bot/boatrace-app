@@ -16,8 +16,8 @@
     "motor_2rate",
     "boat_2rate"
   ],
-  "auc_win": 0.82,
-  "auc_top3": 0.7428,
+  "auc_win": 0.8215,
+  "auc_top3": 0.7431,
   "lgb_params": {
     "objective": "binary",
     "metric": "auc",
