@@ -586,6 +586,58 @@ if page == "🔥 ピックアップ":
     today_str = today_jst().strftime("%Y%m%d")
     today_records = [r for r in records if r["race_date"] == today_str]
 
+    # ─────────────────────────────────────────────
+    # 💰 狙い目レース（回収率重視）
+    # 検証: gap<=15 または top_score<=30 のレースに絞ると回収率約117%（全体は約56%）
+    # 理由: モデルが迷う/確信度が低い荒れそうなレースほど高配当で期待値が出る
+    # ─────────────────────────────────────────────
+    VALUE_GAP_MAX = 15.0
+    VALUE_SCORE_MAX = 30.0
+
+    value_pickups = [
+        r for r in today_records
+        if r.get("top_score") is not None and r.get("score_gap") is not None
+        and (r["score_gap"] <= VALUE_GAP_MAX or r["top_score"] <= VALUE_SCORE_MAX)
+    ]
+
+    st.markdown("### 💰 狙い目レース（回収率重視）")
+    st.markdown(
+        "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
+        "モデルの確信度が低め（1-2位差15以下 または 確信度30以下）の荒れそうなレース。"
+        "過去データではこの条件に絞ると回収率が大きく改善しました。</p>",
+        unsafe_allow_html=True,
+    )
+    if not value_pickups:
+        st.info("本日、狙い目条件を満たすレースはまだありません。")
+    else:
+        from collections import defaultdict
+        v_groups = defaultdict(list)
+        for r in sorted(value_pickups, key=lambda r: r["score_gap"]):
+            v_groups[r["venue_name"]].append(r)
+        for venue_name, races in sorted(v_groups.items()):
+            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=False):
+                for r in races:
+                    dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
+                    time_label = dl_info["deadline_time"] if dl_info else "--:--"
+                    odds_val = r.get("odds_value")
+                    odds_text = f"<span style='color:#0891b2;font-weight:700'>オッズ {odds_val:.1f}倍</span>" if odds_val else ""
+                    card_html = (
+                        "<div style='background:#ecfeff;border:2px solid #06b6d4;border-radius:10px;"
+                        "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
+                        "gap:1rem;flex-wrap:wrap'>"
+                        f"<span style='color:#155e75;font-size:0.85rem'>⏰ {time_label}</span>"
+                        f"<span style='font-size:1rem;font-weight:800;color:#0891b2'>💰 {r['race_no']}R</span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                        f"{odds_text}"
+                        f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
+                        f"確信度 <strong style='color:#0891b2'>{r['top_score']:.1f}</strong>"
+                        f" / 差 <strong style='color:#0891b2'>{r['score_gap']:.1f}</strong>pt</span>"
+                        "</div>"
+                    )
+                    st.markdown(card_html, unsafe_allow_html=True)
+
+    st.markdown("---")
+
     pickups = [
         r for r in today_records
         if r.get("top_score") is not None and r.get("score_gap") is not None
@@ -1120,7 +1172,8 @@ if page == "📋 結果確認":
                             hit, actual = check_hit(r["sanren_tan"], result.arrival)
                             r["hit"] = hit
                             r["actual"] = actual
-                            r["payout"] = result.payouts.get(f"3連単_{actual}")
+                            # 払戻は的中時のみ。外れは0（自分の買い目が当たった場合だけ配当を記録）
+                            r["payout"] = result.payouts.get(f"3連単_{actual}", 0) if hit else 0
                             if hit:
                                 st.success(f"🎉 的中！{actual}  ¥{r['payout']:,}" if r['payout'] else "🎉 的中！")
                             else:
