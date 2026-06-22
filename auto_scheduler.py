@@ -105,6 +105,8 @@ def save_record(record):
         try:
             db_record = dict(record)
             db_record["sanren_tan"] = json.dumps(record["sanren_tan"], ensure_ascii=False)
+            if record.get("sanren_tan_odds") is not None:
+                db_record["sanren_tan_odds"] = json.dumps(record["sanren_tan_odds"], ensure_ascii=False)
             supabase.table("prediction_records").upsert(
                 db_record, on_conflict="race_date,venue_code,race_no"
             ).execute()
@@ -276,7 +278,8 @@ def _check_and_update_results(sc, target_date):
 
             # 払戻金
             sanren_key = f"3連単_{actual}"
-            r["payout"] = result.payouts.get(sanren_key)
+            # 払戻は的中時のみ。外れは0
+            r["payout"] = result.payouts.get(sanren_key, 0) if hit else 0
 
             if hit:
                 hit_count += 1
@@ -423,8 +426,9 @@ def exhibition_job():
 
             top_score, score_gap = _score_metrics(pred)
 
-            # オッズ取得（最有力3連単候補のオッズ）
+           # オッズ取得（最有力3連単候補のオッズ）
             odds_value = None
+            sanren_tan_odds = None
             try:
                 odds = sc.get_odds(today, venue, rno)
                 if odds:
@@ -434,6 +438,8 @@ def exhibition_job():
                     top_combo = pred.sanren_tan[0]
                     odds_value = odds.sanren_tan.get(top_combo)
                     logger.info(f"DEBUG: top_combo={top_combo} odds_value={odds_value}")
+                    # 買い目3点それぞれのオッズを記録（期待値検証用）
+                    sanren_tan_odds = {c: odds.sanren_tan.get(c) for c in pred.sanren_tan}
             except Exception as e:
                 logger.error(f"オッズ取得失敗 {VENUE_MAP[venue]} {rno}R: {e}")
 
@@ -451,12 +457,12 @@ def exhibition_job():
                 "top_score":   top_score,
                 "score_gap":   score_gap,
                 "odds_value":  odds_value,
+                "sanren_tan_odds": sanren_tan_odds,
                 "weather":     weather_text,
                 "wind_speed":  wind_speed,
                 "wave_height": wave_height,
                 "water_temp":  water_temp,
             })
-
             # 取得履歴に記録
             if supabase:
                 try:
