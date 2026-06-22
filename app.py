@@ -1,5 +1,5 @@
 """
-競艇予想ツール - Streamlit Web アプリ（ダーク・スポーティーデザイン）
+競艇予想ツール - Streamlit Web アプリ（ライト・スポーティーデザイン）
 起動方法: streamlit run app.py
 """
 
@@ -238,15 +238,32 @@ st.markdown("""
 # ユーティリティ
 # ─────────────────────────────────────────────
 RECORD_FILE = Path("prediction_records.json")
-CACHE_FILE = Path(f"cache_racers_{ today_jst().strftime('%Y%m%d')}.json")
+CACHE_FILE = Path(f"cache_racers_{today_jst().strftime('%Y%m%d')}.json")
 
 def load_records():
-    # Supabaseから取得（優先）
+    # Supabaseから取得（優先）。1000件のデフォルト制限を超えるためページネーションする
     if supabase:
         try:
-            res = supabase.table("prediction_records").select("*").order("race_date", desc=True).execute()
+            all_data = []
+            page_size = 1000
+            offset = 0
+            while True:
+                res = (
+                    supabase.table("prediction_records")
+                    .select("*")
+                    .order("race_date", desc=True)
+                    .range(offset, offset + page_size - 1)
+                    .execute()
+                )
+                if not res.data:
+                    break
+                all_data.extend(res.data)
+                if len(res.data) < page_size:
+                    break
+                offset += page_size
+
             records = []
-            for row in res.data:
+            for row in all_data:
                 sanren_tan = row.get("sanren_tan")
                 if isinstance(sanren_tan, str):
                     sanren_tan = json.loads(sanren_tan)
@@ -383,10 +400,10 @@ def load_today_racelist_from_supabase():
     if not supabase:
         return {}
     try:
-        date_str =  today_jst().strftime("%Y%m%d")
+        date_str = today_jst().strftime("%Y%m%d")
         res = supabase.table("today_racelist").select("*").eq("race_date", date_str).execute()
         if not res.data:
-                return {}
+            return {}
         from boatrace_scraper import RacerInfo
         result = {}
         error_count = 0
@@ -412,7 +429,7 @@ def load_deadline_times_from_supabase():
     if not supabase:
         return {}
     try:
-        date_str =  today_jst().strftime("%Y%m%d")
+        date_str = today_jst().strftime("%Y%m%d")
         res = supabase.table("today_racelist").select("venue_code,venue_name,race_no,deadline_time").eq("race_date", date_str).execute()
         result = {}
         for row in res.data or []:
@@ -425,7 +442,7 @@ def load_deadline_times_from_supabase():
     except Exception as e:
         return {}
 
-today_str_check =  today_jst().strftime("%Y%m%d")
+today_str_check = today_jst().strftime("%Y%m%d")
 
 # 日付が変わったらセッションをリセット
 if st.session_state.get("cache_date") != today_str_check:
@@ -483,7 +500,7 @@ header_html = (
     f'{_BOAT_SVG}'
     f'<div>'
     f'<p class="header-title">競艇予想ツール</p>'
-    f'<p class="header-date">📅 { today_jst().strftime("%Y年%m月%d日")}</p>'
+    f'<p class="header-date">📅 {today_jst().strftime("%Y年%m月%d日")}</p>'
     f'</div>'
     f'{_meta_html}'
     f'</div>'
@@ -554,7 +571,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.caption(f"📅 { today_jst().strftime('%Y年%m月%d日')}")
+    st.caption(f"📅 {today_jst().strftime('%Y年%m月%d日')}")
     if _venue_count:
         st.caption(f"🏟 {_venue_count}会場 {_race_count}レース取得済み")
 
@@ -566,7 +583,7 @@ PICKUP_SCORE_GAP_MIN = 15.0
 
 if page == "🔥 ピックアップ":
     records = load_records()
-    today_str =  today_jst().strftime("%Y%m%d")
+    today_str = today_jst().strftime("%Y%m%d")
     today_records = [r for r in records if r["race_date"] == today_str]
 
     pickups = [
@@ -631,14 +648,6 @@ if page == "🔥 ピックアップ":
                     st.markdown(card_html, unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # 高配当狙いピックアップ（odds_value >= 20 かつ top_score >= 25）
-    high_odds_pickups = [
-        r for r in today_records
-        if r.get("odds_value") is not None and r.get("top_score") is not None
-        and r["odds_value"] >= 20.0
-        and r["top_score"] >= 25.0
-    ]
 
     # 高配当狙いセクション
     st.markdown("### 💎 高配当狙い（オッズ20倍以上）")
@@ -741,7 +750,7 @@ if page == "🎯 予想":
                 from crawler import get_holding_venues
                 from boatrace_scraper import get_deadline_times
                 with st.spinner("開催会場を確認中..."):
-                    venues = get_holding_venues(sc,  today_jst())
+                    venues = get_holding_venues(sc, today_jst())
                 if not venues:
                     st.warning("本日の開催会場が見つかりませんでした")
                 else:
@@ -749,7 +758,7 @@ if page == "🎯 予想":
                     deadlines_by_venue = {}
                     for venue in venues:
                         try:
-                            deadlines_by_venue[venue] = get_deadline_times(sc,  today_jst(), venue)
+                            deadlines_by_venue[venue] = get_deadline_times(sc, today_jst(), venue)
                         except Exception:
                             deadlines_by_venue[venue] = {}
 
@@ -760,7 +769,7 @@ if page == "🎯 予想":
                     for venue in venues:
                         today_racers[venue] = {}
                         for rno in range(1, 13):
-                            racers = sc.get_racelist( today_jst(), venue, rno)
+                            racers = sc.get_racelist(today_jst(), venue, rno)
                             if racers:
                                 today_racers[venue][rno] = racers
                             count += 1
@@ -777,7 +786,7 @@ if page == "🎯 予想":
                                 deadline_str = deadline_dt.strftime("%H:%M") if deadline_dt else None
                                 try:
                                     supabase.table("today_racelist").upsert({
-                                        "race_date":  today_jst().strftime("%Y%m%d"),
+                                        "race_date": today_jst().strftime("%Y%m%d"),
                                         "venue_code": venue,
                                         "venue_name": VENUE_MAP[venue],
                                         "race_no": rno,
@@ -795,8 +804,6 @@ if page == "🎯 予想":
     if st.session_state.today_racers:
         # 締切時刻順のレース一覧
         from datetime import datetime as _dt
-        from datetime import timezone, timedelta
-        JST = timezone(timedelta(hours=9))
         now_time = _dt.now(JST).strftime("%H:%M")
 
         deadline_times = st.session_state.deadline_times
@@ -854,14 +861,14 @@ if page == "🎯 予想":
             if st.button("🎯 このレースを予想する", type="primary",
                          use_container_width=True, key=f"predict_{venue}_{rno}"):
                 predictor = get_predictor()
-                pred = predictor.predict(racers, race_date= today_jst().strftime("%Y%m%d"),
+                pred = predictor.predict(racers, race_date=today_jst().strftime("%Y%m%d"),
                                           venue_name=VENUE_MAP[venue], race_no=rno)
                 st.session_state.prediction = pred
                 st.session_state.last_venue = venue
                 st.session_state.last_race = rno
                 top_score, score_gap = _score_metrics(pred)
                 save_record({
-                    "race_date":  today_jst().strftime("%Y%m%d"),
+                    "race_date": today_jst().strftime("%Y%m%d"),
                     "venue_code": venue, "venue_name": VENUE_MAP[venue], "race_no": rno,
                     "tansho": pred.tansho, "sanren_tan": pred.sanren_tan,
                     "sanren_fuku": pred.sanren_fuku, "hit": None, "actual": "", "payout": None,
@@ -973,10 +980,10 @@ if page == "📊 直前情報":
     if st.button("📥  直前情報を取得", type="primary", key="before_btn", use_container_width=True):
         before_scraper = BeforeInfoScraper(delay=1.0)
         with st.spinner("取得中..."):
-            info = before_scraper.get_before_info( today_jst(), vc2, rno2)
+            info = before_scraper.get_before_info(today_jst(), vc2, rno2)
             if info:
                 st.session_state.before_info = info
-                save_fetch_history("before_info",  today_jst().strftime("%Y%m%d"), vc2, VENUE_MAP[vc2], rno2)
+                save_fetch_history("before_info", today_jst().strftime("%Y%m%d"), vc2, VENUE_MAP[vc2], rno2)
                 st.success("✅  取得しました")
             else:
                 st.warning("直前情報がまだ公開されていません")
@@ -1043,8 +1050,8 @@ if page == "📊 直前情報":
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             fetched_at = h.get("fetched_at", "")
             try:
-                from datetime import datetime as _dt2, timezone, timedelta as _td
-                _jst = timezone(_td(hours=9))
+                from datetime import datetime as _dt2, timezone, timedelta as _td2
+                _jst = timezone(_td2(hours=9))
                 _dt_utc = _dt2.fromisoformat(fetched_at.replace("Z", "+00:00"))
                 time_str = _dt_utc.astimezone(_jst).strftime("%H:%M")
             except Exception:
@@ -1089,7 +1096,7 @@ if page == "📋 結果確認":
         sc = get_scraper()
         if sc:
             with st.spinner("取得中..."):
-                result = sc.get_result( today_jst(), vc3, rno3)
+                result = sc.get_result(today_jst(), vc3, rno3)
                 if result and result.arrival:
                     medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣"]
                     col_r1, col_r2 = st.columns(2)
@@ -1106,7 +1113,7 @@ if page == "📋 結果確認":
 
                     # 記録更新
                     records = load_records()
-                    date_str =  today_jst().strftime("%Y%m%d")
+                    date_str = today_jst().strftime("%Y%m%d")
                     save_fetch_history("result", date_str, vc3, VENUE_MAP[vc3], rno3)
                     for r in records:
                         if r["race_date"] == date_str and r["venue_code"] == vc3 and r["race_no"] == rno3:
@@ -1145,8 +1152,8 @@ if page == "📋 結果確認":
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
             fetched_at = h.get("fetched_at", "")
             try:
-                from datetime import datetime as _dt2, timezone, timedelta as _td
-                _jst = timezone(_td(hours=9))
+                from datetime import datetime as _dt2, timezone, timedelta as _td2
+                _jst = timezone(_td2(hours=9))
                 _dt_utc = _dt2.fromisoformat(fetched_at.replace("Z", "+00:00"))
                 time_str = _dt_utc.astimezone(_jst).strftime("%H:%M")
             except Exception:
@@ -1304,7 +1311,7 @@ if page == "📈 成績記録":
                 ))
                 fig_race.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#94a3b8', height=max(200, 30 * len(venue_names) if False else 240),
+                    font_color='#94a3b8', height=240,
                     margin=dict(l=10, r=10, t=30, b=10),
                     yaxis=dict(gridcolor='#1e293b', title="的中率(%)", range=[0, 100]),
                     showlegend=False,
