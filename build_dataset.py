@@ -29,6 +29,23 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 COURSE_WIN_RATE = {1: 0.555, 2: 0.154, 3: 0.114, 4: 0.087, 5: 0.057, 6: 0.033}
 RANK_MAP = {"A1": 4, "A2": 3, "B1": 2, "B2": 1}
 
+def dedup_racers(racers: list) -> list:
+    """
+    クローラーの不具合で1レースに同じ艇が重複(空データ含む)して入るため、
+    laneごとに「中身のある艇(win_rate_allがある)」を優先して1つだけ残す。
+    これで18艇などの破損レコードを正しい6艇に復元する。
+    """
+    best = {}
+    for r in racers:
+        lane = r.get("lane")
+        if lane is None:
+            continue
+        has_data = r.get("win_rate_all") is not None
+        if lane not in best:
+            best[lane] = r
+        elif best[lane].get("win_rate_all") is None and has_data:
+            best[lane] = r
+    return [best[l] for l in sorted(best.keys())]
 
 def racer_to_row(racer: dict, result: dict | None, race_meta: dict) -> dict | None:
     """1艇分のデータを特徴量rowに変換する"""
@@ -109,6 +126,7 @@ def build_dataset(data_dir: Path, out_path: Path):
                 continue
             race_no = race.get("race_no", race_no_str)
             racers  = race.get("racers", [])
+            racers  = dedup_racers(racers)   # 重複・空データを除去して正しい6艇に復元
             result  = race.get("result")
 
             meta = {

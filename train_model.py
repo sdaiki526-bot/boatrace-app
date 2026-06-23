@@ -1,8 +1,14 @@
 """
-② モデル学習スクリプト (LightGBM)
+② モデル学習スクリプト (LightGBM / lambdarank版)
 
-dataset/training_data.csv を読み込んでモデルを学習し
-models/ に保存する。
+dataset/training_data.csv を読み込んでモデルを学習し models/ に保存する。
+
+旧版との違い:
+  - 艇ごとの独立二値分類 → レース単位のランキング学習(lambdarank)に変更
+    各レース6艇を1グループとして「相対的にどの艇が上位に来るか」を学習するため、
+    1コースの事前勝率(約55%)へ予測が張り付く偏りが大幅に緩和される。
+  - 評価をレース単位の実戦指標(単勝的中率/3連対カバー率)に変更。
+  - course_base_winrate を特徴量に追加。
 
 使い方:
   python train_model.py
@@ -17,8 +23,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import accuracy_score, roc_auc_score
 import lightgbm as lgb
 import pickle
 
@@ -30,13 +34,19 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 # 特徴量カラム
 # ─────────────────────────────────────────────
-FEATURE_COLS = [
+# コース情報(序列を固定化するので最小限に絞る)
+BASE_COLS = [
     "lane",
-    "rank_num",
     "age",
     "weight",
     "flying_count",
     "late_count",
+]
+
+# 選手・機力の「強さ」を表す指標。これらをレース内で相対化する。
+# 生値そのものはコース絶対序列と相関しやすいので、相対値(偏差・順位)を主役にする。
+RELATIVE_SRC_COLS = [
+    "rank_num",
     "avg_start_time",
     "win_rate_all",
     "win_rate_2",
@@ -48,10 +58,20 @@ FEATURE_COLS = [
     "boat_2rate",
 ]
 
-# LightGBM パラメータ
+# rank_num と avg_start_time は「小さいほど強い」ため、相対化時に符号を反転する
+LOWER_IS_BETTER = {"rank_num", "avg_start_time"}
+
+# 最終的にモデルへ渡す特徴量は train 時に動的生成する(下記 build_features 参照)
+FEATURE_COLS: list[str] = []
+
+# レースを一意に識別するキー (race_id 列が無いため複合キーで代用)
+RACE_KEY_COLS = ["race_date", "venue_code", "race_no"]
+
+# lambdarank パラメータ
 LGB_PARAMS = {
-    "objective": "binary",
-    "metric": "auc",
+    "objective": "lambdarank",
+    "metric": "ndcg",
+    "ndcg_eval_at": [1, 3],
     "learning_rate": 0.05,
     "num_leaves": 31,
     "max_depth": -1,
@@ -64,143 +84,303 @@ LGB_PARAMS = {
     "verbose": -1,
     "n_jobs": -1,
     "random_state": 42,
+    "label_gain": [0, 1, 3, 7, 15, 31],  # relevance 0..5 用のゲイン
 }
 
 
-# ─────────────────────────────────────────────
-# 学習
-# ─────────────────────────────────────────────
+def finish_to_relevance(finish: pd.Series) -> pd.Series:
+    """着順(1..6)を relevance(1着=5 ... 6着=0)に変換。欠損/失格は0。"""
+    rel = (6 - pd.to_numeric(finish, errors="coerce")).clip(lower=0, upper=5)
+    return rel.fillna(0).astype(int)
+
+
+def build_features(df: pd.DataFrame) -> list[str]:
+    """
+    レース内相対化特徴量を df に追加し、最終的な特徴量カラム名のリストを返す。
+
+    各「強さ指標」について、レース(race_id)内で次を生成する:
+      - <col>_dev  : レース平均との差 (value - race_mean)。「このレースで平均よりどれだけ強いか」
+      - <col>_rank : レース内順位を 0..1 に正規化。「6艇中の相対位置」
+    rank_num / avg_start_time は小さいほど強いため符号を反転してから相対化する。
+
+    生値(絶対値)はモデルに渡さず、相対値のみを渡すことで
+    「コース番号の固定序列」に頼れないようにする。
+    """
+    feats = list(BASE_COLS)
+    g = df.groupby("race_id", sort=False)
+
+    for col in RELATIVE_SRC_COLS:
+        src = pd.to_numeric(df[col], errors="coerce")
+        if col in LOWER_IS_BETTER:
+            src = -src  # 小さいほど強い → 符号反転で「大きいほど強い」に揃える
+        src = src.fillna(src.mean())
+
+        # 平均との差
+        race_mean = src.groupby(df["race_id"]).transform("mean")
+        df[f"{col}_dev"] = src - race_mean
+
+        # レース内順位(大きいほど強い→ rank 高)。0..1 に正規化(艇数差を吸収)
+        rnk = src.groupby(df["race_id"]).rank(method="average")
+        cnt = src.groupby(df["race_id"]).transform("count")
+        df[f"{col}_rank"] = (rnk - 1) / (cnt - 1).clip(lower=1)
+
+        feats += [f"{col}_dev", f"{col}_rank"]
+
+    return feats
+
+
 class BoatraceModelTrainer:
     def __init__(self, csv_path: Path, model_dir: Path):
-        self.csv_path  = csv_path
+        self.csv_path = csv_path
         self.model_dir = model_dir
         self.model_dir.mkdir(parents=True, exist_ok=True)
-        self.model_win   = None   # 1着予測モデル
-        self.model_top3  = None   # 3着内予測モデル
+        self.model = None
         self.feature_importance = None
 
+    # ── データ読み込み ───────────────────────
     def load_data(self) -> pd.DataFrame:
         logger.info(f"CSV読み込み: {self.csv_path}")
         df = pd.read_csv(self.csv_path, encoding="utf-8-sig")
         logger.info(f"  全行数: {len(df):,}")
 
-        # 着順データがある行のみ使用
         df = df[df["finish"].notna()].copy()
         logger.info(f"  着順あり: {len(df):,} 行")
 
-        # 日付でソート（時系列分割のため）
-        df["race_date"] = df["race_date"].astype(str)
-        df = df.sort_values("race_date").reset_index(drop=True)
+        # レースキーを文字列結合して race_id を生成
+        for c in RACE_KEY_COLS:
+            df[c] = df[c].astype(str)
+        df["race_id"] = df[RACE_KEY_COLS].agg("_".join, axis=1)
 
+        # 日付→レース番号の順で並べる(時系列分割のため、同一レースは連続させる)
+        df = df.sort_values(["race_date", "venue_code", "race_no", "lane"]).reset_index(drop=True)
+
+        # レース内相対化特徴量を生成し、使用カラムを確定する
+        global FEATURE_COLS
+        FEATURE_COLS = build_features(df)
+        logger.info(f"  特徴量数: {len(FEATURE_COLS)} (相対化後)")
         return df
 
-    def train(self):
+    # ── レース単位で時系列分割 ──────────────────
+    @staticmethod
+    def split_by_race(df: pd.DataFrame, val_ratio: float = 0.2):
+        """レース単位で末尾 val_ratio を検証に回す(レースが train/val をまたがない)。"""
+        race_ids = df["race_id"].drop_duplicates().tolist()  # 既に時系列順
+        n_val = max(1, int(len(race_ids) * val_ratio))
+        val_ids = set(race_ids[-n_val:])
+        is_val = df["race_id"].isin(val_ids)
+        return df[~is_val].copy(), df[is_val].copy()
+
+    @staticmethod
+    def make_group(df: pd.DataFrame):
+        """LightGBM ranking 用の group(各レースの行数リスト)。順序は df の並び通り。"""
+        return df.groupby("race_id", sort=False).size().tolist()
+
+    # ── 学習 ─────────────────────────────────
+    def train(self, lane_mode: str = "categorical", save: bool = True, verbose: bool = True):
+        """
+        lane_mode:
+          "numeric"     : lane を数値特徴として使用(従来。コース過剰依存になりやすい)
+          "categorical" : lane をカテゴリ特徴として使用(連続的大小を断ち切る)
+          "drop"        : lane を特徴量から除外(コース有利を完全に捨てる)
+        戻り値: 診断用 dict
+        """
         df = self.load_data()
         if len(df) < 500:
-            print("⚠ データが少なすぎます（500行以上推奨）。クローラーでもっとデータを集めてください。")
-            return
+            print("⚠ データが少なすぎます(500行以上推奨)。クローラーでデータを集めてください。")
+            return None
 
-        X = df[FEATURE_COLS].copy()
-        y_win  = df["is_win"].astype(int)
-        y_top3 = df["is_top3"].astype(int)
+        # lane_mode に応じて使用する特徴量を決める
+        feats = list(FEATURE_COLS)
+        cat_features = []
+        if lane_mode == "drop":
+            feats = [c for c in feats if c != "lane"]
+        elif lane_mode == "categorical":
+            cat_features = ["lane"]
+        # numeric は feats そのまま
 
-        # 時系列クロスバリデーション（未来でテスト）
-        tscv = TimeSeriesSplit(n_splits=5)
-        splits = list(tscv.split(X))
-        train_idx, val_idx = splits[-1]  # 最後の分割を使用
+        train_df, val_df = self.split_by_race(df, val_ratio=0.2)
+        if verbose:
+            logger.info(f"[lane_mode={lane_mode}] 学習: {len(train_df):,}行 / "
+                        f"{train_df['race_id'].nunique():,}レース  検証: {len(val_df):,}行 / "
+                        f"{val_df['race_id'].nunique():,}レース")
 
-        X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
-        yw_train, yw_val   = y_win.iloc[train_idx],  y_win.iloc[val_idx]
-        yt_train, yt_val   = y_top3.iloc[train_idx], y_top3.iloc[val_idx]
+        X_train, X_val = train_df[feats].copy(), val_df[feats].copy()
+        if lane_mode == "categorical":
+            X_train["lane"] = X_train["lane"].astype("category")
+            X_val["lane"]   = X_val["lane"].astype("category")
 
-        logger.info(f"学習データ: {len(X_train):,} 行 / 検証データ: {len(X_val):,} 行")
+        rel_train = finish_to_relevance(train_df["finish"])
+        rel_val   = finish_to_relevance(val_df["finish"])
+        grp_train = self.make_group(train_df)
+        grp_val   = self.make_group(val_df)
 
-        # ── 1着予測モデル ─────────────────────
-        print("\n📊 1着予測モデル 学習中...")
-        dtrain_w = lgb.Dataset(X_train, label=yw_train)
-        dval_w   = lgb.Dataset(X_val,   label=yw_val, reference=dtrain_w)
+        if verbose:
+            print(f"\n📊 ランキングモデル(lambdarank) 学習中... [lane_mode={lane_mode}]")
+        dtrain = lgb.Dataset(X_train, label=rel_train, group=grp_train,
+                             categorical_feature=cat_features or "auto")
+        dval   = lgb.Dataset(X_val, label=rel_val, group=grp_val, reference=dtrain)
 
-        self.model_win = lgb.train(
+        self.model = lgb.train(
             LGB_PARAMS,
-            dtrain_w,
+            dtrain,
             num_boost_round=500,
-            valid_sets=[dval_w],
-            callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(100)],
+            valid_sets=[dval],
+            callbacks=[lgb.early_stopping(50, verbose=False),
+                       lgb.log_evaluation(100 if verbose else 0)],
         )
+        self.feature_names = feats
 
-        pred_w = self.model_win.predict(X_val)
-        auc_w  = roc_auc_score(yw_val, pred_w)
-        acc_w  = accuracy_score(yw_val, (pred_w > 0.5).astype(int))
-        print(f"  AUC: {auc_w:.4f}  Accuracy: {acc_w:.4f}")
+        val_df = val_df.copy()
+        val_df["score"] = self.model.predict(X_val)
+        metrics = self._evaluate(val_df, verbose=verbose)
+        bias = self._diagnose_bias(val_df, verbose=verbose)
 
-        # ── 3着内予測モデル ───────────────────
-        print("\n📊 3着内予測モデル 学習中...")
-        dtrain_t = lgb.Dataset(X_train, label=yt_train)
-        dval_t   = lgb.Dataset(X_val,   label=yt_val, reference=dtrain_t)
-
-        self.model_top3 = lgb.train(
-            LGB_PARAMS,
-            dtrain_t,
-            num_boost_round=500,
-            valid_sets=[dval_t],
-            callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(100)],
-        )
-
-        pred_t = self.model_top3.predict(X_val)
-        auc_t  = roc_auc_score(yt_val, pred_t)
-        acc_t  = accuracy_score(yt_val, (pred_t > 0.5).astype(int))
-        print(f"  AUC: {auc_t:.4f}  Accuracy: {acc_t:.4f}")
-
-        # ── 特徴量重要度 ──────────────────────
         imp = pd.DataFrame({
-            "feature": FEATURE_COLS,
-            "importance_win":  self.model_win.feature_importance(importance_type="gain"),
-            "importance_top3": self.model_top3.feature_importance(importance_type="gain"),
-        }).sort_values("importance_win", ascending=False)
+            "feature": feats,
+            "importance": self.model.feature_importance(importance_type="gain"),
+        }).sort_values("importance", ascending=False)
         self.feature_importance = imp
+        if verbose:
+            print("\n📈 特徴量重要度")
+            print(imp.to_string(index=False))
 
-        print("\n📈 特徴量重要度 (1着モデル)")
-        print(imp[["feature", "importance_win"]].to_string(index=False))
+        # lane への依存度(全gainに占める lane の割合)
+        lane_share = 0.0
+        if "lane" in imp["feature"].values and imp["importance"].sum() > 0:
+            lane_share = float(imp.loc[imp["feature"] == "lane", "importance"].iloc[0]
+                               / imp["importance"].sum())
 
-        # ── 保存 ─────────────────────────────
-        self._save(auc_w, auc_t)
+        result = {
+            "lane_mode": lane_mode,
+            "hit_win": metrics["hit_win"],
+            "cover3": metrics["cover3"],
+            "pred_top1_lane1": bias["pred_top1_lane1"],
+            "actual_win_lane1": bias["actual_win_lane1"],
+            "lane_importance_share": round(lane_share, 4),
+        }
+        if save:
+            self._save(metrics, lane_mode)
+        return result
 
-    def _save(self, auc_win: float, auc_top3: float):
-        # モデル保存
-        win_path  = self.model_dir / "model_win.pkl"
-        top3_path = self.model_dir / "model_top3.pkl"
-        with open(win_path,  "wb") as f: pickle.dump(self.model_win,  f)
-        with open(top3_path, "wb") as f: pickle.dump(self.model_top3, f)
+    # ── 実戦指標の評価 ───────────────────────
+    @staticmethod
+    def _evaluate(val_df: pd.DataFrame, verbose: bool = True) -> dict:
+        # 各レースでスコア最大の艇を本命(単勝)とする
+        idx_top1 = val_df.groupby("race_id")["score"].idxmax()
+        top1 = val_df.loc[idx_top1]
+        hit_win = (top1["finish"].astype(float) == 1).mean()  # 単勝的中率
 
-        # メタ情報保存
+        # 各レースでスコア上位3艇に実際の1着が含まれる率(3連系の本命カバー率)
+        def top3_covers_winner(g):
+            top3_lanes = g.nlargest(3, "score")["lane"].tolist()
+            winner = g.loc[g["finish"].astype(float) == 1, "lane"]
+            return (not winner.empty) and (winner.iloc[0] in top3_lanes)
+        cover3 = val_df.groupby("race_id").apply(top3_covers_winner).mean()
+
+        if verbose:
+            print(f"\n  単勝的中率(本命=スコア最大): {hit_win:.4f}")
+            print(f"  上位3艇に1着を含む率      : {cover3:.4f}")
+            print("\n  目安: 単勝的中率はコース1号艇ベタ張り(約0.50前後)を上回れば学習効果あり")
+        return {"hit_win": round(float(hit_win), 4), "cover3": round(float(cover3), 4)}
+
+    # ── 1コース偏りの診断 ────────────────────
+    @staticmethod
+    def _diagnose_bias(val_df: pd.DataFrame, verbose: bool = True) -> dict:
+        # 各レースで予測1位になった艇のコース分布
+        idx_top1 = val_df.groupby("race_id")["score"].idxmax()
+        pred1_lane = val_df.loc[idx_top1, "lane"]
+        pred_dist = pred1_lane.value_counts(normalize=True).sort_index()
+
+        # 実際の1着のコース分布
+        winners = val_df[val_df["finish"].astype(float) == 1]
+        actual_dist = winners["lane"].value_counts(normalize=True).sort_index()
+
+        comp = pd.DataFrame({
+            "pred_top1_rate": pred_dist,
+            "actual_win_rate": actual_dist,
+        }).fillna(0).round(3)
+        if verbose:
+            print("\n🔍 1コース偏り診断 (コース別)")
+            print(comp.to_string())
+            print("  → pred と actual が近ければ健全。pred が極端に lane=1 に寄るなら要対策。")
+        return {
+            "pred_top1_lane1": round(float(pred_dist.get(1, 0.0)), 3),
+            "actual_win_lane1": round(float(actual_dist.get(1, 0.0)), 3),
+        }
+
+    # ── 保存 ─────────────────────────────────
+    def _save(self, metrics: dict, lane_mode: str):
+        model_path = self.model_dir / "model_rank.pkl"
+        with open(model_path, "wb") as f:
+            pickle.dump(self.model, f)
+
         meta = {
-            "feature_cols": FEATURE_COLS,
-            "auc_win":  round(auc_win,  4),
-            "auc_top3": round(auc_top3, 4),
+            "model_type": "lambdarank",
+            "lane_mode": lane_mode,
+            "feature_cols": getattr(self, "feature_names", FEATURE_COLS),
+            "race_key_cols": RACE_KEY_COLS,
+            "metrics": metrics,
             "lgb_params": LGB_PARAMS,
         }
-        meta_path = self.model_dir / "model_meta.json"
-        meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+        (self.model_dir / "model_meta.json").write_text(
+            json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
-        # 特徴量重要度保存
         if self.feature_importance is not None:
-            imp_path = self.model_dir / "feature_importance.csv"
-            self.feature_importance.to_csv(imp_path, index=False, encoding="utf-8-sig")
+            self.feature_importance.to_csv(
+                self.model_dir / "feature_importance.csv", index=False, encoding="utf-8-sig")
 
-        print(f"\n✅ モデル保存完了!")
-        print(f"   1着モデル  : {win_path.resolve()}  (AUC={auc_win:.4f})")
-        print(f"   3着内モデル: {top3_path.resolve()}  (AUC={auc_top3:.4f})")
-        print(f"\n  AUCの目安: 0.55以上で有意、0.60以上で良好、0.65以上で優秀")
+        print(f"\n✅ モデル保存完了! (lane_mode={lane_mode})")
+        print(f"   ランキングモデル: {model_path.resolve()}")
+        print(f"   単勝的中率={metrics['hit_win']}  上位3カバー率={metrics['cover3']}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="競艇予想モデル学習")
+    parser = argparse.ArgumentParser(description="競艇予想モデル学習 (lambdarank版)")
     parser.add_argument("--csv", default="dataset/training_data.csv")
     parser.add_argument("--out", default="models/")
+    parser.add_argument("--lane-mode", default="categorical",
+                        choices=["numeric", "categorical", "drop"],
+                        help="laneの扱い(単一学習時)")
+    parser.add_argument("--compare", action="store_true",
+                        help="numeric/categorical/drop の3モードを比較する")
     args = parser.parse_args()
 
-    trainer = BoatraceModelTrainer(Path(args.csv), Path(args.out))
-    trainer.train()
+    if args.compare:
+        # 3モードを静かに学習して比較表を出し、最良モードを保存する
+        results = []
+        for mode in ["numeric", "categorical", "drop"]:
+            trainer = BoatraceModelTrainer(Path(args.csv), Path(args.out))
+            r = trainer.train(lane_mode=mode, save=False, verbose=False)
+            if r:
+                results.append(r)
+                print(f"  完了: {mode:11s}  単勝={r['hit_win']:.4f}  "
+                      f"pred_top1_lane1={r['pred_top1_lane1']:.3f}  "
+                      f"lane依存={r['lane_importance_share']:.3f}")
+
+        if results:
+            comp = pd.DataFrame(results).set_index("lane_mode")
+            print("\n" + "=" * 60)
+            print("📊 lane_mode 比較 (actual_win_lane1 ≈ 0.55 が現実値)")
+            print("=" * 60)
+            print(comp.to_string())
+
+            # 選定: 単勝的中率を保ちつつ、予測1位のlane1比率が現実値に最も近いモード
+            actual = comp["actual_win_lane1"].iloc[0]
+            comp["bias_gap"] = (comp["pred_top1_lane1"] - actual).abs()
+            # 的中率が最良-0.01以内に収まるモードの中で bias_gap 最小を選ぶ
+            best_hit = comp["hit_win"].max()
+            cand = comp[comp["hit_win"] >= best_hit - 0.01]
+            best_mode = cand["bias_gap"].idxmin()
+            print(f"\n🏆 推奨モード: {best_mode}")
+            print(f"   (的中率を保ちつつ偏りが現実値に最も近い)")
+
+            # 推奨モードで再学習して保存
+            print(f"\n>>> {best_mode} で再学習して保存します...")
+            trainer = BoatraceModelTrainer(Path(args.csv), Path(args.out))
+            trainer.train(lane_mode=best_mode, save=True, verbose=True)
+    else:
+        trainer = BoatraceModelTrainer(Path(args.csv), Path(args.out))
+        trainer.train(lane_mode=args.lane_mode, save=True, verbose=True)
 
 
 if __name__ == "__main__":
