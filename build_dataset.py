@@ -117,14 +117,14 @@ def build_dataset(data_dir: Path, out_path: Path):
 
         # ファイル名から日付・会場を取得（例: 20260501_桐生.json）
         stem = jf.stem  # "20260501_桐生"
-        parts = stem.split("_", 1
+        parts = stem.split("_", 1)
         race_date = parts[0] if len(parts) >= 1 else ""
         venue_name = parts[1] if len(parts) >= 2 else ""
 
         for race_no_str, race in data.items():
             if not isinstance(race, dict):
                 continue
-            race_no = race.get("race_no", race_no_s
+            race_no = race.get("race_no", race_no_str)
             racers  = race.get("racers", [])
             racers  = dedup_racers(racers)   # 重複・空データを除去して正しい6艇に復元
             result  = race.get("result")
