@@ -107,6 +107,10 @@ def save_record(record):
             db_record["sanren_tan"] = json.dumps(record["sanren_tan"], ensure_ascii=False)
             if record.get("sanren_tan_odds") is not None:
                 db_record["sanren_tan_odds"] = json.dumps(record["sanren_tan_odds"], ensure_ascii=False)
+            # 展示・進入・STのjsonb列も文字列化
+            for jkey in ("exhibition_times", "start_courses", "start_sts"):
+                if record.get(jkey) is not None:
+                    db_record[jkey] = json.dumps(record[jkey], ensure_ascii=False)
             supabase.table("prediction_records").upsert(
                 db_record, on_conflict="race_date,venue_code,race_no"
             ).execute()
@@ -345,6 +349,7 @@ def exhibition_job():
     """
     10分おきに実行。締切時刻が60分以内のレースについて
     展示タイムを取得し、予想を再計算してSupabaseを更新する。
+    展示タイム・進入コース・ST・気象（風向含む）も記録する。
     """
     from before_info_scraper import BeforeInfoScraper
     from datetime import datetime as _dt2
@@ -383,11 +388,9 @@ def exhibition_job():
                 continue
 
             minutes_to_deadline = (deadline - now).total_seconds() / 60
-            # 締切60分前〜締切後10分の間に処理対象とする
             if not (-10 <= minutes_to_deadline <= 60):
                 continue
 
-            # 展示タイム取得
             info = before_scraper.get_before_info(today, venue, rno)
             if not info or not info.exhibitions:
                 continue
@@ -399,19 +402,24 @@ def exhibition_job():
             if not exhibition_times:
                 continue
 
+            # 進入コースとST（スタート展示から）
+            start_courses = {s.boat_no: s.course for s in info.start_exhibition} if info.start_exhibition else {}
+            start_sts = {s.boat_no: s.st for s in info.start_exhibition if s.st is not None} if info.start_exhibition else {}
+
             # 天候・水面情報を取得
             weather_text = None
             wind_speed = None
             wave_height = None
             water_temp = None
+            wind_direction = None
             if info.weather:
                 w = info.weather
                 weather_text = w.weather if hasattr(w, 'weather') else None
                 wind_speed = w.wind_speed
                 wave_height = w.wave_height
                 water_temp = w.water_temp
+                wind_direction = w.wind_direction if hasattr(w, 'wind_direction') else None
 
-            # 出走表（既存予想の元データ）を再取得して予想更新
             racers = sc.get_racelist(today, venue, rno)
             if not racers:
                 continue
@@ -426,19 +434,14 @@ def exhibition_job():
 
             top_score, score_gap = _score_metrics(pred)
 
-           # オッズ取得（最有力3連単候補のオッズ）
+            # オッズ取得（最有力3連単候補のオッズ）
             odds_value = None
             sanren_tan_odds = None
             try:
                 odds = sc.get_odds(today, venue, rno)
-                if odds:
-                    logger.info(f"DEBUG: odds.sanren_tan keys (一部)={list(odds.sanren_tan.keys())[:5]}")
-                    logger.info(f"DEBUG: pred.sanren_tan={pred.sanren_tan}")
                 if odds and odds.sanren_tan and pred.sanren_tan:
                     top_combo = pred.sanren_tan[0]
                     odds_value = odds.sanren_tan.get(top_combo)
-                    logger.info(f"DEBUG: top_combo={top_combo} odds_value={odds_value}")
-                    # 買い目3点それぞれのオッズを記録（期待値検証用）
                     sanren_tan_odds = {c: odds.sanren_tan.get(c) for c in pred.sanren_tan}
             except Exception as e:
                 logger.error(f"オッズ取得失敗 {VENUE_MAP[venue]} {rno}R: {e}")
@@ -462,8 +465,12 @@ def exhibition_job():
                 "wind_speed":  wind_speed,
                 "wave_height": wave_height,
                 "water_temp":  water_temp,
+                "wind_direction": wind_direction,
+                "exhibition_times": exhibition_times,
+                "start_courses": start_courses,
+                "start_sts": start_sts,
             })
-            # 取得履歴に記録
+
             if supabase:
                 try:
                     supabase.table("fetch_history").insert({

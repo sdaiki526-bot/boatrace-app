@@ -202,24 +202,32 @@ class BeforeInfoScraper:
                     tilt=tilt, parts_changed=parts,
                 ))
 
-        # ── スタート展示（table.is-w238）─────────
+        # ── スタート展示（table.is-w238）──────────
         start_table = soup.select_one("table.is-w238")
         if start_table:
-            for row in start_table.select("tbody tr"):
+            rows = start_table.select("tbody tr")
+            for course_idx, row in enumerate(rows, start=1):
                 cells = row.select("td")
-                if len(cells) == 3 and cells[0].text.strip().isdigit():
-                    course = int(cells[0].text.strip())
-                    boat_no_text = cells[1].text.strip()
-                    st_text = cells[2].text.strip()
-                    try:
-                        boat_no = int(boat_no_text)
-                    except:
-                        continue
-                    info.start_exhibition.append(StartExhibition(
-                        course=course,
-                        boat_no=boat_no,
-                        st=self._sf(st_text),
-                    ))
+                if not cells:
+                    continue
+                # 1つのtdに「艇番\n\nST」が入っている（行の位置=進入コース）
+                text = cells[0].text.strip()
+                parts = [p for p in text.split("\n") if p.strip()]
+                if len(parts) < 2:
+                    continue
+                try:
+                    boat_no = int(parts[0].strip())
+                except ValueError:
+                    continue
+                st_text = parts[-1].strip()
+                # F(フライング)/L(出遅れ)の記号を除いてST数値を取る
+                st_clean = st_text.replace("F", "").replace("L", "").strip()
+                st_val = self._sf(st_clean)
+                info.start_exhibition.append(StartExhibition(
+                    course=course_idx,   # 行の位置 = 進入コース
+                    boat_no=boat_no,     # セルの数字 = 艇番
+                    st=st_val,
+                ))
 
         # ── 気象情報 ────────────────────────────
         weather = WeatherInfo()
