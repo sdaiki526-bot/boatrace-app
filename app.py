@@ -576,13 +576,18 @@ with st.sidebar:
         st.caption(f"🏟 {_venue_count}会場 {_race_count}レース取得済み")
 
 # ─────────────────────────────────────────────
+# ホーム（会場グリッドダッシュボード）
+# ─────────────────────────────────────────────
+if page == "🏠 ホーム":
+    render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
+    
+# ─────────────────────────────────────────────
 # ピックアップ
 # ─────────────────────────────────────────────
 PICKUP_TOP_SCORE_MIN = 35.0
 PICKUP_SCORE_GAP_MIN = 15.0
 
 if page == "🔥 ピックアップ":
-    render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
     records = load_records()
     today_str = today_jst().strftime("%Y%m%d")
     today_records = [r for r in records if r["race_date"] == today_str]
