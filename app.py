@@ -566,10 +566,9 @@ with st.sidebar:
 
     page = st.radio(
         "",
-        ["🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録"],
+        ["🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録", "💎 高配当殿堂"],
         label_visibility="collapsed",
     )
-
     st.markdown("---")
     st.caption(f"📅 {today_jst().strftime('%Y年%m月%d日')}")
     if _venue_count:
@@ -1416,3 +1415,61 @@ if page == "📈 成績記録":
             RECORD_FILE.unlink(missing_ok=True)
             st.success("リセットしました")
             st.rerun()
+
+            # ─────────────────────────────────────────────
+# タブ5: 高配当殿堂
+# ─────────────────────────────────────────────
+if page == "💎 高配当殿堂":
+    st.markdown("### 💎 高配当殿堂")
+    st.markdown(
+        "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
+        "払戻1万円以上の的中レース。狙い目が大きく当たった記録です。</p>",
+        unsafe_allow_html=True,
+    )
+
+    records = load_records()
+    big_hits = [
+        r for r in records
+        if r.get("hit") is True and r.get("payout") and r["payout"] >= 10000
+    ]
+    big_hits.sort(key=lambda r: r["payout"], reverse=True)
+
+    if not big_hits:
+        st.info("まだ1万円以上の的中はありません。")
+    else:
+        # サマリー
+        total = sum(r["payout"] for r in big_hits)
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{len(big_hits)}</div><div class="stat-label">殿堂入り</div></div>', unsafe_allow_html=True)
+        with c2:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">¥{big_hits[0]["payout"]:,}</div><div class="stat-label">最高配当</div></div>', unsafe_allow_html=True)
+        with c3:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">¥{total:,}</div><div class="stat-label">合計払戻</div></div>', unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        for rank, r in enumerate(big_hits, start=1):
+            p = r["payout"]
+            # 配当帯で色とバッジを変える
+            if p >= 50000:
+                bg, border, badge = "#fef3c7", "#f59e0b", "👑 超高配当"
+            elif p >= 30000:
+                bg, border, badge = "#fae8ff", "#a855f7", "💎 高配当"
+            else:
+                bg, border, badge = "#ecfeff", "#06b6d4", "✨ 万舟"
+            ds = r["race_date"]
+            formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
+            card_html = (
+                f"<div style='background:{bg};border:2px solid {border};border-radius:10px;"
+                "padding:0.9rem 1.2rem;margin:0.4rem 0;display:flex;align-items:center;"
+                "gap:1rem;flex-wrap:wrap'>"
+                f"<span style='font-size:1.2rem;font-weight:800;color:{border};min-width:36px'>#{rank}</span>"
+                f"<span style='background:{border};color:#fff;border-radius:6px;padding:2px 10px;font-size:0.78rem;font-weight:700'>{badge}</span>"
+                f"<span style='color:#475569;font-size:0.85rem'>{formatted}</span>"
+                f"<span style='font-weight:700;color:#1e293b'>{r['venue_name']} {r['race_no']}R</span>"
+                f"<span style='color:#1d4ed8;font-size:0.9rem'>{r.get('actual','')}</span>"
+                f"<span style='margin-left:auto;font-size:1.3rem;font-weight:800;color:{border}'>¥{p:,}</span>"
+                "</div>"
+            )
+            st.markdown(card_html, unsafe_allow_html=True)
