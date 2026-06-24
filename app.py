@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from boatrace_scraper import BoatraceScraper, VENUE_MAP
 from predictor import BoatracePredictor, MLPredictor
-
+from dashboard import render_dashboard
 
 @st.cache_resource
 def get_predictor():
@@ -566,9 +566,10 @@ with st.sidebar:
 
     page = st.radio(
         "",
-        ["🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録", "💎 高配当殿堂"],
+        ["🏠 ホーム", "🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録", "💎 高配当殿堂"],
         label_visibility="collapsed",
     )
+    
     st.markdown("---")
     st.caption(f"📅 {today_jst().strftime('%Y年%m月%d日')}")
     if _venue_count:
@@ -581,6 +582,7 @@ PICKUP_TOP_SCORE_MIN = 35.0
 PICKUP_SCORE_GAP_MIN = 15.0
 
 if page == "🔥 ピックアップ":
+    render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
     records = load_records()
     today_str = today_jst().strftime("%Y%m%d")
     today_records = [r for r in records if r["race_date"] == today_str]
