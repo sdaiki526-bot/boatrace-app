@@ -74,31 +74,31 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* ライト・スポーティーテーマ */
-    .stApp { background-color: #f0f4f8; font-size: 16px; }
+    /* カジノ・ナイター風テーマ（黒×金） */
+    .stApp { background-color: #0a0f1c; color: #e2e8f0; font-size: 16px; }
     .main .block-container { padding: 1.5rem 2rem; max-width: 1400px; }
     p, span, div, label, li { font-size: 1rem; }
-    h1 { font-size: 1.8rem !important; }
-    h2 { font-size: 1.5rem !important; }
-    h3 { font-size: 1.3rem !important; }
-    h4 { font-size: 1.1rem !important; }
+    h1 { font-size: 1.8rem !important; color: #f5c542 !important; }
+    h2 { font-size: 1.5rem !important; color: #f5c542 !important; }
+    h3 { font-size: 1.3rem !important; color: #f5c542 !important; }
+    h4 { font-size: 1.1rem !important; color: #f1f5f9 !important; }
 
-    /* Streamlitデフォルト要素 */
-    .stSelectbox > div > div { background: #ffffff !important; border-color: #cbd5e1 !important; }
-    .stSelectbox > div > div > div { color: #1e293b !important; }
-    .stSelectbox svg { color: #64748b !important; }
-    .stSelectbox label, .stMultiSelect label { color: #475569 !important; }
+    .stSelectbox > div > div { background: #1a2540 !important; border-color: #2d3a52 !important; }
+    .stSelectbox > div > div > div { color: #f1f5f9 !important; }
+    .stSelectbox svg { color: #f5c542 !important; }
+    .stSelectbox label, .stMultiSelect label { color: #8b9bb4 !important; }
 
     /* ヘッダー */
     .header-box {
-        background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #2563eb 100%);
+        background: linear-gradient(135deg, #0f1729 0%, #1a2540 60%, #0f1729 100%);
+        border: 1px solid #b8860b;
         border-radius: 14px;
         padding: 1.2rem 1.8rem;
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 1.2rem;
-        box-shadow: 0 4px 16px rgba(29,78,216,0.25);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         position: relative;
         overflow: hidden;
     }
@@ -107,47 +107,47 @@ st.markdown("""
         position: absolute;
         right: -40px; top: -40px;
         width: 160px; height: 160px;
-        background: rgba(255,255,255,0.08);
+        background: rgba(245,197,66,0.06);
         border-radius: 50%;
     }
     .header-icon { flex-shrink: 0; }
-    .header-title { font-size: 1.7rem; font-weight: 800; color: #ffffff; margin: 0; letter-spacing: 0.02em; }
-    .header-date { color: #bfdbfe; font-size: 0.85rem; margin: 0.2rem 0 0; font-weight: 600; }
+    .header-title { font-size: 1.7rem; font-weight: 800; color: #f5c542; margin: 0; letter-spacing: 0.02em; }
+    .header-date { color: #8b9bb4; font-size: 0.85rem; margin: 0.2rem 0 0; font-weight: 600; }
     .header-meta { margin-left: auto; text-align: right; z-index: 1; }
-    .header-meta-value { font-size: 1.5rem; font-weight: 800; color: #fff; line-height: 1; }
-    .header-meta-label { font-size: 0.75rem; color: #bfdbfe; font-weight: 600; margin-top: 0.2rem; }
+    .header-meta-value { font-size: 1.5rem; font-weight: 800; color: #f5c542; line-height: 1; }
+    .header-meta-label { font-size: 0.75rem; color: #8b9bb4; font-weight: 600; margin-top: 0.2rem; }
 
     /* カード */
     .stat-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+        background: linear-gradient(135deg, #1a2540, #0f1729);
+        border: 1px solid #2d3a52;
         border-radius: 10px;
         padding: 1rem;
         text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .stat-value { font-size: 1.8rem; font-weight: 800; color: #1d4ed8; }
-    .stat-label { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #f5c542; }
+    .stat-label { font-size: 0.78rem; color: #8b9bb4; margin-top: 0.2rem; }
 
     /* 買い目ボックス */
     .buy-box {
-        background: #ffffff;
-        border: 1px solid #bfdbfe;
+        background: #1a2540;
+        border: 1px solid #b8860b;
         border-radius: 10px;
         padding: 1.2rem;
         margin: 0.8rem 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .buy-title { font-size: 1rem; font-weight: 700; color: #1d4ed8; margin-bottom: 0.8rem; }
+    .buy-title { font-size: 1rem; font-weight: 700; color: #f5c542; margin-bottom: 0.8rem; }
     .buy-combo {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
+        background: #0f1729;
+        border: 1px solid #b8860b;
         border-radius: 6px;
         padding: 0.4rem 0.9rem;
         margin: 0.3rem 0.2rem;
         font-size: 1rem;
         font-weight: 700;
-        color: #1e40af;
+        color: #f5c542;
         display: inline-block;
         letter-spacing: 0.05em;
     }
@@ -157,15 +157,15 @@ st.markdown("""
         border-radius: 8px;
         font-weight: 700;
         font-size: 0.95rem;
-        border: 1px solid #cbd5e1 !important;
-        background: #ffffff !important;
-        color: #1e293b !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        border: 1px solid #2d3a52 !important;
+        background: #1a2540 !important;
+        color: #f1f5f9 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     .stButton > button[kind="primary"] {
-        background: #1d4ed8 !important;
-        border-color: #1d4ed8 !important;
-        color: #fff !important;
+        background: linear-gradient(135deg, #b8860b, #f5c542) !important;
+        border-color: #f5c542 !important;
+        color: #0f1729 !important;
     }
     .stButton > button:hover { opacity: 0.85; }
 
@@ -174,12 +174,12 @@ st.markdown("""
         display: flex;
         align-items: center;
         padding: 0.7rem 1rem;
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+        background: #1a2540;
+        border: 1px solid #2d3a52;
         border-radius: 8px;
         margin: 4px 0;
         gap: 1rem;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     .lane-badge {
         width: 30px; height: 30px; border-radius: 50%;
@@ -194,14 +194,14 @@ st.markdown("""
     .lane-6 { background: #16a34a; color: #fff; }
 
     /* 的中・ハズレ */
-    .hit-badge { background: #dcfce7; border: 1px solid #16a34a; color: #15803d; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
-    .miss-badge { background: #fee2e2; border: 1px solid #dc2626; color: #b91c1c; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
-    .pending-badge { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .hit-badge { background: #064e3b; border: 1px solid #10b981; color: #6ee7b7; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .miss-badge { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .pending-badge { background: #1a2540; border: 1px solid #2d3a52; color: #8b9bb4; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
 
     /* 記録カード */
     .record-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+        background: #1a2540;
+        border: 1px solid #2d3a52;
         border-radius: 8px;
         padding: 0.7rem 1rem;
         margin: 4px 0;
@@ -210,27 +210,22 @@ st.markdown("""
         gap: 1rem;
         flex-wrap: wrap;
     }
-    hr { border-color: #e2e8f0 !important; }
+    hr { border-color: #2d3a52 !important; }
 
     /* Expander */
     [data-testid="stExpander"] {
-        background: #ffffff;
-        border: 1px solid #e2e8f0 !important;
+        background: #1a2540;
+        border: 1px solid #2d3a52 !important;
         border-radius: 8px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
-    [data-testid="stExpander"] summary {
-        color: #1e293b !important;
-        font-weight: 600 !important;
-    }
-    [data-testid="stExpander"] summary span {
-        color: #1e293b !important;
-    }
+    [data-testid="stExpander"] summary { color: #f1f5f9 !important; font-weight: 600 !important; }
+    [data-testid="stExpander"] summary span { color: #f1f5f9 !important; }
 
     /* メトリクス */
-    [data-testid="stMetric"] { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.8rem; }
-    [data-testid="stMetricLabel"] { color: #64748b !important; }
-    [data-testid="stMetricValue"] { color: #1e293b !important; }
+    [data-testid="stMetric"] { background: #1a2540; border: 1px solid #2d3a52; border-radius: 8px; padding: 0.8rem; }
+    [data-testid="stMetricLabel"] { color: #8b9bb4 !important; }
+    [data-testid="stMetricValue"] { color: #f5c542 !important; }
 </style>
 """, unsafe_allow_html=True)
 
