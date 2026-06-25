@@ -138,3 +138,78 @@ def render_dashboard(supabase, today_str):
         "<span style='color:#1d4ed8'>青=まもなく締切</span> / グレー=狙い目なし</p>",
         unsafe_allow_html=True,
     )
+
+    # ─────────────────────────────────────────────
+    # 締切が近い順の狙い目レースリスト
+    # ─────────────────────────────────────────────
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#475569;font-size:0.9rem;margin-bottom:0.6rem'>"
+                "💰 狙い目レース（締切が近い順）</p>", unsafe_allow_html=True)
+
+    # 予想と締切を結合して狙い目だけ抽出
+    try:
+        pr = (supabase.table("prediction_records")
+              .select("venue_name,venue_code,race_no,top_score,score_gap,odds_value,sanren_tan")
+              .eq("race_date", today_str).execute()).data or []
+    except Exception:
+        pr = []
+
+    # 締切時刻を辞書化
+    deadline_map = {}
+    try:
+        tr = (supabase.table("today_racelist")
+              .select("venue_code,race_no,deadline_time")
+              .eq("race_date", today_str).execute()).data or []
+        for row in tr:
+            if row.get("deadline_time"):
+                deadline_map[(row["venue_code"], row["race_no"])] = row["deadline_time"]
+    except Exception:
+        pass
+
+    value_races = []
+    for p in pr:
+        if p.get("top_score") is None or p.get("score_gap") is None:
+            continue
+        if p["score_gap"] <= VALUE_GAP_MAX or p["top_score"] <= VALUE_SCORE_MAX:
+            dl = deadline_map.get((p["venue_code"], p["race_no"]), "")
+            value_races.append({**p, "deadline": dl})
+
+    # 締切がまだ来ていないものを時刻順に、その後に締切済みを並べる
+    upcoming = sorted([v for v in value_races if v["deadline"] and v["deadline"] > now_hm],
+                      key=lambda v: v["deadline"])
+    past = sorted([v for v in value_races if not v["deadline"] or v["deadline"] <= now_hm],
+                  key=lambda v: v["deadline"], reverse=True)
+    ordered = upcoming + past
+
+    if not ordered:
+        st.info("本日の狙い目レースはまだありません。")
+    else:
+        for v in ordered:
+            is_past = not (v["deadline"] and v["deadline"] > now_hm)
+            sanren = v.get("sanren_tan")
+            if isinstance(sanren, str):
+                try:
+                    sanren = json.loads(sanren)
+                except Exception:
+                    sanren = []
+            combo_text = " / ".join(sanren) if sanren else ""
+            odds = v.get("odds_value")
+            odds_text = f"<span style='color:#0891b2;font-weight:700;margin-left:8px'>{odds:.1f}倍</span>" if odds else ""
+            time_label = v["deadline"] or "--:--"
+            opacity = "0.5" if is_past else "1"
+            bg = "#f8fafc" if is_past else "#ecfeff"
+            border = "#cbd5e1" if is_past else "#06b6d4"
+            check = "✅" if is_past else "⏰"
+            st.markdown(
+                f"<div style='background:{bg};border:1px solid {border};border-radius:8px;"
+                f"padding:0.5rem 0.9rem;margin:0.25rem 0;display:flex;align-items:center;"
+                f"gap:0.8rem;flex-wrap:wrap;opacity:{opacity}'>"
+                f"<span style='font-size:0.82rem;color:#155e75'>{check} {time_label}</span>"
+                f"<span style='font-weight:700;color:#1e293b'>{v['venue_name']} {v['race_no']}R</span>"
+                f"<span style='color:#1d4ed8;font-size:0.85rem'>{combo_text}</span>"
+                f"{odds_text}"
+                f"<span style='margin-left:auto;font-size:0.78rem;color:#64748b'>"
+                f"確信度{v['top_score']:.0f} / 差{v['score_gap']:.0f}</span>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
