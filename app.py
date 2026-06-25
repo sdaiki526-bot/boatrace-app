@@ -564,11 +564,22 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    page = st.radio(
+    menu = st.radio(
         "",
-        ["🏠 ホーム", "🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📋 結果確認", "📈 成績記録", "💎 高配当殿堂"],
+        ["🏠 ホーム", "🔥 ピックアップ", "🎯 予想", "📊 直前情報", "📊 成績"],
         label_visibility="collapsed",
     )
+
+    # 「成績」内のサブタブ
+    if menu == "📊 成績":
+        sub = st.radio(
+            "成績メニュー",
+            ["📋 結果確認", "📈 成績記録", "💎 高配当殿堂"],
+            label_visibility="collapsed",
+        )
+        page = sub
+    else:
+        page = menu
     
     st.markdown("---")
     st.caption(f"📅 {today_jst().strftime('%Y年%m月%d日')}")
@@ -580,7 +591,7 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 if page == "🏠 ホーム":
     render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
-    
+
 # ─────────────────────────────────────────────
 # ピックアップ
 # ─────────────────────────────────────────────
