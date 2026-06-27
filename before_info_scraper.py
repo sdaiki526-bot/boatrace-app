@@ -171,14 +171,16 @@ class BeforeInfoScraper:
                             adj_weight = v
                             break
 
-                # 展示タイム（colgroup width=61pxの列）
+                # 展示タイム（体重kgのtdの次のtdが展示タイム）
                 exhibition_time = None
                 all_tds = tbody.select("td")
-                for td in all_tds:
-                    txt = td.text.strip()
-                    v = self._sf(txt)
-                    if v and 6.0 <= v <= 8.0:  # 展示タイムの範囲
-                        exhibition_time = v
+                for idx, td in enumerate(all_tds):
+                    if "kg" in td.text:
+                        # 体重の次のtdが展示タイム
+                        if idx + 1 < len(all_tds):
+                            v = self._sf(all_tds[idx + 1].text)
+                            if v and 6.0 <= v <= 8.5:
+                                exhibition_time = v
                         break
 
                 # チルト
