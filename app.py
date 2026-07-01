@@ -24,13 +24,20 @@ from boatrace_scraper import BoatraceScraper, VENUE_MAP
 from predictor import BoatracePredictor, MLPredictor
 from dashboard import render_dashboard
 
-@st.cache_resource
-def get_predictor():
-    """LightGBMモデルがあればMLPredictor、無ければルールベースにフォールバック"""
+def get_supabase():
     try:
-        return MLPredictor(model_dir=Path(__file__).parent / "models")
-    except FileNotFoundError:
-        return BoatracePredictor()
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_KEY"]
+    except Exception as e:
+        st.session_state["_supabase_error"] = f"Secrets読めない: {e}"
+        return None
+    try:
+        return create_client(url, key)
+    except Exception as e:
+        st.session_state["_supabase_error"] = f"接続失敗: {e}"
+        return None
+
+supabase = get_supabase()
 
 
 def _score_metrics(pred):
