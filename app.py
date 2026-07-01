@@ -58,7 +58,10 @@ def get_supabase():
         st.session_state["_supabase_error"] = f"接続失敗: {e}"
         return None
 
-supabase = get_supabase()
+# セッションに接続を保持し、失敗したら毎回再接続を試みる
+if "supabase_client" not in st.session_state or st.session_state.get("supabase_client") is None:
+    st.session_state["supabase_client"] = get_supabase()
+supabase = st.session_state["supabase_client"]
 
 # ─────────────────────────────────────────────
 # ページ設定
@@ -584,8 +587,10 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 if page == "🏠 ホーム":
     if not supabase:
-        _err = st.session_state.get("_supabase_error", "不明")
-        st.error(f"⚠ データベースに接続できていません。エラー: {_err}")
+        st.session_state["supabase_client"] = None  # 次回再接続を促す
+        st.warning("⚠ データベース接続を準備中です。数秒待ってページを再読み込み（F5）してください。")
+        if st.button("🔄 再接続する"):
+            st.rerun()
     render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
 
 # ─────────────────────────────────────────────
