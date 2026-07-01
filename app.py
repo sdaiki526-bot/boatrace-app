@@ -53,11 +53,25 @@ except ImportError:
 
 from supabase import create_client
 
+@st.cache_resource
 def get_supabase():
-    url = os.getenv("SUPABASE_URL") or st.secrets.get("SUPABASE_URL", "")
-    key = os.getenv("SUPABASE_KEY") or st.secrets.get("SUPABASE_KEY", "")
+    url = ""
+    key = ""
+    # まず環境変数（ローカル用）
+    url = os.getenv("SUPABASE_URL", "")
+    key = os.getenv("SUPABASE_KEY", "")
+    # 無ければStreamlit Secrets（本番用）
+    if not url or not key:
+        try:
+            url = st.secrets["SUPABASE_URL"]
+            key = st.secrets["SUPABASE_KEY"]
+        except Exception:
+            pass
     if url and key:
-        return create_client(url, key)
+        try:
+            return create_client(url, key)
+        except Exception:
+            return None
     return None
 
 supabase = get_supabase()
