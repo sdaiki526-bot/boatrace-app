@@ -586,13 +586,17 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 if page == "🏠 ホーム":
     _today = today_jst().strftime("%Y%m%d")
-    st.write(f"DEBUG: 日付={_today}, supabase={supabase is not None}")
-    if supabase:
+    import os as _os
+    _url = _os.getenv("SUPABASE_URL") or st.secrets.get("SUPABASE_URL", "")
+    _key = _os.getenv("SUPABASE_KEY") or st.secrets.get("SUPABASE_KEY", "")
+    st.write(f"DEBUG: URL長さ={len(_url)}, KEY長さ={len(_key)}, supabase={supabase is not None}")
+    if _url and _key and not supabase:
         try:
-            _test = supabase.table("today_racelist").select("race_no").eq("race_date", _today).execute()
-            st.write(f"DEBUG: today_racelist取得件数={len(_test.data)}")
+            from supabase import create_client as _cc
+            _test_client = _cc(_url, _key)
+            st.write("DEBUG: 手動接続は成功した")
         except Exception as e:
-            st.error(f"DEBUG: 取得エラー={e}")
+            st.error(f"DEBUG: 接続エラー={e}")
     render_dashboard(supabase, _today)
 
 # ─────────────────────────────────────────────
