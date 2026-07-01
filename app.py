@@ -55,24 +55,14 @@ from supabase import create_client
 
 @st.cache_resource
 def get_supabase():
-    url = ""
-    key = ""
-    # まず環境変数（ローカル用）
-    url = os.getenv("SUPABASE_URL", "")
-    key = os.getenv("SUPABASE_KEY", "")
-    # 無ければStreamlit Secrets（本番用）
-    if not url or not key:
-        try:
-            url = st.secrets["SUPABASE_URL"]
-            key = st.secrets["SUPABASE_KEY"]
-        except Exception:
-            pass
-    if url and key:
-        try:
-            return create_client(url, key)
-        except Exception:
-            return None
-    return None
+    try:
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_KEY"]
+        return create_client(url, key)
+    except Exception as e:
+        import traceback
+        st.session_state["_supabase_error"] = str(e)
+        return None
 
 supabase = get_supabase()
 
@@ -600,7 +590,8 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 if page == "🏠 ホーム":
     if not supabase:
-        st.error("⚠ データベースに接続できていません。Streamlit CloudのSettings→SecretsでSaveし直すと復旧します。")
+        _err = st.session_state.get("_supabase_error", "不明")
+        st.error(f"⚠ データベースに接続できていません。エラー: {_err}")
     render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
 
 # ─────────────────────────────────────────────
