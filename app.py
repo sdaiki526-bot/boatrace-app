@@ -1255,6 +1255,56 @@ if page == "📈 成績記録":
     if not records:
         st.info("まだ予想記録がありません。予想タブで予想すると自動で記録されます。")
     else:
+        # ─────────────────────────────────────────────
+        # 💰 狙い目レースの成績（回収率検証）
+        # ─────────────────────────────────────────────
+        VALUE_GAP_MAX = 15.0
+        VALUE_SCORE_MAX = 30.0
+        value_checked = [
+            r for r in records
+            if r.get("hit") is not None
+            and r.get("top_score") is not None and r.get("score_gap") is not None
+            and (r["score_gap"] <= VALUE_GAP_MAX or r["top_score"] <= VALUE_SCORE_MAX)
+        ]
+        if value_checked:
+            v_hits = [r for r in value_checked if r["hit"]]
+            v_payout = sum(r.get("payout") or 0 for r in v_hits)
+            v_cost = len(value_checked) * 300
+            v_roi = v_payout / v_cost * 100 if v_cost else 0
+            v_hit_rate = len(v_hits) / len(value_checked) * 100 if value_checked else 0
+
+            # 全体の回収率（比較用）
+            all_checked = [r for r in records if r.get("hit") is not None]
+            all_hits = [r for r in all_checked if r["hit"]]
+            all_payout = sum(r.get("payout") or 0 for r in all_hits)
+            all_cost = len(all_checked) * 300
+            all_roi = all_payout / all_cost * 100 if all_cost else 0
+
+            roi_color = "#4ade80" if v_roi >= 100 else ("#f5c542" if v_roi >= 75 else "#ef4444")
+
+            st.markdown("### 💰 狙い目レースの成績")
+            st.markdown(
+                "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
+                "確信度が低め（1-2位差15以下 または 確信度30以下）の荒れそうなレースだけを買った場合の成績。"
+                "全体より回収率が高ければ、狙い目フィルタが機能している証拠です。</p>",
+                unsafe_allow_html=True,
+            )
+            vc1, vc2, vc3, vc4 = st.columns(4)
+            with vc1:
+                st.markdown(f'<div class="stat-card"><div class="stat-value">{len(value_checked)}</div><div class="stat-label">狙い目レース数</div></div>', unsafe_allow_html=True)
+            with vc2:
+                st.markdown(f'<div class="stat-card"><div class="stat-value">{len(v_hits)}</div><div class="stat-label">的中数（{v_hit_rate:.1f}%）</div></div>', unsafe_allow_html=True)
+            with vc3:
+                st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{roi_color}">{v_roi:.1f}%</div><div class="stat-label">狙い目の回収率</div></div>', unsafe_allow_html=True)
+            with vc4:
+                st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#8b9bb4">{all_roi:.1f}%</div><div class="stat-label">全体の回収率</div></div>', unsafe_allow_html=True)
+
+            st.markdown(
+                "<p style='color:#64748b;font-size:0.78rem;margin-top:0.5rem'>"
+                "※ まだサンプルが少ないため、数本の高配当で数字が大きく動きます。継続して検証が必要です。</p>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("---")
         checked = [r for r in records if r["hit"] is not None]
         hits = [r for r in checked if r["hit"]]
         hit_rate = len(hits) / len(checked) * 100 if checked else 0
