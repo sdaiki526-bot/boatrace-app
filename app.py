@@ -24,21 +24,6 @@ from boatrace_scraper import BoatraceScraper, VENUE_MAP
 from predictor import BoatracePredictor, MLPredictor
 from dashboard import render_dashboard
 
-def get_supabase():
-    try:
-        url = st.secrets["SUPABASE_URL"]
-        key = st.secrets["SUPABASE_KEY"]
-    except Exception as e:
-        st.session_state["_supabase_error"] = f"Secrets読めない: {e}"
-        return None
-    try:
-        return create_client(url, key)
-    except Exception as e:
-        st.session_state["_supabase_error"] = f"接続失敗: {e}"
-        return None
-
-supabase = get_supabase()
-
 
 def _score_metrics(pred):
     """予想結果から1位スコアと1位-2位の差を計算する"""
@@ -60,16 +45,20 @@ except ImportError:
 
 from supabase import create_client
 
-@st.cache_resource
 def get_supabase():
     try:
         url = st.secrets["SUPABASE_URL"]
         key = st.secrets["SUPABASE_KEY"]
+    except Exception as e:
+        st.session_state["_supabase_error"] = f"Secrets読めない: {e}"
+        return None
+    try:
         return create_client(url, key)
     except Exception as e:
-        import traceback
-        st.session_state["_supabase_error"] = str(e)
+        st.session_state["_supabase_error"] = f"接続失敗: {e}"
         return None
+
+supabase = get_supabase()
 
 supabase = get_supabase()
 
