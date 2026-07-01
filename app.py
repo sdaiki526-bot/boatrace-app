@@ -587,11 +587,12 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 if page == "🏠 ホーム":
     if not supabase:
-        st.session_state["supabase_client"] = None  # 次回再接続を促す
-        st.warning("⚠ データベース接続を準備中です。数秒待ってページを再読み込み（F5）してください。")
+        st.warning("⚠ データベース接続を準備中です。下のボタンを押してください。")
         if st.button("🔄 再接続する"):
+            st.session_state["supabase_client"] = get_supabase()
             st.rerun()
-    render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
+    else:
+        render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
 
 # ─────────────────────────────────────────────
 # ピックアップ
