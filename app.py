@@ -585,7 +585,15 @@ with st.sidebar:
 # ホーム（会場グリッドダッシュボード）
 # ─────────────────────────────────────────────
 if page == "🏠 ホーム":
-    render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
+    _today = today_jst().strftime("%Y%m%d")
+    st.write(f"DEBUG: 日付={_today}, supabase={supabase is not None}")
+    if supabase:
+        try:
+            _test = supabase.table("today_racelist").select("race_no").eq("race_date", _today).execute()
+            st.write(f"DEBUG: today_racelist取得件数={len(_test.data)}")
+        except Exception as e:
+            st.error(f"DEBUG: 取得エラー={e}")
+    render_dashboard(supabase, _today)
 
 # ─────────────────────────────────────────────
 # ピックアップ
