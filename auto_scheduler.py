@@ -533,6 +533,15 @@ def retrain_job():
         logger.info("export_exhibition.py 完了")
     except Exception as e:
         logger.error(f"export_exhibition.py 実行エラー（続行）: {e}")
+
+    # 学習データを再構築
+    try:
+        logger.info("build_dataset.py 実行中...")
+        result = subprocess.run(
+            ["python", str(base_dir / "build_dataset.py")],
+            cwd=str(base_dir), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", env=env, timeout=3600,
+        )
         if result.returncode != 0:
             logger.error(f"build_dataset.py 失敗: {result.stderr[-2000:]}")
             return
@@ -541,6 +550,7 @@ def retrain_job():
         logger.error(f"build_dataset.py 実行エラー: {e}")
         return
 
+    # モデル再学習
     try:
         logger.info("train_model.py 実行中...")
         result = subprocess.run(
@@ -552,7 +562,6 @@ def retrain_job():
             logger.error(f"train_model.py 失敗: {result.stderr[-2000:]}")
             return
         logger.info("train_model.py 完了")
-        # train_model.pyの出力からAUC等を抜粋してログに残す
         auc_lines = []
         for line in result.stdout.splitlines():
             if "AUC" in line or "保存完了" in line:
@@ -595,8 +604,7 @@ def retrain_job():
         logger.error(f"Git自動コミット失敗: {e}")
 
     logger.info("✅ 週次再学習バッチ完了")
-
-
+    
 # ─────────────────────────────────────────────
 # スケジューラー起動
 # ─────────────────────────────────────────────
