@@ -505,13 +505,34 @@ def retrain_job():
     env = _os.environ.copy()
     env["PYTHONIOENCODING"] = "utf-8"
 
+    # 直近1週間のレースを data/ に取得（展示結合のため最新レースが必要）
     try:
-        logger.info("build_dataset.py 実行中...")
-        result = subprocess.run(
-            ["python", str(base_dir / "build_dataset.py")],
+        from datetime import date as _date, timedelta as _tdelta
+        _end = _date.today()
+        _start = _end - _tdelta(days=7)
+        logger.info(f"crawler.py 実行中... ({_start}〜{_end})")
+        subprocess.run(
+            ["python", str(base_dir / "crawler.py"),
+             "--start", _start.strftime("%Y%m%d"),
+             "--end", _end.strftime("%Y%m%d")],
             cwd=str(base_dir), capture_output=True, text=True,
             encoding="utf-8", errors="replace", env=env, timeout=3600,
         )
+        logger.info("crawler.py 完了")
+    except Exception as e:
+        logger.error(f"crawler.py 実行エラー（続行）: {e}")
+
+    # 展示データをCSVに書き出し（build_dataset が結合に使う）
+    try:
+        logger.info("export_exhibition.py 実行中...")
+        subprocess.run(
+            ["python", str(base_dir / "export_exhibition.py")],
+            cwd=str(base_dir), capture_output=True, text=True,
+            encoding="utf-8", errors="replace", env=env, timeout=1800,
+        )
+        logger.info("export_exhibition.py 完了")
+    except Exception as e:
+        logger.error(f"export_exhibition.py 実行エラー（続行）: {e}")
         if result.returncode != 0:
             logger.error(f"build_dataset.py 失敗: {result.stderr[-2000:]}")
             return
