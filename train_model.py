@@ -56,10 +56,13 @@ RELATIVE_SRC_COLS = [
     "local_win_rate_3",
     "motor_2rate",
     "boat_2rate",
+    "exhibition_time",
+    "start_st",
+    "start_course",
 ]
 
 # rank_num と avg_start_time は「小さいほど強い」ため、相対化時に符号を反転する
-LOWER_IS_BETTER = {"rank_num", "avg_start_time"}
+LOWER_IS_BETTER = {"rank_num", "avg_start_time", "exhibition_time", "start_st", "start_course"}
 
 # 最終的にモデルへ渡す特徴量は train 時に動的生成する(下記 build_features 参照)
 FEATURE_COLS: list[str] = []
