@@ -26,7 +26,13 @@
     "motor_2rate_dev",
     "motor_2rate_rank",
     "boat_2rate_dev",
-    "boat_2rate_rank"
+    "boat_2rate_rank",
+    "exhibition_time_dev",
+    "exhibition_time_rank",
+    "start_st_dev",
+    "start_st_rank",
+    "start_course_dev",
+    "start_course_rank"
   ],
   "race_key_cols": [
     "race_date",
@@ -34,8 +40,8 @@
     "race_no"
   ],
   "metrics": {
-    "hit_win": 0.5638,
-    "cover3": 0.8636
+    "hit_win": 0.5688,
+    "cover3": 0.8659
   },
   "lgb_params": {
     "objective": "lambdarank",

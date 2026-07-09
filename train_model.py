@@ -133,14 +133,15 @@ def build_features(df: pd.DataFrame) -> list[str]:
 
 
 class BoatraceModelTrainer:
-    def __init__(self, csv_path: Path, model_dir: Path):
+    # ── データ読み込み ───────────────────────
+    def __init__(self, csv_path: Path, model_dir: Path, recent_days: int = 0):
         self.csv_path = csv_path
         self.model_dir = model_dir
         self.model_dir.mkdir(parents=True, exist_ok=True)
         self.model = None
         self.feature_importance = None
+        self.recent_days = recent_days
 
-    # ── データ読み込み ───────────────────────
     def load_data(self) -> pd.DataFrame:
         logger.info(f"CSV読み込み: {self.csv_path}")
         df = pd.read_csv(self.csv_path, encoding="utf-8-sig")
@@ -148,6 +149,20 @@ class BoatraceModelTrainer:
 
         df = df[df["finish"].notna()].copy()
         logger.info(f"  着順あり: {len(df):,} 行")
+
+        # 直近N日だけに絞る（展示データの比率を上げるため）
+        if self.recent_days and self.recent_days > 0:
+            df["_rd"] = df["race_date"].astype(str)
+            cutoff = df["_rd"].max()
+            from datetime import datetime as _dt, timedelta as _tdelta
+            try:
+                cutoff_date = _dt.strptime(cutoff, "%Y%m%d") - _tdelta(days=self.recent_days)
+                cutoff_str = cutoff_date.strftime("%Y%m%d")
+                df = df[df["_rd"] >= cutoff_str].copy()
+                logger.info(f"  直近{self.recent_days}日に絞り込み: {len(df):,} 行（{cutoff_str}以降）")
+            except Exception as e:
+                logger.warning(f"日付絞り込み失敗（全期間で続行）: {e}")
+            df = df.drop(columns=["_rd"], errors="ignore")
 
         # レースキーを文字列結合して race_id を生成
         for c in RACE_KEY_COLS:
@@ -346,6 +361,8 @@ def main():
                         help="laneの扱い(単一学習時)")
     parser.add_argument("--compare", action="store_true",
                         help="numeric/categorical/drop の3モードを比較する")
+    parser.add_argument("--recent-days", type=int, default=0,
+                        help="直近N日だけで学習（0=全期間）")
     args = parser.parse_args()
 
     if args.compare:
@@ -382,7 +399,8 @@ def main():
             trainer = BoatraceModelTrainer(Path(args.csv), Path(args.out))
             trainer.train(lane_mode=best_mode, save=True, verbose=True)
     else:
-        trainer = BoatraceModelTrainer(Path(args.csv), Path(args.out))
+        trainer = BoatraceModelTrainer(Path(args.csv), Path(args.out),
+                                       recent_days=args.recent_days)
         trainer.train(lane_mode=args.lane_mode, save=True, verbose=True)
 
 
