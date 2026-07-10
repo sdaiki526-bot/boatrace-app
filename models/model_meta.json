@@ -7,6 +7,7 @@
     "weight",
     "flying_count",
     "late_count",
+    "rc_races",
     "rank_num_dev",
     "rank_num_rank",
     "avg_start_time_dev",
@@ -32,7 +33,11 @@
     "start_st_dev",
     "start_st_rank",
     "start_course_dev",
-    "start_course_rank"
+    "start_course_rank",
+    "rc_win_rt_dev",
+    "rc_win_rt_rank",
+    "rc_top3_rt_dev",
+    "rc_top3_rt_rank"
   ],
   "race_key_cols": [
     "race_date",
@@ -40,8 +45,8 @@
     "race_no"
   ],
   "metrics": {
-    "hit_win": 0.5688,
-    "cover3": 0.8659
+    "hit_win": 0.5699,
+    "cover3": 0.8653
   },
   "lgb_params": {
     "objective": "lambdarank",

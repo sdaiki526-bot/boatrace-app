@@ -41,6 +41,7 @@ BASE_COLS = [
     "weight",
     "flying_count",
     "late_count",
+    "rc_races",
 ]
 
 # 選手・機力の「強さ」を表す指標。これらをレース内で相対化する。
@@ -59,6 +60,8 @@ RELATIVE_SRC_COLS = [
     "exhibition_time",
     "start_st",
     "start_course",
+    "rc_win_rt",
+    "rc_top3_rt",
 ]
 
 # rank_num と avg_start_time は「小さいほど強い」ため、相対化時に符号を反転する
@@ -96,6 +99,43 @@ def finish_to_relevance(finish: pd.Series) -> pd.Series:
     rel = (6 - pd.to_numeric(finish, errors="coerce")).clip(lower=0, upper=5)
     return rel.fillna(0).astype(int)
 
+def add_racer_course_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    選手×コースの過去成績を特徴量として追加する。
+    データ漏洩を防ぐため、各レース時点で「それより前」の成績だけを使う（shiftで1つずらす）。
+
+    追加される列:
+      rc_races  : その選手がそのコースで過去に走った回数
+      rc_win_rt : そのコースでの過去1着率
+      rc_top3_rt: そのコースでの過去3連対率
+    """
+    df = df.sort_values(["race_date", "venue_code", "race_no"]).reset_index(drop=True)
+
+    # 着順から勝ち/3連対フラグを作る
+    finish = pd.to_numeric(df["finish"], errors="coerce")
+    df["_is_win"] = (finish == 1).astype(float)
+    df["_is_top3"] = (finish <= 3).astype(float)
+
+    # 選手×コースでグループ化し、累積を「1つ前まで」で計算（shift(1)で自分を除外）
+    grp = df.groupby(["racer_no", "lane"], sort=False)
+
+    # 過去の走行回数（自分を含まない）
+    df["rc_races"] = grp.cumcount()
+
+    # 過去の勝利数・3連対数（自分を含まない = shift してから cumsum）
+    df["rc_wins"] = grp["_is_win"].transform(lambda s: s.shift(1).cumsum())
+    df["rc_top3s"] = grp["_is_top3"].transform(lambda s: s.shift(1).cumsum())
+
+    # 率に変換（経験0回のときは NaN → 後で平均で埋まる）
+    df["rc_win_rt"] = df["rc_wins"] / df["rc_races"].replace(0, np.nan)
+    df["rc_top3_rt"] = df["rc_top3s"] / df["rc_races"].replace(0, np.nan)
+
+    # 後片付け
+    df = df.drop(columns=["_is_win", "_is_top3", "rc_wins", "rc_top3s"], errors="ignore")
+
+    n_have = df["rc_win_rt"].notna().sum()
+    logger.info(f"  選手×コース成績: {n_have:,} 行に付与（経験1走以上）")
+    return df
 
 def build_features(df: pd.DataFrame) -> list[str]:
     """
@@ -171,6 +211,9 @@ class BoatraceModelTrainer:
 
         # 日付→レース番号の順で並べる(時系列分割のため、同一レースは連続させる)
         df = df.sort_values(["race_date", "venue_code", "race_no", "lane"]).reset_index(drop=True)
+
+        # 選手×コースの過去成績を追加（データ漏洩なし）
+        df = add_racer_course_stats(df)
 
         # レース内相対化特徴量を生成し、使用カラムを確定する
         global FEATURE_COLS

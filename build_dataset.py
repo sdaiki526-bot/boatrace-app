@@ -85,6 +85,7 @@ def racer_to_row(racer: dict, result: dict | None, race_meta: dict, ex_map: dict
         "venue_code": race_meta["venue_code"],
         "race_no":    race_meta["race_no"],
         "lane":       lane,
+        "racer_no":   racer.get("racer_no", ""),
         # 目的変数
         "finish":     finish,           # 着順 (1〜6)
         "is_win":     1 if finish == 1 else (0 if finish else None),   # 1着か
@@ -173,7 +174,7 @@ def build_dataset(data_dir: Path, out_path: Path):
         return
     df = pd.DataFrame(rows)
     # 数値型に変換
-    num_cols = [c for c in df.columns if c not in ("race_date", "venue_code")]
+    num_cols = [c for c in df.columns if c not in ("race_date", "venue_code", "racer_no")]
     df[num_cols] = df[num_cols].apply(pd.to_numeric, errors="coerce")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(out_path, index=False, encoding="utf-8-sig")
