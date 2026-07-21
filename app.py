@@ -380,6 +380,33 @@ def load_fetch_history(fetch_type, limit=10):
         st.warning(f"履歴読み込み失敗: {e}")
         return []
 
+def load_bet_records():
+    """実戦記録（実際に買ったレース）を読む"""
+    if not supabase:
+        return []
+    try:
+        res = supabase.table("bet_records").select("*").order("race_date", desc=True).execute()
+        return res.data or []
+    except Exception as e:
+        st.warning(f"実戦記録の読み込み失敗: {e}")
+        return []
+
+
+def save_bet_record(record):
+    """実戦記録を1件保存する"""
+    if not supabase:
+        return False
+    try:
+        db = dict(record)
+        if isinstance(db.get("sanren_tan"), list):
+            db["sanren_tan"] = json.dumps(db["sanren_tan"], ensure_ascii=False)
+        supabase.table("bet_records").upsert(
+            db, on_conflict="race_date,venue_code,race_no"
+        ).execute()
+        return True
+    except Exception as e:
+        st.warning(f"実戦記録の保存失敗: {e}")
+        return False
 # ─────────────────────────────────────────────
 # セッション初期化
 # ─────────────────────────────────────────────
