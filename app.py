@@ -646,94 +646,107 @@ if page == "🔥 ピックアップ":
     today_records = [r for r in records if r["race_date"] == today_str]
 
     # ─────────────────────────────────────────────
-    # 💰 狙い目レース（回収率重視）
-    # 旧モデル(model_win/top3)での検証: gap<=15 または top_score<=30 に絞ると回収率約117%
-    # 理由: モデルが迷う/確信度が低い荒れそうなレースほど高配当で期待値が出る
-    # 2026-07-29: model_rank.pkl(lambdarank)への切替に伴い、しきい値を新スコア分布の
-    # 同じpercentile(score_gap下位12.3% / top_score下位5.8%)に再校正
+    # 💰 狙い目レース（回収率重視）→ 2026-07-29 一時無効化
+    #
+    # model_rank.pkl(lambdarank)への切替時、旧モデルのしきい値をパーセンタイルで
+    # 新スコア分布に変換して再校正したが、検証の結果このセクションが選ぶレースは
+    # cover3が全体平均より明確に低い（0.8675→0.8212、直近検証8,288レースで確認）。
+    # 旧モデルでは「確信度が低い＝回収率が高い」という逆相関があったが、
+    # lambdarankモデルではこの相関が無い（むしろ素直な正の相関）ため、
+    # 同じ発想のフィルタが新モデルでは機能しない。
+    # 正しい価値レースの定義を再設計するまで、このセクションと実戦記録ボタンは無効化する。
     # ─────────────────────────────────────────────
     VALUE_GAP_MAX = 0.267
     VALUE_SCORE_MAX = 0.363
-
-    value_pickups = [
-        r for r in today_records
-        if r.get("top_score") is not None and r.get("score_gap") is not None
-        and (r["score_gap"] <= VALUE_GAP_MAX or r["top_score"] <= VALUE_SCORE_MAX)
-    ]
+    VALUE_RACE_ENABLED = False
 
     st.markdown("### 💰 狙い目レース（回収率重視）")
-    st.markdown(
-        "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
-        "モデルの確信度が低め（1-2位差15以下 または 確信度30以下）の荒れそうなレース。"
-        "過去データではこの条件に絞ると回収率が大きく改善しました。</p>",
-        unsafe_allow_html=True,
-    )
-    if not value_pickups:
-        st.info("本日、狙い目条件を満たすレースはまだありません。")
+    if not VALUE_RACE_ENABLED:
+        st.warning(
+            "⚠️ このセクションは一時的に無効化しています。\n\n"
+            "lambdarankモデルへの切替に伴いしきい値を再校正しましたが、検証したところ"
+            "このフィルタが選ぶレースはcover3（3連単3点の的中率）が全体平均より低く、"
+            "「狙い目」として機能していないことが分かりました。"
+            "新モデルに合った価値レースの定義を再設計するまで、実戦記録ボタンごと停止しています。"
+        )
     else:
-        from collections import defaultdict
-        v_groups = defaultdict(list)
-        for r in sorted(value_pickups, key=lambda r: r["score_gap"]):
-            v_groups[r["venue_name"]].append(r)
+        value_pickups = [
+            r for r in today_records
+            if r.get("top_score") is not None and r.get("score_gap") is not None
+            and (r["score_gap"] <= VALUE_GAP_MAX or r["top_score"] <= VALUE_SCORE_MAX)
+        ]
+        st.markdown(
+            "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
+            "モデルの確信度が低め（1-2位差15以下 または 確信度30以下）の荒れそうなレース。"
+            "過去データではこの条件に絞ると回収率が大きく改善しました。</p>",
+            unsafe_allow_html=True,
+        )
+        if not value_pickups:
+            st.info("本日、狙い目条件を満たすレースはまだありません。")
+        else:
+            from collections import defaultdict
+            v_groups = defaultdict(list)
+            for r in sorted(value_pickups, key=lambda r: r["score_gap"]):
+                v_groups[r["venue_name"]].append(r)
 
-        # 本日すでに記録済みの実戦記録（会場コード・レース番号で引けるように）
-        today_bet_map = {
-            (b["venue_code"], b["race_no"]): b
-            for b in load_bet_records()
-            if b.get("race_date") == today_str
-        }
+            # 本日すでに記録済みの実戦記録（会場コード・レース番号で引けるように）
+            today_bet_map = {
+                (b["venue_code"], b["race_no"]): b
+                for b in load_bet_records()
+                if b.get("race_date") == today_str
+            }
 
-        for venue_name, races in sorted(v_groups.items()):
-            with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=False):
-                for r in races:
-                    dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
-                    time_label = dl_info["deadline_time"] if dl_info else "--:--"
-                    odds_val = r.get("odds_value")
-                    odds_text = f"<span style='color:#0891b2;font-weight:700'>オッズ {odds_val:.1f}倍</span>" if odds_val else ""
-                    card_html = (
-                        "<div style='background:#ecfeff;border:2px solid #06b6d4;border-radius:10px;"
-                        "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
-                        "gap:1rem;flex-wrap:wrap'>"
-                        f"<span style='color:#155e75;font-size:0.85rem'>⏰ {time_label}</span>"
-                        f"<span style='font-size:1rem;font-weight:800;color:#0891b2'>💰 {r['race_no']}R</span>"
-                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
-                        f"{odds_text}"
-                        f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
-                        f"確信度 <strong style='color:#0891b2'>{r['top_score']:.2f}</strong>"
-                        f" / 差 <strong style='color:#0891b2'>{r['score_gap']:.2f}</strong>pt</span>"
-                        "</div>"
-                    )
-                    st.markdown(card_html, unsafe_allow_html=True)
-
-                    # ── 実戦記録の入力 ──
-                    existing_bet = today_bet_map.get((r["venue_code"], r["race_no"]))
-                    bet_key = f"{r['race_date']}_{r['venue_code']}_{r['race_no']}"
-                    bcol1, bcol2 = st.columns([1, 1])
-                    with bcol1:
-                        stake = st.number_input(
-                            "購入金額（円）", min_value=100, step=100,
-                            value=int(existing_bet["bet_amount"]) if existing_bet and existing_bet.get("bet_amount") else 300,
-                            key=f"stake_{bet_key}",
+            for venue_name, races in sorted(v_groups.items()):
+                with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=False):
+                    for r in races:
+                        dl_info = st.session_state.deadline_times.get((r["venue_code"], r["race_no"]))
+                        time_label = dl_info["deadline_time"] if dl_info else "--:--"
+                        odds_val = r.get("odds_value")
+                        odds_text = f"<span style='color:#0891b2;font-weight:700'>オッズ {odds_val:.1f}倍</span>" if odds_val else ""
+                        card_html = (
+                            "<div style='background:#ecfeff;border:2px solid #06b6d4;border-radius:10px;"
+                            "padding:0.8rem 1.2rem;margin:0.3rem 0;display:flex;align-items:center;"
+                            "gap:1rem;flex-wrap:wrap'>"
+                            f"<span style='color:#155e75;font-size:0.85rem'>⏰ {time_label}</span>"
+                            f"<span style='font-size:1rem;font-weight:800;color:#0891b2'>💰 {r['race_no']}R</span>"
+                            f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                            f"{odds_text}"
+                            f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
+                            f"確信度 <strong style='color:#0891b2'>{r['top_score']:.2f}</strong>"
+                            f" / 差 <strong style='color:#0891b2'>{r['score_gap']:.2f}</strong>pt</span>"
+                            "</div>"
                         )
-                    with bcol2:
-                        st.markdown("<div style='height:1.9rem'></div>", unsafe_allow_html=True)
-                        btn_label = "🎰 記録を更新" if existing_bet else "🎰 実戦記録に登録"
-                        if st.button(btn_label, key=f"bet_btn_{bet_key}", use_container_width=True):
-                            ok = save_bet_record({
-                                "race_date": r["race_date"],
-                                "venue_code": r["venue_code"],
-                                "venue_name": r["venue_name"],
-                                "race_no": r["race_no"],
-                                "sanren_tan": r["sanren_tan"],
-                                "bet_amount": int(stake),
-                                "top_score": r["top_score"],
-                                "score_gap": r["score_gap"],
-                            })
-                            if ok:
-                                st.success(f"記録しました（{r['venue_name']} {r['race_no']}R　¥{int(stake):,}）")
-                                st.rerun()
-                    if existing_bet:
-                        st.caption(f"✅ 記録済み（¥{existing_bet.get('bet_amount', 0):,}）")
+                        st.markdown(card_html, unsafe_allow_html=True)
+
+                        # ── 実戦記録の入力 ──
+                        existing_bet = today_bet_map.get((r["venue_code"], r["race_no"]))
+                        bet_key = f"{r['race_date']}_{r['venue_code']}_{r['race_no']}"
+                        bcol1, bcol2 = st.columns([1, 1])
+                        with bcol1:
+                            stake = st.number_input(
+                                "購入金額（円）", min_value=100, step=100,
+                                value=int(existing_bet["bet_amount"]) if existing_bet and existing_bet.get("bet_amount") else 300,
+                                key=f"stake_{bet_key}",
+                            )
+                        with bcol2:
+                            st.markdown("<div style='height:1.9rem'></div>", unsafe_allow_html=True)
+                            btn_label = "🎰 記録を更新" if existing_bet else "🎰 実戦記録に登録"
+                            if st.button(btn_label, key=f"bet_btn_{bet_key}", use_container_width=True):
+                                ok = save_bet_record({
+                                    "race_date": r["race_date"],
+                                    "venue_code": r["venue_code"],
+                                    "venue_name": r["venue_name"],
+                                    "race_no": r["race_no"],
+                                    "sanren_tan": r["sanren_tan"],
+                                    "bet_amount": int(stake),
+                                    "top_score": r["top_score"],
+                                    "score_gap": r["score_gap"],
+                                })
+                                if ok:
+                                    st.success(f"記録しました（{r['venue_name']} {r['race_no']}R　¥{int(stake):,}）")
+                                    st.rerun()
+                        if existing_bet:
+                            st.caption(f"✅ 記録済み（¥{existing_bet.get('bet_amount', 0):,}）")
 
     st.markdown("---")
 

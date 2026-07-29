@@ -12,8 +12,11 @@ JST = timezone(timedelta(hours=9))
 
 # 狙い目の判定しきい値（app.py の VALUE_GAP_MAX / VALUE_SCORE_MAX と揃える）
 # 2026-07-29: model_rank.pkl(lambdarank)への切替に伴い、新スコア分布に合わせて再校正
+#   → その後の検証でこのしきい値が選ぶレースはcover3が全体平均より低いと判明したため、
+#     app.pyのVALUE_RACE_ENABLEDと合わせて一時無効化（value_count/狙い目リストは常に空にする）
 VALUE_GAP_MAX = 0.267
 VALUE_SCORE_MAX = 0.363
+VALUE_RACE_ENABLED = False
 
 
 def _fetch_venue_summary(supabase, today_str):
@@ -55,7 +58,7 @@ def _fetch_venue_summary(supabase, today_str):
         if row.get("deadline_time"):
             v["deadlines"].append(row["deadline_time"])
         p = pred_map.get((vc, row["race_no"]))
-        if p and p.get("top_score") is not None and p.get("score_gap") is not None:
+        if VALUE_RACE_ENABLED and p and p.get("top_score") is not None and p.get("score_gap") is not None:
             if p["score_gap"] <= VALUE_GAP_MAX or p["top_score"] <= VALUE_SCORE_MAX:
                 v["value_count"] += 1
 
@@ -146,6 +149,10 @@ def render_dashboard(supabase, today_str):
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<p style='color:#475569;font-size:0.9rem;margin-bottom:0.6rem'>"
                 "💰 狙い目レース（締切が近い順）</p>", unsafe_allow_html=True)
+
+    if not VALUE_RACE_ENABLED:
+        st.warning("⚠️ 狙い目レースの判定は、新モデルでの再設計が完了するまで一時停止しています。")
+        return
 
     # 予想と締切を結合して狙い目だけ抽出
     try:
