@@ -292,8 +292,13 @@ class BoatraceModelTrainer:
         logger.info(f"  着順あり: {len(df):,} 行")
 
         # レースキーを文字列結合して race_id を生成（recent_days絞り込みの前に実施）
-        for c in RACE_KEY_COLS:
-            df[c] = df[c].astype(str)
+        # race_noは2桁ゼロ埋めにする。ゼロ埋めしないと文字列ソートが
+        # "1","10","11","12","2","3",...の順になり、同日内のレース順が壊れ
+        # add_racer_course_stats/add_venue_lane_statsのshift(1)が同日の未来レースを
+        # 「過去」として取り込んでしまう（データ漏洩）ため。
+        df["race_date"] = df["race_date"].astype(str)
+        df["venue_code"] = df["venue_code"].astype(str)
+        df["race_no"] = df["race_no"].astype(int).astype(str).str.zfill(2)
         df["race_id"] = df[RACE_KEY_COLS].agg("_".join, axis=1)
         df = df.sort_values(["race_date", "venue_code", "race_no", "lane"]).reset_index(drop=True)
 
