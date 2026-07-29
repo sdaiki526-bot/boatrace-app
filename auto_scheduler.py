@@ -29,7 +29,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from boatrace_scraper import BoatraceScraper, VENUE_MAP, get_deadline_times
-from predictor import BoatracePredictor, MLPredictor
+from predictor import BoatracePredictor, MLPredictor, RankPredictor
 from crawler import get_holding_venues
 
 try:
@@ -44,11 +44,13 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABAS
 
 
 def get_predictor():
-    """LightGBMモデルがあればMLPredictor、無ければルールベースにフォールバック"""
+    """model_rank.pkl(lambdarank)があればRankPredictor、無ければルールベースにフォールバック。
+    2026-07-29: 週次retrainで実際に更新され続けているmodel_rank.pklを使うよう切替
+    （それまではmodel_win/top3という6週間更新の止まった旧モデルを使っていた）。"""
     try:
-        return MLPredictor(model_dir=Path(__file__).parent / "models")
+        return RankPredictor(model_dir=Path(__file__).parent / "models")
     except FileNotFoundError as e:
-        logger.warning(f"MLモデル未検出。ルールベース予想を使用します: {e}")
+        logger.warning(f"lambdarankモデル未検出。ルールベース予想を使用します: {e}")
         return BoatracePredictor()
 
 

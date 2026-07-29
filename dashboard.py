@@ -11,8 +11,9 @@ import streamlit as st
 JST = timezone(timedelta(hours=9))
 
 # 狙い目の判定しきい値（app.py の VALUE_GAP_MAX / VALUE_SCORE_MAX と揃える）
-VALUE_GAP_MAX = 15.0
-VALUE_SCORE_MAX = 30.0
+# 2026-07-29: model_rank.pkl(lambdarank)への切替に伴い、新スコア分布に合わせて再校正
+VALUE_GAP_MAX = 0.267
+VALUE_SCORE_MAX = 0.363
 
 
 def _fetch_venue_summary(supabase, today_str):

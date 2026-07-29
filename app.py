@@ -21,7 +21,7 @@ def today_jst():
 sys.path.insert(0, str(Path(__file__).parent))
 
 from boatrace_scraper import BoatraceScraper, VENUE_MAP
-from predictor import BoatracePredictor, MLPredictor
+from predictor import BoatracePredictor, MLPredictor, RankPredictor
 from dashboard import render_dashboard
 
 
@@ -339,9 +339,11 @@ def check_hit(sanren_tan_combos, arrival):
     return actual in sanren_tan_combos, actual
 
 def get_predictor():
-    """LightGBMモデルがあればMLPredictor、無ければルールベースにフォールバック"""
+    """model_rank.pkl(lambdarank)があればRankPredictor、無ければルールベースにフォールバック。
+    2026-07-29: 週次retrainで実際に更新され続けているmodel_rank.pklを使うよう切替
+    （それまではmodel_win/top3という6週間更新の止まった旧モデルを使っていた）。"""
     try:
-        return MLPredictor(model_dir=Path(__file__).parent / "models")
+        return RankPredictor(model_dir=Path(__file__).parent / "models")
     except FileNotFoundError:
         return BoatracePredictor()
 
@@ -631,8 +633,12 @@ if page == "🏠 ホーム":
 # ─────────────────────────────────────────────
 # ピックアップ
 # ─────────────────────────────────────────────
-PICKUP_TOP_SCORE_MIN = 35.0
-PICKUP_SCORE_GAP_MIN = 15.0
+# lambdarankモデル(RankPredictor)のスコアスケールに合わせて再校正したしきい値。
+# 各値は「旧モデル(0〜100スケール)での実績percentile」を新モデルのスコア分布に
+# そのまま適用して算出（例: PICKUP_TOP_SCORE_MIN=35は旧分布で上位10.1%点だったので、
+# 新分布の同じ10.1%点=0.5を採用）。2026-07-29に再校正。
+PICKUP_TOP_SCORE_MIN = 0.5
+PICKUP_SCORE_GAP_MIN = 0.267
 
 if page == "🔥 ピックアップ":
     records = load_records()
@@ -641,11 +647,13 @@ if page == "🔥 ピックアップ":
 
     # ─────────────────────────────────────────────
     # 💰 狙い目レース（回収率重視）
-    # 検証: gap<=15 または top_score<=30 のレースに絞ると回収率約117%（全体は約56%）
+    # 旧モデル(model_win/top3)での検証: gap<=15 または top_score<=30 に絞ると回収率約117%
     # 理由: モデルが迷う/確信度が低い荒れそうなレースほど高配当で期待値が出る
+    # 2026-07-29: model_rank.pkl(lambdarank)への切替に伴い、しきい値を新スコア分布の
+    # 同じpercentile(score_gap下位12.3% / top_score下位5.8%)に再校正
     # ─────────────────────────────────────────────
-    VALUE_GAP_MAX = 15.0
-    VALUE_SCORE_MAX = 30.0
+    VALUE_GAP_MAX = 0.267
+    VALUE_SCORE_MAX = 0.363
 
     value_pickups = [
         r for r in today_records
@@ -691,8 +699,8 @@ if page == "🔥 ピックアップ":
                         f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
                         f"{odds_text}"
                         f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
-                        f"確信度 <strong style='color:#0891b2'>{r['top_score']:.1f}</strong>"
-                        f" / 差 <strong style='color:#0891b2'>{r['score_gap']:.1f}</strong>pt</span>"
+                        f"確信度 <strong style='color:#0891b2'>{r['top_score']:.2f}</strong>"
+                        f" / 差 <strong style='color:#0891b2'>{r['score_gap']:.2f}</strong>pt</span>"
                         "</div>"
                     )
                     st.markdown(card_html, unsafe_allow_html=True)
@@ -736,28 +744,33 @@ if page == "🔥 ピックアップ":
         and r["score_gap"] >= PICKUP_SCORE_GAP_MIN
     ]
 
-    # 穴狙いピックアップ（単勝1以外 かつ top_score >= 25）
+    # 穴狙い・高配当狙いのしきい値も同様にpercentile再校正済み（2026-07-29）
+    ANA_TOP_SCORE_MIN = 0.192
+    ANA_SCORE_GAP_MIN = 0.150
+    HIGHODDS_TOP_SCORE_MIN = 0.192
+
+    # 穴狙いピックアップ（単勝1以外 かつ確信度がしきい値以上）
     ana_pickups = [
         r for r in today_records
         if r.get("top_score") is not None and r.get("score_gap") is not None
-        and r["top_score"] >= 25.0
-        and r["score_gap"] >= 10.0
+        and r["top_score"] >= ANA_TOP_SCORE_MIN
+        and r["score_gap"] >= ANA_SCORE_GAP_MIN
         and str(r.get("tansho", "1")) != "1"
     ]
 
-    # 高配当狙いピックアップ（odds_value >= 20 かつ top_score >= 25）
+    # 高配当狙いピックアップ（odds_value >= 20 かつ確信度がしきい値以上）
     high_odds_pickups = [
         r for r in today_records
         if r.get("odds_value") is not None and r.get("top_score") is not None
         and r["odds_value"] >= 20.0
-        and r["top_score"] >= 25.0
+        and r["top_score"] >= HIGHODDS_TOP_SCORE_MIN
     ]
 
     # 穴狙いセクション
     st.markdown("### 🎯 穴狙い（単勝1以外）")
     st.markdown(
         "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
-        "モデルが1枠以外を本命予想したレース（確信度25以上・差10以上）</p>",
+        "モデルが1枠以外を本命予想したレース</p>",
         unsafe_allow_html=True,
     )
     if not ana_pickups:
@@ -784,8 +797,8 @@ if page == "🔥 ピックアップ":
                         f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
                         f"{odds_text}"
                         f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
-                        f"確信度 <strong style='color:#16a34a'>{r['top_score']:.1f}</strong>"
-                        f" / 差 <strong style='color:#16a34a'>{r['score_gap']:.1f}</strong>pt</span>"
+                        f"確信度 <strong style='color:#16a34a'>{r['top_score']:.2f}</strong>"
+                        f" / 差 <strong style='color:#16a34a'>{r['score_gap']:.2f}</strong>pt</span>"
                         "</div>"
                     )
                     st.markdown(card_html, unsafe_allow_html=True)
@@ -796,7 +809,7 @@ if page == "🔥 ピックアップ":
     st.markdown("### 💎 高配当狙い（オッズ20倍以上）")
     st.markdown(
         "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
-        "確信度25以上 かつ オッズ20倍以上の穴狙いレース</p>",
+        "モデルの確信度が一定以上 かつ オッズ20倍以上の穴狙いレース</p>",
         unsafe_allow_html=True,
     )
     if not high_odds_pickups:
@@ -822,7 +835,7 @@ if page == "🔥 ピックアップ":
                         f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
                         f"<span style='color:#7e22ce;font-weight:700'>オッズ {odds_val:.1f}倍</span>"
                         f"<span style='margin-left:auto;color:#64748b;font-size:0.82rem'>"
-                        f"確信度 <strong style='color:#a855f7'>{r['top_score']:.1f}</strong>pt</span>"
+                        f"確信度 <strong style='color:#a855f7'>{r['top_score']:.2f}</strong>pt</span>"
                         "</div>"
                     )
                     st.markdown(card_html, unsafe_allow_html=True)
@@ -833,7 +846,7 @@ if page == "🔥 ピックアップ":
     st.markdown("### 🔥 通常ピックアップ")
     st.markdown(
         f"<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
-        f"1位確信度 {PICKUP_TOP_SCORE_MIN:.0f}%以上 かつ 2位との差 {PICKUP_SCORE_GAP_MIN:.0f}pt以上</p>",
+        f"1位確信度 {PICKUP_TOP_SCORE_MIN:.2f}以上 かつ 2位との差 {PICKUP_SCORE_GAP_MIN:.2f}pt以上</p>",
         unsafe_allow_html=True,
     )
 
@@ -874,8 +887,8 @@ if page == "🔥 ピックアップ":
                         f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
                         f"{odds_text}{value_badge}{weather_text2}"
                         f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
-                        f"確信度 <strong style='color:#d97706'>{r['top_score']:.1f}</strong>"
-                        f" / 差 <strong style='color:#d97706'>{r['score_gap']:.1f}</strong>pt</span>"
+                        f"確信度 <strong style='color:#d97706'>{r['top_score']:.2f}</strong>"
+                        f" / 差 <strong style='color:#d97706'>{r['score_gap']:.2f}</strong>pt</span>"
                         "</div>"
                     )
                     st.markdown(card_html, unsafe_allow_html=True)
@@ -1456,6 +1469,9 @@ if page == "📈 成績記録":
     else:
         # ─────────────────────────────────────────────
         # 💰 狙い目レースの成績（回収率検証）
+        # 注意: ここは過去の実績(旧model_win/top3スケールで記録されたprediction_records)を
+        # 集計する箇所なので、2026-07-29のmodel_rank.pkl切替後もあえて旧しきい値のまま。
+        # 新モデルでのスコアはスケールが異なるため、この集計とは別に評価する必要がある。
         # ─────────────────────────────────────────────
         VALUE_GAP_MAX = 15.0
         VALUE_SCORE_MAX = 30.0
