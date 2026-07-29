@@ -137,6 +137,41 @@ def add_racer_course_stats(df: pd.DataFrame) -> pd.DataFrame:
     logger.info(f"  選手×コース成績: {n_have:,} 行に付与（経験1走以上）")
     return df
 
+
+def compute_course_stats_snapshot(df: pd.DataFrame) -> dict:
+    """
+    選手×コースの「全履歴」過去成績スナップショットを作る（ライブ推論用）。
+
+    add_racer_course_stats() は学習時のリーク防止のため shift(1) して
+    「そのレースより前まで」の値を使うが、ライブ推論で予想する当日のレースは
+    学習データより未来なので、シフト不要で全履歴をそのまま集計してよい。
+    """
+    racer_no_num = pd.to_numeric(df["racer_no"], errors="coerce")
+    finish = pd.to_numeric(df["finish"], errors="coerce")
+    tmp = pd.DataFrame({
+        # CSV上のracer_noはfloat64（欠損混じり）で "5060.0" のような文字列になりやすいため、
+        # 整数文字列（"5060"）に正規化してライブ推論側の選手番号と一致させる
+        "racer_no": racer_no_num,
+        "lane": df["lane"],
+        "is_win": (finish == 1).astype(float),
+        "is_top3": (finish <= 3).astype(float),
+    })
+    tmp = tmp[tmp["racer_no"].notna()].copy()
+    tmp["racer_no"] = tmp["racer_no"].astype(int).astype(str)
+    stats = tmp.groupby(["racer_no", "lane"]).agg(
+        races=("is_win", "size"),
+        win_rate=("is_win", "mean"),
+        top3_rate=("is_top3", "mean"),
+    )
+    snapshot = {}
+    for (racer_no, lane), row in stats.iterrows():
+        snapshot[f"{racer_no}_{int(lane)}"] = {
+            "races": int(row["races"]),
+            "win_rate": round(float(row["win_rate"]), 4),
+            "top3_rate": round(float(row["top3_rate"]), 4),
+        }
+    return snapshot
+
 def build_features(df: pd.DataFrame) -> list[str]:
     """
     レース内相対化特徴量を df に追加し、最終的な特徴量カラム名のリストを返す。
@@ -190,6 +225,15 @@ class BoatraceModelTrainer:
         df = df[df["finish"].notna()].copy()
         logger.info(f"  着順あり: {len(df):,} 行")
 
+        # レースキーを文字列結合して race_id を生成（recent_days絞り込みの前に実施）
+        for c in RACE_KEY_COLS:
+            df[c] = df[c].astype(str)
+        df["race_id"] = df[RACE_KEY_COLS].agg("_".join, axis=1)
+        df = df.sort_values(["race_date", "venue_code", "race_no", "lane"]).reset_index(drop=True)
+
+        # 選手×コースの「全履歴」スナップショット（recent_days絞り込みの影響を受けない。ライブ推論用）
+        self.course_stats_snapshot = compute_course_stats_snapshot(df)
+
         # 直近N日だけに絞る（展示データの比率を上げるため）
         if self.recent_days and self.recent_days > 0:
             df["_rd"] = df["race_date"].astype(str)
@@ -203,14 +247,6 @@ class BoatraceModelTrainer:
             except Exception as e:
                 logger.warning(f"日付絞り込み失敗（全期間で続行）: {e}")
             df = df.drop(columns=["_rd"], errors="ignore")
-
-        # レースキーを文字列結合して race_id を生成
-        for c in RACE_KEY_COLS:
-            df[c] = df[c].astype(str)
-        df["race_id"] = df[RACE_KEY_COLS].agg("_".join, axis=1)
-
-        # 日付→レース番号の順で並べる(時系列分割のため、同一レースは連続させる)
-        df = df.sort_values(["race_date", "venue_code", "race_no", "lane"]).reset_index(drop=True)
 
         # 選手×コースの過去成績を追加（データ漏洩なし）
         df = add_racer_course_stats(df)
@@ -389,6 +425,13 @@ class BoatraceModelTrainer:
         if self.feature_importance is not None:
             self.feature_importance.to_csv(
                 self.model_dir / "feature_importance.csv", index=False, encoding="utf-8-sig")
+
+        snapshot = getattr(self, "course_stats_snapshot", None)
+        if snapshot is not None:
+            (self.model_dir / "course_stats.json").write_text(
+                json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
+            print(f"   選手×コース成績スナップショット: {len(snapshot):,}件"
+                  f"({self.model_dir / 'course_stats.json'})")
 
         print(f"\n✅ モデル保存完了! (lane_mode={lane_mode})")
         print(f"   ランキングモデル: {model_path.resolve()}")

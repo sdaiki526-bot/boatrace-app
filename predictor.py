@@ -485,3 +485,150 @@ class MLPredictor:
         result.sanren_fuku = "-".join(map(str, sorted(top3)))
 
         return result
+
+
+# ─────────────────────────────────────────────
+# lambdarankモデル（model_rank.pkl）による予想エンジン（検証・収集専用）
+#
+# train_model.py が毎週retrainしているのはこのmodel_rank.pklだが、
+# 現状の実戦フロー(MLPredictor / model_win.pkl, model_top3.pkl)とは
+# 特徴量・スコアのスケールが別物なので、value raceのしきい値を
+# バックテストで再検証するまでは本番のget_predictor()には接続しない。
+# ─────────────────────────────────────────────
+from train_model import BASE_COLS, RELATIVE_SRC_COLS, LOWER_IS_BETTER
+
+
+class RankPredictor:
+    """model_rank.pkl（lambdarank）で1レース分の相対スコアを計算する。"""
+
+    def __init__(self, model_dir: str | Path = "models"):
+        model_dir = Path(model_dir)
+        model_path = model_dir / "model_rank.pkl"
+        meta_path = model_dir / "model_meta.json"
+        stats_path = model_dir / "course_stats.json"
+
+        if not model_path.exists() or not meta_path.exists():
+            raise FileNotFoundError(
+                f"モデルが見つかりません: {model_dir}\n"
+                "先に python train_model.py を実行してください。"
+            )
+
+        with open(model_path, "rb") as f:
+            self.model = pickle.load(f)
+        self.meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        self.feature_cols: list[str] = self.meta["feature_cols"]
+
+        self.course_stats: dict = {}
+        if stats_path.exists():
+            self.course_stats = json.loads(stats_path.read_text(encoding="utf-8"))
+
+    def _course_stat(self, racer_no: str, lane: int):
+        s = self.course_stats.get(f"{racer_no}_{lane}")
+        if not s:
+            return 0.0, np.nan, np.nan
+        return float(s["races"]), s["win_rate"], s["top3_rate"]
+
+    def _racer_to_row(self, racer: RacerInfo, exhibition_time=None,
+                       start_course=None, start_st=None) -> dict:
+        rc_races, rc_win_rt, rc_top3_rt = self._course_stat(racer.racer_no, racer.lane)
+        return {
+            "lane":             racer.lane,
+            "age":              racer.age,
+            "weight":           racer.weight,
+            "flying_count":     racer.flying_count or 0,
+            "late_count":       racer.late_count or 0,
+            "rc_races":         rc_races,
+            "rank_num":         ML_RANK_MAP.get(racer.rank, 1),
+            "avg_start_time":   racer.avg_start_time,
+            "win_rate_all":     racer.win_rate_all,
+            "win_rate_2":       racer.win_rate_2,
+            "win_rate_3":       racer.win_rate_3,
+            "local_win_rate":   racer.local_win_rate,
+            "local_win_rate_2": racer.local_win_rate_2,
+            "local_win_rate_3": racer.local_win_rate_3,
+            "motor_2rate":      racer.motor_2rate,
+            "boat_2rate":       racer.boat_2rate,
+            "exhibition_time":  exhibition_time,
+            "start_course":     start_course,
+            "start_st":         start_st,
+            "rc_win_rt":        rc_win_rt,
+            "rc_top3_rt":       rc_top3_rt,
+        }
+
+    @staticmethod
+    def _build_features(df: pd.DataFrame) -> pd.DataFrame:
+        """train_model.build_features と同じ相対化ロジックを1レース分(6行)に適用する。"""
+        for col in RELATIVE_SRC_COLS:
+            src = pd.to_numeric(df[col], errors="coerce")
+            if col in LOWER_IS_BETTER:
+                src = -src
+            src = src.fillna(src.mean())
+            race_mean = src.mean()
+            df[f"{col}_dev"] = src - race_mean
+            rnk = src.rank(method="average")
+            cnt = src.count()
+            df[f"{col}_rank"] = (rnk - 1) / max(cnt - 1, 1)
+        return df
+
+    def predict(
+        self,
+        racers: list[RacerInfo],
+        race_date: str = "",
+        venue_name: str = "",
+        race_no: int = 0,
+        exhibition_times: Optional[dict] = None,
+        start_courses: Optional[dict] = None,
+        start_sts: Optional[dict] = None,
+    ) -> PredictionResult:
+        if not racers:
+            logger.warning("選手データが空です")
+            return PredictionResult(race_date, venue_name, race_no)
+
+        rows = [
+            self._racer_to_row(
+                r,
+                exhibition_time=(exhibition_times or {}).get(r.lane),
+                start_course=(start_courses or {}).get(r.lane),
+                start_st=(start_sts or {}).get(r.lane),
+            )
+            for r in racers
+        ]
+        df = pd.DataFrame(rows)
+        df = self._build_features(df)
+        df["lane"] = df["lane"].astype("category")
+
+        X = df[self.feature_cols]
+        raw_scores = self.model.predict(X)
+
+        scores: list[LaneScore] = []
+        for racer, raw in zip(racers, raw_scores):
+            scores.append(LaneScore(
+                lane=racer.lane, name=racer.name, rank=racer.rank,
+                total_score=round(float(raw), 4),
+                breakdown={"lambdarank_score": round(float(raw), 4)},
+            ))
+
+        scores_sorted = sorted(scores, key=lambda s: s.total_score, reverse=True)
+        for i, s in enumerate(scores_sorted):
+            s.predicted_rank = i + 1
+        scores_by_lane = sorted(scores_sorted, key=lambda s: s.lane)
+
+        top3 = [s.lane for s in scores_sorted[:3]]
+        top2 = top3[:2]
+
+        result = PredictionResult(
+            race_date=race_date, venue_name=venue_name, race_no=race_no,
+            scores=scores_by_lane,
+        )
+        result.tansho = str(top3[0])
+        result.fukusho = [str(top3[0]), str(top3[1])]
+        result.niren_tan = [f"{top2[0]}-{top2[1]}", f"{top2[1]}-{top2[0]}", f"{top3[0]}-{top3[2]}"]
+        result.niren_fuku = [
+            f"{min(top2)}-{max(top2)}",
+            f"{min(top3[0], top3[2])}-{max(top3[0], top3[2])}",
+            f"{min(top3[1], top3[2])}-{max(top3[1], top3[2])}",
+        ]
+        a, b, c = top3
+        result.sanren_tan = [f"{a}-{b}-{c}", f"{a}-{c}-{b}", f"{b}-{a}-{c}"]
+        result.sanren_fuku = "-".join(map(str, sorted(top3)))
+        return result
