@@ -386,7 +386,15 @@ def load_bet_records():
         return []
     try:
         res = supabase.table("bet_records").select("*").order("race_date", desc=True).execute()
-        return res.data or []
+        records = []
+        for row in res.data or []:
+            row = dict(row)
+            sanren_tan = row.get("sanren_tan")
+            if isinstance(sanren_tan, str):
+                sanren_tan = json.loads(sanren_tan)
+            row["sanren_tan"] = sanren_tan or []
+            records.append(row)
+        return records
     except Exception as e:
         st.warning(f"実戦記録の読み込み失敗: {e}")
         return []
@@ -652,6 +660,14 @@ if page == "🔥 ピックアップ":
         v_groups = defaultdict(list)
         for r in sorted(value_pickups, key=lambda r: r["score_gap"]):
             v_groups[r["venue_name"]].append(r)
+
+        # 本日すでに記録済みの実戦記録（会場コード・レース番号で引けるように）
+        today_bet_map = {
+            (b["venue_code"], b["race_no"]): b
+            for b in load_bet_records()
+            if b.get("race_date") == today_str
+        }
+
         for venue_name, races in sorted(v_groups.items()):
             with st.expander(f"🏟 {venue_name}　({len(races)}件)", expanded=False):
                 for r in races:
@@ -673,6 +689,36 @@ if page == "🔥 ピックアップ":
                         "</div>"
                     )
                     st.markdown(card_html, unsafe_allow_html=True)
+
+                    # ── 実戦記録の入力 ──
+                    existing_bet = today_bet_map.get((r["venue_code"], r["race_no"]))
+                    bet_key = f"{r['race_date']}_{r['venue_code']}_{r['race_no']}"
+                    bcol1, bcol2 = st.columns([1, 1])
+                    with bcol1:
+                        stake = st.number_input(
+                            "購入金額（円）", min_value=100, step=100,
+                            value=int(existing_bet["bet_amount"]) if existing_bet and existing_bet.get("bet_amount") else 300,
+                            key=f"stake_{bet_key}",
+                        )
+                    with bcol2:
+                        st.markdown("<div style='height:1.9rem'></div>", unsafe_allow_html=True)
+                        btn_label = "🎰 記録を更新" if existing_bet else "🎰 実戦記録に登録"
+                        if st.button(btn_label, key=f"bet_btn_{bet_key}", use_container_width=True):
+                            ok = save_bet_record({
+                                "race_date": r["race_date"],
+                                "venue_code": r["venue_code"],
+                                "venue_name": r["venue_name"],
+                                "race_no": r["race_no"],
+                                "sanren_tan": r["sanren_tan"],
+                                "bet_amount": int(stake),
+                                "top_score": r["top_score"],
+                                "score_gap": r["score_gap"],
+                            })
+                            if ok:
+                                st.success(f"記録しました（{r['venue_name']} {r['race_no']}R　¥{int(stake):,}）")
+                                st.rerun()
+                    if existing_bet:
+                        st.caption(f"✅ 記録済み（¥{existing_bet.get('bet_amount', 0):,}）")
 
     st.markdown("---")
 
@@ -1227,6 +1273,24 @@ if page == "📋 結果確認":
                                     st.warning(f"Supabase更新失敗: {e}")
                             else:
                                 RECORD_FILE.write_text(json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8")
+
+                    # 実戦記録（bet_records）も同じ結果で更新する
+                    if supabase:
+                        bet_matches = [
+                            b for b in load_bet_records()
+                            if b["race_date"] == date_str and b["venue_code"] == vc3 and b["race_no"] == rno3
+                        ]
+                        for b in bet_matches:
+                            b_hit, b_actual = check_hit(b["sanren_tan"], result.arrival)
+                            odds_per_100 = result.payouts.get(f"3連単_{b_actual}", 0) if b_hit else 0
+                            stake_per_point = (b.get("bet_amount") or 300) / 3
+                            b_payout = round(odds_per_100 * stake_per_point / 100) if b_hit else 0
+                            try:
+                                supabase.table("bet_records").update({
+                                    "hit": b_hit, "actual": b_actual, "payout": b_payout,
+                                }).eq("race_date", b["race_date"]).eq("venue_code", b["venue_code"]).eq("race_no", b["race_no"]).execute()
+                            except Exception as e:
+                                st.warning(f"実戦記録の結果更新失敗: {e}")
                 else:
                     st.warning("結果がまだ出ていません")
 
@@ -1276,6 +1340,78 @@ if page == "📋 結果確認":
 # タブ4: 成績記録
 # ─────────────────────────────────────────────
 if page == "📈 成績記録":
+    # ─────────────────────────────────────────────
+    # 🎰 実戦収支（実際に賭けた記録）
+    # ─────────────────────────────────────────────
+    bet_records = load_bet_records()
+    st.markdown("### 🎰 実戦収支")
+    st.markdown(
+        "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
+        "🔥 ピックアップ タブの「狙い目レース」から実際に登録した実戦記録です。"
+        "結果確認タブでレース結果を取得すると、的中・払戻が自動反映されます。</p>",
+        unsafe_allow_html=True,
+    )
+    if not bet_records:
+        st.info("まだ実戦記録がありません。🔥 ピックアップ タブの狙い目レースから登録してください。")
+    else:
+        bet_checked = [b for b in bet_records if b.get("hit") is not None]
+        bet_hits = [b for b in bet_checked if b["hit"]]
+        bet_total_stake = sum(b.get("bet_amount") or 0 for b in bet_checked)
+        bet_total_payout = sum(b.get("payout") or 0 for b in bet_hits)
+        bet_profit = bet_total_payout - bet_total_stake
+        bet_roi = bet_total_payout / bet_total_stake * 100 if bet_total_stake else 0
+        bet_hit_rate = len(bet_hits) / len(bet_checked) * 100 if bet_checked else 0
+        bp_color = "#4ade80" if bet_profit >= 0 else "#ef4444"
+        bp_sign = "+" if bet_profit >= 0 else ""
+
+        bc1, bc2, bc3, bc4, bc5 = st.columns(5)
+        with bc1:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{len(bet_records)}</div><div class="stat-label">記録数</div></div>', unsafe_allow_html=True)
+        with bc2:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{len(bet_hits)}</div><div class="stat-label">的中数（{bet_hit_rate:.1f}%）</div></div>', unsafe_allow_html=True)
+        with bc3:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">¥{bet_total_stake:,}</div><div class="stat-label">投資額</div></div>', unsafe_allow_html=True)
+        with bc4:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{bet_roi:.1f}%</div><div class="stat-label">回収率</div></div>', unsafe_allow_html=True)
+        with bc5:
+            st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{bp_color}">{bp_sign}¥{bet_profit:,}</div><div class="stat-label">収支</div></div>', unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        for b in sorted(bet_records, reverse=True, key=lambda x: (x["race_date"], x["venue_code"], x["race_no"])):
+            if b.get("hit") is True:
+                badge = "<span class='hit-badge'>🎉 的中</span>"
+            elif b.get("hit") is False:
+                badge = "<span class='miss-badge'>❌ ハズレ</span>"
+            else:
+                badge = "<span class='pending-badge'>⏳ 未確認</span>"
+
+            ds = b["race_date"]
+            formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
+            stake = b.get("bet_amount") or 0
+            payout = b.get("payout")
+            profit_b = (payout or 0) - stake if b.get("hit") is not None else None
+            extra = f"<span style='color:#8b9bb4;font-size:0.85rem'>実際: <strong style='color:#f1f5f9'>{b['actual']}</strong></span>" if b.get("actual") else ""
+            profit_text = ""
+            if profit_b is not None:
+                pc = "#4ade80" if profit_b >= 0 else "#ef4444"
+                ps = "+" if profit_b >= 0 else ""
+                profit_text = f"<span style='font-size:0.85rem;color:{pc};font-weight:700'>{ps}¥{profit_b:,}</span>"
+
+            card_html = (
+                "<div class='record-card'>"
+                f"<span style='color:#8b9bb4;font-size:0.85rem'>{formatted}</span>"
+                f"<span style='font-weight:700;color:#f1f5f9'>{b['venue_name']} {b['race_no']}R</span>"
+                f"<span style='color:#f5c542;font-size:0.85rem'>{' / '.join(b['sanren_tan'])}</span>"
+                f"<span style='color:#8b9bb4;font-size:0.85rem'>¥{stake:,}購入</span>"
+                f"{extra}{profit_text}"
+                f"<span style='margin-left:auto'>{badge}</span>"
+                "</div>"
+            )
+            st.markdown(card_html, unsafe_allow_html=True)
+
+    st.markdown("---")
+
     records = load_records()
 
     if not records:
