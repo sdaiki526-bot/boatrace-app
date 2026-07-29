@@ -488,14 +488,12 @@ class MLPredictor:
 
 
 # ─────────────────────────────────────────────
-# lambdarankモデル（model_rank.pkl）による予想エンジン（検証・収集専用）
+# lambdarankモデル（model_rank.pkl）による予想エンジン
 #
-# train_model.py が毎週retrainしているのはこのmodel_rank.pklだが、
-# 現状の実戦フロー(MLPredictor / model_win.pkl, model_top3.pkl)とは
-# 特徴量・スコアのスケールが別物なので、value raceのしきい値を
-# バックテストで再検証するまでは本番のget_predictor()には接続しない。
+# train_model.py が毎週retrainしているmodel_rank.pklを使う、現在の本番予想エンジン。
+# train_model.pyのimport（lightgbm等）はモジュール読み込み時ではなく実際に使う時点まで
+# 遅延させる（lightgbmのロードに失敗してもアプリ起動自体は落ちないようにするため）。
 # ─────────────────────────────────────────────
-from train_model import BASE_COLS, RELATIVE_SRC_COLS, LOWER_IS_BETTER
 
 
 class RankPredictor:
@@ -558,6 +556,7 @@ class RankPredictor:
     @staticmethod
     def _build_features(df: pd.DataFrame) -> pd.DataFrame:
         """train_model.build_features と同じ相対化ロジックを1レース分(6行)に適用する。"""
+        from train_model import RELATIVE_SRC_COLS, LOWER_IS_BETTER
         for col in RELATIVE_SRC_COLS:
             src = pd.to_numeric(df[col], errors="coerce")
             if col in LOWER_IS_BETTER:

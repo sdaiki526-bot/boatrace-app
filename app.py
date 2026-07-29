@@ -344,7 +344,7 @@ def get_predictor():
     （それまではmodel_win/top3という6週間更新の止まった旧モデルを使っていた）。"""
     try:
         return RankPredictor(model_dir=Path(__file__).parent / "models")
-    except FileNotFoundError:
+    except Exception:
         return BoatracePredictor()
 
 def get_scraper():

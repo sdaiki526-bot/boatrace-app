@@ -49,8 +49,8 @@ def get_predictor():
     （それまではmodel_win/top3という6週間更新の止まった旧モデルを使っていた）。"""
     try:
         return RankPredictor(model_dir=Path(__file__).parent / "models")
-    except FileNotFoundError as e:
-        logger.warning(f"lambdarankモデル未検出。ルールベース予想を使用します: {e}")
+    except Exception as e:
+        logger.warning(f"lambdarankモデル読み込み失敗。ルールベース予想を使用します: {e}")
         return BoatracePredictor()
 
 
