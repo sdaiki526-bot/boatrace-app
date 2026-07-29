@@ -108,19 +108,21 @@ FEATURE_COLS: list[str] = []
 RACE_KEY_COLS = ["race_date", "venue_code", "race_no"]
 
 # lambdarank パラメータ
+# 2026-07-29: Optunaで24試行チューニングし、baseline(hit_win=0.5689)を上回る
+# 組み合わせ(hit_win=0.5709, cover3=0.8672)を採用。
 LGB_PARAMS = {
     "objective": "lambdarank",
     "metric": "ndcg",
     "ndcg_eval_at": [1, 3],
-    "learning_rate": 0.05,
+    "learning_rate": 0.10697077067228637,
     "num_leaves": 31,
-    "max_depth": -1,
-    "min_child_samples": 20,
-    "feature_fraction": 0.8,
-    "bagging_fraction": 0.8,
-    "bagging_freq": 5,
-    "reg_alpha": 0.1,
-    "reg_lambda": 0.1,
+    "max_depth": 6,
+    "min_child_samples": 38,
+    "feature_fraction": 0.5136838498519677,
+    "bagging_fraction": 0.7807874737135436,
+    "bagging_freq": 2,
+    "reg_alpha": 0.001362522051403353,
+    "reg_lambda": 0.017822787430829164,
     "verbose": -1,
     "n_jobs": -1,
     "random_state": 42,
