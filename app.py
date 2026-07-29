@@ -338,6 +338,13 @@ def check_hit(sanren_tan_combos, arrival):
     actual = f"{arrival[0]}-{arrival[1]}-{arrival[2]}"
     return actual in sanren_tan_combos, actual
 
+def get_predictor():
+    """LightGBMモデルがあればMLPredictor、無ければルールベースにフォールバック"""
+    try:
+        return MLPredictor(model_dir=Path(__file__).parent / "models")
+    except FileNotFoundError:
+        return BoatracePredictor()
+
 def get_scraper():
     if not st.session_state.logged_in:
         sc = BoatraceScraper(delay=1.0)
@@ -1057,6 +1064,36 @@ if page == "🎯 予想":
                         {''.join([f'<p style="margin:0.4rem 0;color:#1e293b">{medals[s.predicted_rank-1]} {s.lane}枠 {s.name} <span style="color:#3b82f6;font-weight:700">{s.total_score:.1f}pt</span></p>' for s in sorted_scores])}
                     </div>
                     """, unsafe_allow_html=True)
+
+                # ── 公式予想（コンピューター予想）との比較 ──
+                if st.button("🏛 公式予想と比較する", key=f"official_{venue}_{rno}"):
+                    from official_prediction_scraper import OfficialPredictionScraper
+                    with st.spinner("公式予想を取得中..."):
+                        official = OfficialPredictionScraper().get_official_prediction(
+                            today_jst(), venue, rno
+                        )
+                    if official is None or not official.marks:
+                        st.warning("公式予想を取得できませんでした（未公開の可能性があります）")
+                    else:
+                        model_top1 = sorted_scores[0].lane
+                        official_top1 = official.honmei
+                        agree = model_top1 == official_top1
+                        badge = (
+                            "<span class='hit-badge'>✅ 本命一致</span>" if agree
+                            else "<span class='miss-badge'>❌ 本命不一致</span>"
+                        )
+                        st.markdown(
+                            f"<p style='margin:0.6rem 0'>自分のモデルの本命: <strong style='color:#f5c542'>{model_top1}号艇</strong>　"
+                            f"公式の本命: <strong style='color:#f5c542'>{official_top1}号艇</strong>　{badge}</p>",
+                            unsafe_allow_html=True,
+                        )
+                        cmp_rows = "".join(
+                            f"<p style='margin:0.3rem 0;color:#1e293b'>{lane}号艇: "
+                            f"公式 <strong>{official.marks.get(lane, '－')}</strong>　/　"
+                            f"自モデル {next((s.predicted_rank for s in sorted_scores if s.lane == lane), '-')}位予想</p>"
+                            for lane in range(1, 7)
+                        )
+                        st.markdown(f"<div class='buy-box'>{cmp_rows}</div>", unsafe_allow_html=True)
 
         if upcoming_sorted:
             for deadline_str, venue, rno in upcoming_sorted:
