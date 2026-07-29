@@ -603,7 +603,7 @@ with st.sidebar:
     if menu == "📊 成績":
         sub = st.radio(
             "成績メニュー",
-            ["📋 結果確認", "📈 成績記録", "💎 高配当殿堂"],
+            ["📋 結果確認", "📈 成績記録", "💎 高配当殿堂", "🤖 モデル精度"],
             label_visibility="collapsed",
         )
         page = sub
@@ -1695,6 +1695,110 @@ if page == "💎 高配当殿堂":
                 f"<span style='font-weight:700;color:#1e293b'>{r['venue_name']} {r['race_no']}R</span>"
                 f"<span style='color:#1d4ed8;font-size:0.9rem'>{r.get('actual','')}</span>"
                 f"<span style='margin-left:auto;font-size:1.3rem;font-weight:800;color:{border}'>¥{p:,}</span>"
+                "</div>"
+            )
+            st.markdown(card_html, unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────
+# タブ6: モデル精度モニタリング
+# ─────────────────────────────────────────────
+if page == "🤖 モデル精度":
+    st.markdown("### 🤖 モデル精度モニタリング")
+    st.markdown(
+        "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
+        "週次retrain（train_model.py）のたびの学習結果を記録し、精度の推移を確認します。"
+        "急に的中率が落ちた場合はここで気づけます。</p>",
+        unsafe_allow_html=True,
+    )
+
+    def load_model_metrics():
+        if not supabase:
+            return []
+        try:
+            res = (supabase.table("model_metrics").select("*")
+                   .order("trained_at", desc=False).execute())
+            return res.data or []
+        except Exception as e:
+            st.warning(f"model_metrics読み込み失敗: {e}")
+            return []
+
+    metrics_history = load_model_metrics()
+
+    if not metrics_history:
+        st.info(
+            "まだ記録がありません。model_metricsテーブルを作成し、"
+            "次回のweekly retrainを待つと記録され始めます。"
+        )
+    else:
+        latest = metrics_history[-1]
+        prior = metrics_history[:-1]
+
+        mc1, mc2, mc3, mc4 = st.columns(4)
+        with mc1:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{latest["hit_win"]*100:.1f}%</div><div class="stat-label">最新 hit_win</div></div>', unsafe_allow_html=True)
+        with mc2:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{latest["cover3"]*100:.1f}%</div><div class="stat-label">最新 cover3</div></div>', unsafe_allow_html=True)
+        with mc3:
+            st.markdown(f'<div class="stat-card"><div class="stat-value">{latest.get("n_train_races", 0):,}</div><div class="stat-label">学習レース数</div></div>', unsafe_allow_html=True)
+        with mc4:
+            ds = latest.get("trained_at", "")[:10]
+            st.markdown(f'<div class="stat-card"><div class="stat-value" style="font-size:1.1rem">{ds}</div><div class="stat-label">最終学習日</div></div>', unsafe_allow_html=True)
+
+        # 直近を除く過去の平均と比べて急落していないかチェック
+        if len(prior) >= 2:
+            avg_hit = sum(m["hit_win"] for m in prior) / len(prior)
+            avg_cover = sum(m["cover3"] for m in prior) / len(prior)
+            drop_hit = avg_hit - latest["hit_win"]
+            drop_cover = avg_cover - latest["cover3"]
+            if drop_hit >= 0.03 or drop_cover >= 0.03:
+                st.error(
+                    f"⚠️ 精度が過去平均より低下しています "
+                    f"(hit_win: 過去平均{avg_hit*100:.1f}% → 最新{latest['hit_win']*100:.1f}% / "
+                    f"cover3: 過去平均{avg_cover*100:.1f}% → 最新{latest['cover3']*100:.1f}%)。"
+                    "データや特徴量に問題がないか確認してください。"
+                )
+            else:
+                st.success("✅ 精度は過去平均の範囲内です。")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # 推移グラフ
+        dates = [m.get("trained_at", "")[:10] for m in metrics_history]
+        hit_wins = [m["hit_win"] * 100 for m in metrics_history]
+        cover3s = [m["cover3"] * 100 for m in metrics_history]
+
+        fig_metrics = go.Figure()
+        fig_metrics.add_trace(go.Scatter(
+            x=dates, y=hit_wins, mode="lines+markers", name="hit_win",
+            line=dict(color="#f5c542", width=2), marker=dict(size=7),
+        ))
+        fig_metrics.add_trace(go.Scatter(
+            x=dates, y=cover3s, mode="lines+markers", name="cover3",
+            line=dict(color="#3b82f6", width=2), marker=dict(size=7),
+        ))
+        fig_metrics.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            font_color="#94a3b8", height=320,
+            margin=dict(l=10, r=10, t=30, b=10),
+            yaxis=dict(gridcolor="#1e293b", title="%", range=[0, 100]),
+            xaxis=dict(gridcolor="#1e293b"),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        )
+        st.markdown("#### 的中率・カバー率の推移")
+        st.plotly_chart(fig_metrics, use_container_width=True)
+
+        # 履歴一覧
+        st.markdown("#### 学習履歴")
+        for m in sorted(metrics_history, key=lambda x: x.get("trained_at", ""), reverse=True):
+            ds = m.get("trained_at", "")[:16].replace("T", " ")
+            recent_days_label = f"直近{m['recent_days']}日" if m.get("recent_days") else "全期間"
+            card_html = (
+                "<div class='record-card'>"
+                f"<span style='color:#8b9bb4;font-size:0.85rem'>{ds}</span>"
+                f"<span style='color:#f1f5f9;font-size:0.85rem'>{recent_days_label}</span>"
+                f"<span style='color:#f5c542;font-weight:700'>hit_win {m['hit_win']*100:.1f}%</span>"
+                f"<span style='color:#3b82f6;font-weight:700'>cover3 {m['cover3']*100:.1f}%</span>"
+                f"<span style='color:#8b9bb4;font-size:0.8rem'>{m.get('n_train_races', 0):,}レース / {m.get('n_features', 0)}特徴量</span>"
                 "</div>"
             )
             st.markdown(card_html, unsafe_allow_html=True)

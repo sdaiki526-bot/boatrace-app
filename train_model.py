@@ -18,6 +18,7 @@ dataset/training_data.csv を読み込んでモデルを学習し models/ に保
 import argparse
 import json
 import logging
+import os
 import warnings
 from pathlib import Path
 
@@ -29,6 +30,37 @@ import pickle
 warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+
+def log_metrics_to_supabase(metrics: dict, lane_mode: str, n_train_races: int,
+                             n_features: int, recent_days: int):
+    """モデル精度モニタリング用に、学習結果をSupabaseのmodel_metricsテーブルへ記録する。
+    テーブルが無い/接続情報が無い場合は何もせず静かに続行する（学習自体は失敗させない）。"""
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    if not url or not key:
+        return
+    try:
+        from supabase import create_client
+        supabase = create_client(url, key)
+        supabase.table("model_metrics").insert({
+            "model_type": "lambdarank",
+            "lane_mode": lane_mode,
+            "hit_win": metrics["hit_win"],
+            "cover3": metrics["cover3"],
+            "n_train_races": n_train_races,
+            "n_features": n_features,
+            "recent_days": recent_days,
+        }).execute()
+        logger.info("学習結果をmodel_metricsに記録しました")
+    except Exception as e:
+        logger.warning(f"model_metricsへの記録に失敗（学習結果は保存済みなので続行）: {e}")
 
 
 # ─────────────────────────────────────────────
@@ -357,6 +389,12 @@ class BoatraceModelTrainer:
         }
         if save:
             self._save(metrics, lane_mode)
+            log_metrics_to_supabase(
+                metrics, lane_mode,
+                n_train_races=train_df["race_id"].nunique(),
+                n_features=len(feats),
+                recent_days=self.recent_days,
+            )
         return result
 
     # ── 実戦指標の評価 ───────────────────────
