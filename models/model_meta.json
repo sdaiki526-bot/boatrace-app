@@ -37,7 +37,11 @@
     "rc_win_rt_dev",
     "rc_win_rt_rank",
     "rc_top3_rt_dev",
-    "rc_top3_rt_rank"
+    "rc_top3_rt_rank",
+    "vc_win_rt_dev",
+    "vc_win_rt_rank",
+    "vc_top3_rt_dev",
+    "vc_top3_rt_rank"
   ],
   "race_key_cols": [
     "race_date",
@@ -45,7 +49,7 @@
     "race_no"
   ],
   "metrics": {
-    "hit_win": 0.5682,
+    "hit_win": 0.5694,
     "cover3": 0.8678
   },
   "lgb_params": {

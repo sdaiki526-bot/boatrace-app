@@ -94,6 +94,8 @@ RELATIVE_SRC_COLS = [
     "start_course",
     "rc_win_rt",
     "rc_top3_rt",
+    "vc_win_rt",
+    "vc_top3_rt",
 ]
 
 # rank_num と avg_start_time は「小さいほど強い」ため、相対化時に符号を反転する
@@ -167,6 +169,38 @@ def add_racer_course_stats(df: pd.DataFrame) -> pd.DataFrame:
 
     n_have = df["rc_win_rt"].notna().sum()
     logger.info(f"  選手×コース成績: {n_have:,} 行に付与（経験1走以上）")
+    return df
+
+
+def add_venue_lane_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    会場×コースの過去入着率を特徴量として追加する（会場ごとのコース有利不利の違いを学習させる）。
+    データ漏洩を防ぐため、各レース時点で「それより前」の成績だけを使う（shiftで1つずらす）。
+
+    追加される列:
+      vc_win_rt : その会場・そのコースでの過去1着率
+      vc_top3_rt: その会場・そのコースでの過去3連対率
+    """
+    df = df.sort_values(["race_date", "venue_code", "race_no"]).reset_index(drop=True)
+
+    finish = pd.to_numeric(df["finish"], errors="coerce")
+    df["_is_win"] = (finish == 1).astype(float)
+    df["_is_top3"] = (finish <= 3).astype(float)
+
+    # 会場×コースでグループ化し、累積を「1つ前まで」で計算（shift(1)で自分を除外）
+    grp = df.groupby(["venue_code", "lane"], sort=False)
+
+    vc_races = grp.cumcount()
+    vc_wins = grp["_is_win"].transform(lambda s: s.shift(1).cumsum())
+    vc_top3s = grp["_is_top3"].transform(lambda s: s.shift(1).cumsum())
+
+    df["vc_win_rt"] = vc_wins / vc_races.replace(0, np.nan)
+    df["vc_top3_rt"] = vc_top3s / vc_races.replace(0, np.nan)
+
+    df = df.drop(columns=["_is_win", "_is_top3"], errors="ignore")
+
+    n_have = df["vc_win_rt"].notna().sum()
+    logger.info(f"  会場×コース成績: {n_have:,} 行に付与（経験1走以上）")
     return df
 
 
@@ -282,6 +316,9 @@ class BoatraceModelTrainer:
 
         # 選手×コースの過去成績を追加（データ漏洩なし）
         df = add_racer_course_stats(df)
+
+        # 会場×コースの過去入着率を追加（データ漏洩なし）
+        df = add_venue_lane_stats(df)
 
         # レース内相対化特徴量を生成し、使用カラムを確定する
         global FEATURE_COLS
