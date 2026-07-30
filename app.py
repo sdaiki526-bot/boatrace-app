@@ -1031,7 +1031,7 @@ if page == "🎯 予想":
                          use_container_width=True, key=f"predict_{venue}_{rno}"):
                 predictor = get_predictor()
                 pred = predictor.predict(racers, race_date=today_jst().strftime("%Y%m%d"),
-                                          venue_name=VENUE_MAP[venue], race_no=rno)
+                                          venue_name=VENUE_MAP[venue], venue_code=venue, race_no=rno)
                 st.session_state.prediction = pred
                 st.session_state.last_venue = venue
                 st.session_state.last_race = rno

@@ -240,6 +240,39 @@ def compute_course_stats_snapshot(df: pd.DataFrame) -> dict:
         }
     return snapshot
 
+
+def compute_venue_stats_snapshot(df: pd.DataFrame) -> dict:
+    """
+    会場×コースの「全履歴」過去入着率スナップショットを作る（ライブ推論用）。
+    compute_course_stats_snapshot()と同様、ライブ推論では未来のレースを予想するので
+    シフト不要で全履歴をそのまま集計してよい。
+    """
+    finish = pd.to_numeric(df["finish"], errors="coerce")
+    # CSV上のvenue_codeはfloat64由来で"8.0"のような文字列になりやすいため、
+    # ライブ推論側（VENUE_MAPのキー、"08"のような2桁ゼロ埋め）と一致する形式に正規化する
+    venue_code_num = pd.to_numeric(df["venue_code"], errors="coerce")
+    tmp = pd.DataFrame({
+        "venue_code": venue_code_num,
+        "lane": df["lane"],
+        "is_win": (finish == 1).astype(float),
+        "is_top3": (finish <= 3).astype(float),
+    })
+    tmp = tmp[tmp["venue_code"].notna()].copy()
+    tmp["venue_code"] = tmp["venue_code"].astype(int).astype(str).str.zfill(2)
+    stats = tmp.groupby(["venue_code", "lane"]).agg(
+        races=("is_win", "size"),
+        win_rate=("is_win", "mean"),
+        top3_rate=("is_top3", "mean"),
+    )
+    snapshot = {}
+    for (venue_code, lane), row in stats.iterrows():
+        snapshot[f"{venue_code}_{int(lane)}"] = {
+            "races": int(row["races"]),
+            "win_rate": round(float(row["win_rate"]), 4),
+            "top3_rate": round(float(row["top3_rate"]), 4),
+        }
+    return snapshot
+
 def build_features(df: pd.DataFrame) -> list[str]:
     """
     レース内相対化特徴量を df に追加し、最終的な特徴量カラム名のリストを返す。
@@ -306,6 +339,8 @@ class BoatraceModelTrainer:
 
         # 選手×コースの「全履歴」スナップショット（recent_days絞り込みの影響を受けない。ライブ推論用）
         self.course_stats_snapshot = compute_course_stats_snapshot(df)
+        # 会場×コースの「全履歴」スナップショット（同上）
+        self.venue_stats_snapshot = compute_venue_stats_snapshot(df)
 
         # 直近N日だけに絞る（展示データの比率を上げるため）
         if self.recent_days and self.recent_days > 0:
@@ -514,6 +549,13 @@ class BoatraceModelTrainer:
                 json.dumps(snapshot, ensure_ascii=False), encoding="utf-8")
             print(f"   選手×コース成績スナップショット: {len(snapshot):,}件"
                   f"({self.model_dir / 'course_stats.json'})")
+
+        venue_snapshot = getattr(self, "venue_stats_snapshot", None)
+        if venue_snapshot is not None:
+            (self.model_dir / "venue_stats.json").write_text(
+                json.dumps(venue_snapshot, ensure_ascii=False), encoding="utf-8")
+            print(f"   会場×コース成績スナップショット: {len(venue_snapshot):,}件"
+                  f"({self.model_dir / 'venue_stats.json'})")
 
         print(f"\n✅ モデル保存完了! (lane_mode={lane_mode})")
         print(f"   ランキングモデル: {model_path.resolve()}")

@@ -206,6 +206,7 @@ class BoatracePredictor:
         racers: list[RacerInfo],
         race_date: str = "",
         venue_name: str = "",
+        venue_code: str = "",
         race_no: int = 0,
         exhibition_times: Optional[dict] = None,
     ) -> PredictionResult:
@@ -215,6 +216,7 @@ class BoatracePredictor:
         racers     : get_racelist() の戻り値
         race_date  : 表示用（"YYYYMMDD"）
         venue_name : 表示用
+        venue_code : 未使用（RankPredictorとインターフェースを揃えるため）
         race_no    : 表示用
         exhibition_times : {lane: exhibition_time(float)} の辞書（任意）
                            指定すると予想スコアに展示タイム補正を加える
@@ -399,6 +401,7 @@ class MLPredictor:
         racers: list[RacerInfo],
         race_date: str = "",
         venue_name: str = "",
+        venue_code: str = "",
         race_no: int = 0,
         exhibition_times: Optional[dict] = None,
     ) -> PredictionResult:
@@ -504,6 +507,7 @@ class RankPredictor:
         model_path = model_dir / "model_rank.pkl"
         meta_path = model_dir / "model_meta.json"
         stats_path = model_dir / "course_stats.json"
+        venue_stats_path = model_dir / "venue_stats.json"
 
         if not model_path.exists() or not meta_path.exists():
             raise FileNotFoundError(
@@ -520,15 +524,26 @@ class RankPredictor:
         if stats_path.exists():
             self.course_stats = json.loads(stats_path.read_text(encoding="utf-8"))
 
+        self.venue_stats: dict = {}
+        if venue_stats_path.exists():
+            self.venue_stats = json.loads(venue_stats_path.read_text(encoding="utf-8"))
+
     def _course_stat(self, racer_no: str, lane: int):
         s = self.course_stats.get(f"{racer_no}_{lane}")
         if not s:
             return 0.0, np.nan, np.nan
         return float(s["races"]), s["win_rate"], s["top3_rate"]
 
-    def _racer_to_row(self, racer: RacerInfo, exhibition_time=None,
+    def _venue_stat(self, venue_code: str, lane: int):
+        s = self.venue_stats.get(f"{venue_code}_{lane}")
+        if not s:
+            return np.nan, np.nan
+        return s["win_rate"], s["top3_rate"]
+
+    def _racer_to_row(self, racer: RacerInfo, venue_code: str = "", exhibition_time=None,
                        start_course=None, start_st=None) -> dict:
         rc_races, rc_win_rt, rc_top3_rt = self._course_stat(racer.racer_no, racer.lane)
+        vc_win_rt, vc_top3_rt = self._venue_stat(venue_code, racer.lane)
         return {
             "lane":             racer.lane,
             "age":              racer.age,
@@ -551,6 +566,8 @@ class RankPredictor:
             "start_st":         start_st,
             "rc_win_rt":        rc_win_rt,
             "rc_top3_rt":       rc_top3_rt,
+            "vc_win_rt":        vc_win_rt,
+            "vc_top3_rt":       vc_top3_rt,
         }
 
     @staticmethod
@@ -574,6 +591,7 @@ class RankPredictor:
         racers: list[RacerInfo],
         race_date: str = "",
         venue_name: str = "",
+        venue_code: str = "",
         race_no: int = 0,
         exhibition_times: Optional[dict] = None,
         start_courses: Optional[dict] = None,
@@ -586,6 +604,7 @@ class RankPredictor:
         rows = [
             self._racer_to_row(
                 r,
+                venue_code=venue_code,
                 exhibition_time=(exhibition_times or {}).get(r.lane),
                 start_course=(start_courses or {}).get(r.lane),
                 start_st=(start_sts or {}).get(r.lane),

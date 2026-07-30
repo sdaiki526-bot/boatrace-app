@@ -200,6 +200,7 @@ def morning_job():
                 racers,
                 race_date=today.strftime("%Y%m%d"),
                 venue_name=VENUE_MAP[venue],
+                venue_code=venue,
                 race_no=rno,
             )
             top_score, score_gap = _score_metrics(pred)
@@ -430,6 +431,7 @@ def exhibition_job():
                 racers,
                 race_date=date_str,
                 venue_name=VENUE_MAP[venue],
+                venue_code=venue,
                 race_no=rno,
                 exhibition_times=exhibition_times,
             )
