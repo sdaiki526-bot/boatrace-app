@@ -1483,17 +1483,36 @@ if page == "📈 成績記録":
     else:
         # ─────────────────────────────────────────────
         # 💰 狙い目レースの成績（回収率検証）
-        # 注意: ここは過去の実績(旧model_win/top3スケールで記録されたprediction_records)を
-        # 集計する箇所なので、2026-07-29のmodel_rank.pkl切替後もあえて旧しきい値のまま。
-        # 新モデルでのスコアはスケールが異なるため、この集計とは別に評価する必要がある。
+        #
+        # prediction_recordsには旧モデル(model_win/top3、0〜100スケール)時代と
+        # 新モデル(model_rank.pkl、lambdarank、約-0.2〜2.4スケール)時代の行が混在する。
+        # 単一のしきい値では新スケールの行が「score_gap<=15」を常に満たしてしまい
+        # 全件が狙い目と誤判定される(2026-07-30に発覚: 本日132レース中132件が誤判定)。
+        # そのためtop_scoreの絶対値でどちらのスケールかを判定し、しきい値を出し分ける。
+        #
+        # 新スケール側の 0.6 / 0.98 は暫定値（score_gap下位25%が約0.6前後、
+        # top_score下位25%が約0.98前後という分布観察から「下位2〜3割を拾う」
+        # 意図で設定しただけ）。この暫定値で回収率100%超が出る保証はない。
+        # 正しい閾値は re_evaluate_value_race_threshold.py の再スコアリング検証で
+        # 確認してから確定すること（勝手に確定しない）。
         # ─────────────────────────────────────────────
-        VALUE_GAP_MAX = 15.0
-        VALUE_SCORE_MAX = 30.0
+        OLD_SCALE_GAP_MAX, OLD_SCALE_SCORE_MAX = 15.0, 30.0
+        NEW_SCALE_GAP_MAX, NEW_SCALE_SCORE_MAX = 0.6, 0.98  # 暫定値(未検証)
+        SCALE_BOUNDARY = 5.0  # top_scoreがこれを超えていれば旧(0-100)スケールとみなす
+
+        def _is_value_race(r):
+            top_score, score_gap = r.get("top_score"), r.get("score_gap")
+            if top_score is None or score_gap is None:
+                return False
+            if top_score > SCALE_BOUNDARY:
+                return score_gap <= OLD_SCALE_GAP_MAX or top_score <= OLD_SCALE_SCORE_MAX
+            return score_gap <= NEW_SCALE_GAP_MAX or top_score <= NEW_SCALE_SCORE_MAX
+
         value_checked = [
             r for r in records
             if r.get("hit") is not None
             and r.get("top_score") is not None and r.get("score_gap") is not None
-            and (r["score_gap"] <= VALUE_GAP_MAX or r["top_score"] <= VALUE_SCORE_MAX)
+            and _is_value_race(r)
         ]
         if value_checked:
             v_hits = [r for r in value_checked if r["hit"]]
@@ -1514,7 +1533,8 @@ if page == "📈 成績記録":
             st.markdown("### 💰 狙い目レースの成績")
             st.markdown(
                 "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
-                "確信度が低め（1-2位差15以下 または 確信度30以下）の荒れそうなレースだけを買った場合の成績。"
+                "確信度が低め（モデルのスケールに応じて旧基準 差15以下/確信度30以下、"
+                "または新基準 差0.6以下/確信度0.98以下＝暫定値）の荒れそうなレースだけを買った場合の成績。"
                 "全体より回収率が高ければ、狙い目フィルタが機能している証拠です。</p>",
                 unsafe_allow_html=True,
             )
