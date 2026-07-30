@@ -1257,8 +1257,9 @@ if page == "📊 直前情報":
                 time_str = fetched_at[11:16] if len(fetched_at) >= 16 else ""
             race_date_obj = date(int(ds[:4]), int(ds[4:6]), int(ds[6:]))
             with st.expander(f"📊 {formatted} {time_str}　{h['venue_name']} {h['race_no']}R"):
-                sc2 = get_scraper()
-                if sc2:
+                # st.expanderの中身は開閉状態に関わらず毎rerun実行されるため、
+                # ボタンクリックで明示的に取得するまでスクレイピングしない
+                if st.button("📥 表示する", key=f"before_hist_{h['venue_code']}_{h['race_no']}_{h['race_date']}"):
                     before_scraper2 = BeforeInfoScraper(delay=1.0)
                     with st.spinner("取得中..."):
                         info2 = before_scraper2.get_before_info(race_date_obj, h["venue_code"], h["race_no"])
