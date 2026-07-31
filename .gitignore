@@ -9,3 +9,8 @@ prediction_records.json
 exhibition_done.json
 .env
 raceindex.html
+full_odds_cache.json
+official_payouts_cache.json
+ev_betting_result.csv
+ev_betting_full120_result.csv
+odds3t.html
