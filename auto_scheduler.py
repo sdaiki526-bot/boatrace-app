@@ -109,6 +109,8 @@ def save_record(record):
             db_record["sanren_tan"] = json.dumps(record["sanren_tan"], ensure_ascii=False)
             if record.get("sanren_tan_odds") is not None:
                 db_record["sanren_tan_odds"] = json.dumps(record["sanren_tan_odds"], ensure_ascii=False)
+            if record.get("sanren_tan_odds_all") is not None:
+                db_record["sanren_tan_odds_all"] = json.dumps(record["sanren_tan_odds_all"], ensure_ascii=False)
             # 展示・進入・STのjsonb列も文字列化
             for jkey in ("exhibition_times", "start_courses", "start_sts"):
                 if record.get(jkey) is not None:
@@ -438,15 +440,24 @@ def exhibition_job():
 
             top_score, score_gap = _score_metrics(pred)
 
-            # オッズ取得（最有力3連単候補のオッズ）
+            # オッズ取得（最有力3連単候補のオッズ + 全120通り）
+            # 実装方針: exhibition_jobは`done`セットで「1レース1回だけ」処理する設計の
+            # ため、sanren_tan_odds_allも締切ちょうどではなく「そのレースが最初に
+            # -10〜60分の窓に入り、展示情報が取得できたタイミング」のオッズになる
+            # (通常は展示タイム公開直後〜締切30分前程度)。締切直前ピンポイントでの
+            # 上書き取得は行わず、exhibition_jobが走るたびに最新のオッズで上書きする
+            # 単純な方式とした（doneに追加済みのレースは以後再処理されないため、
+            # 実質「そのレース初回処理時点」の1回だけ記録される）。
             odds_value = None
             sanren_tan_odds = None
+            sanren_tan_odds_all = None
             try:
                 odds = sc.get_odds(today, venue, rno)
                 if odds and odds.sanren_tan and pred.sanren_tan:
                     top_combo = pred.sanren_tan[0]
                     odds_value = odds.sanren_tan.get(top_combo)
                     sanren_tan_odds = {c: odds.sanren_tan.get(c) for c in pred.sanren_tan}
+                    sanren_tan_odds_all = odds.sanren_tan
             except Exception as e:
                 logger.error(f"オッズ取得失敗 {VENUE_MAP[venue]} {rno}R: {e}")
 
@@ -465,6 +476,7 @@ def exhibition_job():
                 "score_gap":   score_gap,
                 "odds_value":  odds_value,
                 "sanren_tan_odds": sanren_tan_odds,
+                "sanren_tan_odds_all": sanren_tan_odds_all,
                 "weather":     weather_text,
                 "wind_speed":  wind_speed,
                 "wave_height": wave_height,
