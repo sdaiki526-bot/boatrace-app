@@ -16,6 +16,9 @@ JST = timezone(timedelta(hours=9))
 # score_gap<=0.6の単一条件のみ(top_scoreは使わない)。
 VALUE_GAP_MAX = 0.6
 
+# BETボタンの仮想投資額。app.pyのBET_AMOUNT_PER_RACEと揃える(3点×500円=1500円)。
+BET_AMOUNT_PER_RACE = 1500
+
 
 def _fetch_venue_summary(supabase, today_str):
     """今日の会場ごとの集計（レース数・狙い目数・締切時刻リスト）を返す"""
@@ -69,8 +72,14 @@ def _next_deadline(deadlines, now_hm):
     return future[0] if future else None
 
 
-def render_dashboard(supabase, today_str):
-    """会場グリッド型ダッシュボードを描画する"""
+def render_dashboard(supabase, today_str, save_bet_record_fn=None, load_bet_records_fn=None):
+    """
+    会場グリッド型ダッシュボードを描画する。
+
+    save_bet_record_fn / load_bet_records_fn: app.pyのsave_bet_record/load_bet_records
+    を呼び出し元から渡してもらう（dashboard.pyからapp.pyを逆importすると循環importに
+    なるため、関数を引数として受け取る形にしている）。未指定時はBETボタンを表示しない。
+    """
     now = datetime.now(JST)
     now_hm = now.strftime("%H:%M")
 
@@ -191,6 +200,15 @@ def render_dashboard(supabase, today_str):
     if not ordered:
         st.info("本日の狙い目レースはまだありません。")
     else:
+        # 本日すでにBET済みのレースを(venue_code, race_no)で引けるようにする
+        today_bet_map = {}
+        if load_bet_records_fn:
+            today_bet_map = {
+                (b["venue_code"], b["race_no"]): b
+                for b in load_bet_records_fn()
+                if b.get("race_date") == today_str
+            }
+
         for v in ordered:
             is_past = not (v["deadline"] and v["deadline"] > now_hm)
             sanren = v.get("sanren_tan")
@@ -220,3 +238,26 @@ def render_dashboard(supabase, today_str):
                 "</div>",
                 unsafe_allow_html=True,
             )
+
+            if save_bet_record_fn:
+                existing_bet = today_bet_map.get((v["venue_code"], v["race_no"]))
+                dash_bet_key = f"dash_bet_{today_str}_{v['venue_code']}_{v['race_no']}"
+                if existing_bet:
+                    st.button(
+                        f"✅ BET済み（¥{existing_bet.get('bet_amount', 0):,}）",
+                        key=dash_bet_key, use_container_width=True, disabled=True,
+                    )
+                elif st.button("🎯 BET（3点×500円）", key=dash_bet_key, use_container_width=True):
+                    ok = save_bet_record_fn({
+                        "race_date": today_str,
+                        "venue_code": v["venue_code"],
+                        "venue_name": v["venue_name"],
+                        "race_no": v["race_no"],
+                        "sanren_tan": sanren,
+                        "bet_amount": BET_AMOUNT_PER_RACE,
+                        "top_score": v["top_score"],
+                        "score_gap": v["score_gap"],
+                    })
+                    if ok:
+                        st.success(f"BETしました（{v['venue_name']} {v['race_no']}R　¥{BET_AMOUNT_PER_RACE:,}）")
+                        st.rerun()

@@ -389,6 +389,11 @@ def load_fetch_history(fetch_type, limit=10):
         st.warning(f"履歴読み込み失敗: {e}")
         return []
 
+# BETボタンで記録する仮想投資額。3連単3点×500円=1500円固定（実際の投票とは連動しない）。
+# bet_amountカラムには「1レースあたりの合計額」を保存する規約（1点あたりではない）。
+# 500円/点で3点なので bet_amount=1500。払戻計算(1点500円分)は bet_amount/3 で導出する。
+BET_AMOUNT_PER_RACE = 1500
+
 def load_bet_records():
     """実戦記録（実際に買ったレース）を読む"""
     if not supabase:
@@ -424,6 +429,67 @@ def save_bet_record(record):
     except Exception as e:
         st.warning(f"実戦記録の保存失敗: {e}")
         return False
+
+
+def sync_bet_records_results():
+    """
+    bet_records のうち hit が未確定(null)のレコードに、結果を反映する。
+
+    方針: 結果確認タブがprediction_recordsを更新する仕組みとは別に、
+    bet_records側はここで明示的にprediction_recordsの確定結果を突き合わせる。
+    「成績」タブを開くたびに自動実行する(明示的な更新ボタンは設けない。
+    件数が少なく毎回問い合わせても軽いため)。
+
+    判定: 同じ(race_date, venue_code, race_no)のprediction_recordsのactualが
+    bet_recordsのsanren_tan(買った3点)に含まれていればhit=True。
+    payoutは「500円分の払戻 = prediction_records.payout(100円あたりの確定配当) × 5」。
+    含まれなければhit=False, payout=0。外れの買い目に払戻を計上しない。
+    """
+    if not supabase:
+        return
+    try:
+        pending = (
+            supabase.table("bet_records").select("id,race_date,venue_code,race_no,sanren_tan")
+            .is_("hit", "null").execute()
+        ).data or []
+    except Exception as e:
+        st.warning(f"実戦記録の未確定取得失敗: {e}")
+        return
+    if not pending:
+        return
+
+    try:
+        confirmed = (
+            supabase.table("prediction_records").select("race_date,venue_code,race_no,actual,payout")
+            .not_.is_("hit", "null").execute()
+        ).data or []
+    except Exception as e:
+        st.warning(f"予想記録の確定結果取得失敗: {e}")
+        return
+    confirmed_map = {
+        (c["race_date"], c["venue_code"], c["race_no"]): c for c in confirmed
+    }
+
+    for b in pending:
+        key = (b["race_date"], b["venue_code"], b["race_no"])
+        c = confirmed_map.get(key)
+        if not c or not c.get("actual"):
+            continue  # まだ結果が確定していない
+
+        sanren_tan = b.get("sanren_tan")
+        if isinstance(sanren_tan, str):
+            sanren_tan = json.loads(sanren_tan) if sanren_tan else []
+        hit = c["actual"] in (sanren_tan or [])
+        payout = (c.get("payout") or 0) * 5 if hit else 0  # 100円あたり配当 → 500円分
+
+        try:
+            supabase.table("bet_records").update({
+                "hit": hit, "actual": c["actual"], "payout": payout,
+            }).eq("id", b["id"]).execute()
+        except Exception as e:
+            st.warning(f"実戦記録の結果反映失敗（{key}）: {e}")
+
+
 # ─────────────────────────────────────────────
 # セッション初期化
 # ─────────────────────────────────────────────
@@ -628,7 +694,10 @@ with st.sidebar:
 # ホーム（会場グリッドダッシュボード）
 # ─────────────────────────────────────────────
 if page == "🏠 ホーム":
-    render_dashboard(supabase, today_jst().strftime("%Y%m%d"))
+    render_dashboard(
+        supabase, today_jst().strftime("%Y%m%d"),
+        save_bet_record_fn=save_bet_record, load_bet_records_fn=load_bet_records,
+    )
 
 # ─────────────────────────────────────────────
 # ピックアップ
@@ -706,35 +775,29 @@ if page == "🔥 ピックアップ":
                     )
                     st.markdown(card_html, unsafe_allow_html=True)
 
-                    # ── 実戦記録の入力 ──
+                    # ── BET（仮想収支・3点×500円固定） ──
                     existing_bet = today_bet_map.get((r["venue_code"], r["race_no"]))
                     bet_key = f"{r['race_date']}_{r['venue_code']}_{r['race_no']}"
-                    bcol1, bcol2 = st.columns([1, 1])
-                    with bcol1:
-                        stake = st.number_input(
-                            "購入金額（円）", min_value=100, step=100,
-                            value=int(existing_bet["bet_amount"]) if existing_bet and existing_bet.get("bet_amount") else 300,
-                            key=f"stake_{bet_key}",
+                    if existing_bet:
+                        st.button(
+                            f"✅ BET済み（¥{existing_bet.get('bet_amount', 0):,}）",
+                            key=f"bet_btn_{bet_key}", use_container_width=True, disabled=True,
                         )
-                    with bcol2:
-                        st.markdown("<div style='height:1.9rem'></div>", unsafe_allow_html=True)
-                        btn_label = "🎰 記録を更新" if existing_bet else "🎰 実戦記録に登録"
-                        if st.button(btn_label, key=f"bet_btn_{bet_key}", use_container_width=True):
+                    else:
+                        if st.button("🎯 BET（3点×500円）", key=f"bet_btn_{bet_key}", use_container_width=True):
                             ok = save_bet_record({
                                 "race_date": r["race_date"],
                                 "venue_code": r["venue_code"],
                                 "venue_name": r["venue_name"],
                                 "race_no": r["race_no"],
                                 "sanren_tan": r["sanren_tan"],
-                                "bet_amount": int(stake),
+                                "bet_amount": BET_AMOUNT_PER_RACE,
                                 "top_score": r["top_score"],
                                 "score_gap": r["score_gap"],
                             })
                             if ok:
-                                st.success(f"記録しました（{r['venue_name']} {r['race_no']}R　¥{int(stake):,}）")
+                                st.success(f"BETしました（{r['venue_name']} {r['race_no']}R　¥{BET_AMOUNT_PER_RACE:,}）")
                                 st.rerun()
-                    if existing_bet:
-                        st.caption(f"✅ 記録済み（¥{existing_bet.get('bet_amount', 0):,}）")
 
     st.markdown("---")
 
@@ -1393,18 +1456,20 @@ if page == "📋 結果確認":
 # ─────────────────────────────────────────────
 if page == "📈 成績記録":
     # ─────────────────────────────────────────────
-    # 🎰 実戦収支（実際に賭けた記録）
+    # 🎰 実戦収支（BETボタンで記録した仮想収支）
     # ─────────────────────────────────────────────
+    sync_bet_records_results()  # 未確定レコードにprediction_recordsの確定結果を反映
     bet_records = load_bet_records()
     st.markdown("### 🎰 実戦収支")
     st.markdown(
         "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
-        "🔥 ピックアップ タブの「狙い目レース」から実際に登録した実戦記録です。"
-        "結果確認タブでレース結果を取得すると、的中・払戻が自動反映されます。</p>",
+        "🔥 ピックアップ タブ・ホーム画面の「狙い目レース」でBETした記録です"
+        "（実際の投票とは連動しないエンタメ機能。3点×500円）。"
+        "結果が確定すると、このタブを開いたときに自動で的中・払戻が反映されます。</p>",
         unsafe_allow_html=True,
     )
     if not bet_records:
-        st.info("まだ実戦記録がありません。🔥 ピックアップ タブの狙い目レースから登録してください。")
+        st.info("まだBET記録がありません。🔥 ピックアップ タブやホーム画面の狙い目レースからBETしてください。")
     else:
         bet_checked = [b for b in bet_records if b.get("hit") is not None]
         bet_hits = [b for b in bet_checked if b["hit"]]
