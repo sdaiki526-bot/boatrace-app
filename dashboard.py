@@ -19,6 +19,45 @@ VALUE_GAP_MAX = 0.6
 # BETボタンの仮想投資額。app.pyのBET_AMOUNT_PER_RACEと揃える(3点×500円=1500円)。
 BET_AMOUNT_PER_RACE = 1500
 
+# ─────────────────────────────────────────────
+# 艇番カラー（競艇公式の艇番カラー。app.pyのLANE_COLORSと同じ内容を維持すること。
+# dashboard.pyからapp.pyを逆importできないため、同じ定義をここにも置いている）
+# ─────────────────────────────────────────────
+LANE_COLORS = {
+    1: ("#ffffff", "#1e293b", "#94a3b8"),  # 白（枠線グレー・黒文字）
+    2: ("#111827", "#ffffff", "#111827"),  # 黒
+    3: ("#dc2626", "#ffffff", "#dc2626"),  # 赤
+    4: ("#2563eb", "#ffffff", "#2563eb"),  # 青
+    5: ("#eab308", "#1e293b", "#eab308"),  # 黄（黒文字）
+    6: ("#16a34a", "#ffffff", "#16a34a"),  # 緑
+}
+
+def lane_color(n):
+    """艇番(1-6) -> (背景色, 文字色) を返す。範囲外はグレーにフォールバック。"""
+    bg, fg, _ = LANE_COLORS.get(int(n), ("#94a3b8", "#ffffff", "#94a3b8"))
+    return bg, fg
+
+def lane_badge_html(n, size="1.4rem"):
+    """艇番1つを公式カラーの丸バッジHTMLにする。"""
+    bg, fg, border = LANE_COLORS.get(int(n), ("#94a3b8", "#ffffff", "#94a3b8"))
+    return (
+        f"<span style='display:inline-flex;align-items:center;justify-content:center;"
+        f"width:{size};height:{size};border-radius:50%;background:{bg};color:{fg};"
+        f"border:1px solid {border};font-weight:800;font-size:0.75rem;line-height:1'>{n}</span>"
+    )
+
+def combos_badges_html(combos, size="1.4rem"):
+    """買い目複数点(またはハイフン区切りの単一組み合わせ)を艇番バッジ列にする。"""
+    if isinstance(combos, str):
+        combos = [combos]
+    items = []
+    for c in combos:
+        parts = str(c).split("-")
+        badges = "".join(lane_badge_html(p, size=size) for p in parts if p.strip().isdigit())
+        items.append(f"<span style='display:inline-flex;align-items:center;gap:3px'>{badges}</span>")
+    sep = "<span style='color:#94a3b8;margin:0 0.3rem'>/</span>"
+    return sep.join(items)
+
 
 def _fetch_venue_summary(supabase, today_str):
     """今日の会場ごとの集計（レース数・狙い目数・締切時刻リスト）を返す"""
@@ -217,7 +256,7 @@ def render_dashboard(supabase, today_str, save_bet_record_fn=None, load_bet_reco
                     sanren = json.loads(sanren)
                 except Exception:
                     sanren = []
-            combo_text = " / ".join(sanren) if sanren else ""
+            combo_text = combos_badges_html(sanren) if sanren else ""
             odds = v.get("odds_value")
             odds_text = f"<span style='color:#0891b2;font-weight:700;margin-left:8px'>{odds:.1f}倍</span>" if odds else ""
             time_label = v["deadline"] or "--:--"

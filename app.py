@@ -18,6 +18,45 @@ JST = timezone(_td(hours=9))
 def today_jst():
     return datetime.now(JST).date()
 
+# ─────────────────────────────────────────────
+# 艇番カラー（競艇公式の艇番カラーで統一。dashboard.pyにも同じ定義がある
+# ＝dashboard.pyからapp.pyを逆importできないため、両方に定義して一元管理する）
+# ─────────────────────────────────────────────
+LANE_COLORS = {
+    1: ("#ffffff", "#1e293b", "#94a3b8"),  # 白（枠線グレー・黒文字）
+    2: ("#111827", "#ffffff", "#111827"),  # 黒
+    3: ("#dc2626", "#ffffff", "#dc2626"),  # 赤
+    4: ("#2563eb", "#ffffff", "#2563eb"),  # 青
+    5: ("#eab308", "#1e293b", "#eab308"),  # 黄（黒文字）
+    6: ("#16a34a", "#ffffff", "#16a34a"),  # 緑
+}
+
+def lane_color(n):
+    """艇番(1-6) -> (背景色, 文字色) を返す。範囲外はグレーにフォールバック。"""
+    bg, fg, _ = LANE_COLORS.get(int(n), ("#94a3b8", "#ffffff", "#94a3b8"))
+    return bg, fg
+
+def lane_badge_html(n, size="1.6rem"):
+    """艇番1つを公式カラーの丸バッジHTMLにする。"""
+    bg, fg, border = LANE_COLORS.get(int(n), ("#94a3b8", "#ffffff", "#94a3b8"))
+    return (
+        f"<span style='display:inline-flex;align-items:center;justify-content:center;"
+        f"width:{size};height:{size};border-radius:50%;background:{bg};color:{fg};"
+        f"border:1px solid {border};font-weight:800;font-size:0.8rem;line-height:1'>{n}</span>"
+    )
+
+def combo_badges_html(combo, size="1.4rem"):
+    """"4-1-2" のようなハイフン区切りの買い目文字列を、艇番バッジ列のHTMLにする。"""
+    parts = str(combo).split("-")
+    badges = "".join(lane_badge_html(p, size=size) for p in parts if p.strip().isdigit())
+    return f"<span style='display:inline-flex;align-items:center;gap:3px'>{badges}</span>"
+
+def combos_badges_html(combos, size="1.4rem"):
+    """買い目3点などの複数の組み合わせを、区切り付きでバッジ列にまとめて表示する。"""
+    items = [combo_badges_html(c, size=size) for c in combos]
+    sep = "<span style='color:#94a3b8;margin:0 0.3rem'>/</span>"
+    return sep.join(items)
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 from boatrace_scraper import BoatraceScraper, VENUE_MAP
@@ -180,16 +219,17 @@ st.markdown("""
         gap: 1rem;
         box-shadow: 0 1px 3px rgba(14,165,233,0.08);
     }
+    /* 艇番バッジ（競艇公式の艇番カラー。app.pyのLANE_COLORSと揃える） */
     .lane-badge {
         width: 30px; height: 30px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         font-weight: 800; font-size: 0.85rem; flex-shrink: 0;
     }
-    .lane-1 { background: #eab308; color: #000; }
-    .lane-2 { background: #2563eb; color: #fff; }
+    .lane-1 { background: #ffffff; color: #1e293b; border: 1px solid #94a3b8; }
+    .lane-2 { background: #111827; color: #fff; }
     .lane-3 { background: #dc2626; color: #fff; }
-    .lane-4 { background: #6b7280; color: #fff; }
-    .lane-5 { background: #f97316; color: #fff; }
+    .lane-4 { background: #2563eb; color: #fff; }
+    .lane-5 { background: #eab308; color: #1e293b; }
     .lane-6 { background: #16a34a; color: #fff; }
 
     /* 的中・ハズレ */
@@ -766,7 +806,7 @@ if page == "🔥 ピックアップ":
                         "gap:1rem;flex-wrap:wrap'>"
                         f"<span style='color:#155e75;font-size:0.85rem'>⏰ {time_label}</span>"
                         f"<span style='font-size:1rem;font-weight:800;color:#0891b2'>💰 {r['race_no']}R</span>"
-                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 {combos_badges_html(r['sanren_tan'])}</span>"
                         f"{odds_text}"
                         f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
                         f"確信度 <strong style='color:#0891b2'>{r['top_score']:.2f}</strong>"
@@ -857,8 +897,8 @@ if page == "🔥 ピックアップ":
                         "gap:1rem;flex-wrap:wrap'>"
                         f"<span style='color:#475569;font-size:0.85rem'>⏰ {time_label}</span>"
                         f"<span style='font-size:1rem;font-weight:800;color:#16a34a'>🎯 {r['race_no']}R</span>"
-                        f"<span style='background:#dcfce7;border-radius:6px;padding:2px 10px;font-weight:800;color:#15803d;font-size:1rem'>{r['tansho']}枠</span>"
-                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                        f"{lane_badge_html(r['tansho'], size='1.8rem')}"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 {combos_badges_html(r['sanren_tan'])}</span>"
                         f"{odds_text}"
                         f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
                         f"確信度 <strong style='color:#16a34a'>{r['top_score']:.2f}</strong>"
@@ -896,7 +936,7 @@ if page == "🔥 ピックアップ":
                         f"<span style='color:#6b21a8;font-size:0.85rem'>⏰ {time_label}</span>"
                         f"<span style='font-size:1rem;font-weight:800;color:#a855f7'>💎 {r['race_no']}R</span>"
                         f"<span style='color:#1d4ed8;font-size:0.9rem'>単勝 <strong>{r['tansho']}</strong></span>"
-                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 {combos_badges_html(r['sanren_tan'])}</span>"
                         f"<span style='color:#7e22ce;font-weight:700'>オッズ {odds_val:.1f}倍</span>"
                         f"<span style='margin-left:auto;color:#64748b;font-size:0.82rem'>"
                         f"確信度 <strong style='color:#a855f7'>{r['top_score']:.2f}</strong>pt</span>"
@@ -948,7 +988,7 @@ if page == "🔥 ピックアップ":
                         f"<span style='color:#92400e;font-size:0.85rem'>⏰ {time_label}</span>"
                         f"<span style='font-size:1rem;font-weight:800;color:#d97706'>🔥 {r['race_no']}R</span>"
                         f"<span style='color:#1d4ed8;font-size:0.9rem'>単勝 <strong>{r['tansho']}</strong></span>"
-                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 <strong>{' / '.join(r['sanren_tan'])}</strong></span>"
+                        f"<span style='color:#1d4ed8;font-size:0.9rem'>3連単 {combos_badges_html(r['sanren_tan'])}</span>"
                         f"{odds_text}{value_badge}{weather_text2}"
                         f"<span style='margin-left:auto;color:#475569;font-size:0.82rem'>"
                         f"確信度 <strong style='color:#d97706'>{r['top_score']:.2f}</strong>"
@@ -1127,18 +1167,18 @@ if page == "🎯 予想":
                     <div class="buy-box">
                         <p class="buy-title">💰 推奨買い目</p>
                         <p style="color:#475569;font-size:0.85rem;margin:0">単勝</p>
-                        <div class="buy-combo">{pred.tansho}</div>
+                        <div class="buy-combo">{lane_badge_html(pred.tansho, size='1.6rem')}</div>
                         <p style="color:#475569;font-size:0.85rem;margin:0.8rem 0 0">3連単</p>
-                        {''.join([f'<div class="buy-combo">{c}</div>' for c in pred.sanren_tan])}
+                        {''.join([f'<div class="buy-combo">{combo_badges_html(c)}</div>' for c in pred.sanren_tan])}
                         <p style="color:#475569;font-size:0.85rem;margin:0.8rem 0 0">3連複</p>
-                        <div class="buy-combo">{pred.sanren_fuku}</div>
+                        <div class="buy-combo">{combo_badges_html(pred.sanren_fuku)}</div>
                     </div>
                     """, unsafe_allow_html=True)
                 with col_b:
                     st.markdown(f"""
                     <div class="buy-box">
                         <p class="buy-title">📊 予想順位</p>
-                        {''.join([f'<p style="margin:0.4rem 0;color:#1e293b">{medals[s.predicted_rank-1]} {s.lane}枠 {s.name} <span style="color:#3b82f6;font-weight:700">{s.total_score:.1f}pt</span></p>' for s in sorted_scores])}
+                        {''.join([f'<p style="margin:0.4rem 0;color:#1e293b;display:flex;align-items:center;gap:6px">{medals[s.predicted_rank-1]} {lane_badge_html(s.lane, size="1.4rem")} {s.name} <span style="color:#3b82f6;font-weight:700;margin-left:auto">{s.total_score:.1f}pt</span></p>' for s in sorted_scores])}
                     </div>
                     """, unsafe_allow_html=True)
 
@@ -1160,12 +1200,12 @@ if page == "🎯 予想":
                             else "<span class='miss-badge'>❌ 本命不一致</span>"
                         )
                         st.markdown(
-                            f"<p style='margin:0.6rem 0'>自分のモデルの本命: <strong style='color:#0891b2'>{model_top1}号艇</strong>　"
-                            f"公式の本命: <strong style='color:#0891b2'>{official_top1}号艇</strong>　{badge}</p>",
+                            f"<p style='margin:0.6rem 0;display:flex;align-items:center;gap:6px'>自分のモデルの本命: {lane_badge_html(model_top1)}　"
+                            f"公式の本命: {lane_badge_html(official_top1)}　{badge}</p>",
                             unsafe_allow_html=True,
                         )
                         cmp_rows = "".join(
-                            f"<p style='margin:0.3rem 0;color:#1e293b'>{lane}号艇: "
+                            f"<p style='margin:0.3rem 0;color:#1e293b;display:flex;align-items:center;gap:6px'>{lane_badge_html(lane, size='1.4rem')} "
                             f"公式 <strong>{official.marks.get(lane, '－')}</strong>　/　"
                             f"自モデル {next((s.predicted_rank for s in sorted_scores if s.lane == lane), '-')}位予想</p>"
                             for lane in range(1, 7)
@@ -1354,7 +1394,7 @@ if page == "📋 結果確認":
                     with col_r1:
                         st.markdown("#### 着順")
                         for i, boat in enumerate(result.arrival):
-                            st.markdown(f"<p style='margin:0.3rem 0;color:#1e293b'>{medals[i]} <strong>{boat}号艇</strong></p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='margin:0.3rem 0;color:#1e293b;display:flex;align-items:center;gap:6px'>{medals[i]} {lane_badge_html(boat)}</p>", unsafe_allow_html=True)
                     with col_r2:
                         if result.payouts:
                             st.markdown("#### 払戻金")
@@ -1439,7 +1479,7 @@ if page == "📋 結果確認":
                     if r.get("actual"):
                         parts = r["actual"].split("-")
                         for i, p in enumerate(parts[:3]):
-                            st.markdown(f"<p style='margin:0.2rem 0;color:#1e293b'>{medals[i]} <strong>{p}号艇</strong></p>", unsafe_allow_html=True)
+                            st.markdown(f"<p style='margin:0.2rem 0;color:#1e293b;display:flex;align-items:center;gap:6px'>{medals[i]} {lane_badge_html(p)}</p>", unsafe_allow_html=True)
                     if r.get("payout"):
                         st.markdown(f"<p style='color:#3b82f6;font-weight:700;margin-top:0.5rem'>払戻: ¥{r['payout']:,}</p>", unsafe_allow_html=True)
                     if r.get("hit") is True:
@@ -1519,7 +1559,7 @@ if page == "📈 成績記録":
                 "<div class='record-card'>"
                 f"<span style='color:#64748b;font-size:0.85rem'>{formatted}</span>"
                 f"<span style='font-weight:700;color:#1e293b'>{b['venue_name']} {b['race_no']}R</span>"
-                f"<span style='color:#0891b2;font-size:0.85rem'>{' / '.join(b['sanren_tan'])}</span>"
+                f"<span style='font-size:0.85rem'>{combos_badges_html(b['sanren_tan'])}</span>"
                 f"<span style='color:#64748b;font-size:0.85rem'>¥{stake:,}購入</span>"
                 f"{extra}{profit_text}"
                 f"<span style='margin-left:auto'>{badge}</span>"
@@ -1748,7 +1788,7 @@ if page == "📈 成績記録":
                 "gap:1rem;flex-wrap:wrap'>"
                 f"<span style='color:#475569;font-size:0.85rem'>{formatted}</span>"
                 f"<span style='font-weight:700;color:#1e293b'>{r['venue_name']} {r['race_no']}R</span>"
-                f"<span style='color:#3b82f6;font-size:0.85rem'>{' / '.join(r['sanren_tan'])}</span>"
+                f"<span style='font-size:0.85rem'>{combos_badges_html(r['sanren_tan'])}</span>"
                 f"{extra1}{extra2}"
                 f"<span style='margin-left:auto'>{badge}</span>"
                 "</div>"
