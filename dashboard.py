@@ -122,30 +122,30 @@ def render_dashboard(supabase, today_str, save_bet_record_fn=None, load_bet_reco
             soon = (now + timedelta(minutes=15)).strftime("%H:%M")
             # マスの色を状況で変える
             if nd and nd <= soon:
-                bg, border = "#1a2540", "#3b82f6"
-                badge, badge_color = "⏰ まもなく", "#60a5fa"
+                bg, border = "#e0f2fe", "#3b82f6"
+                badge, badge_color = "⏰ まもなく", "#1d4ed8"
             elif v["value_count"] > 0:
-                bg, border = "#1a2540", "#f5c542"
-                badge, badge_color = f"🔥 狙い{v['value_count']}", "#f5c542"
+                bg, border = "#f0f9ff", "#0891b2"
+                badge, badge_color = f"🔥 狙い{v['value_count']}", "#0891b2"
             else:
-                bg, border = "#161e30", "#2d3a52"
-                badge, badge_color = "狙い目なし", "#5a6b85"
+                bg, border = "#f8fafc", "#e2e8f0"
+                badge, badge_color = "狙い目なし", "#94a3b8"
 
             next_label = f"次 {nd}" if nd else "本日終了"
             with col:
                 st.markdown(
                     f"<div style='background:{bg};border:1px solid {border};border-radius:10px;"
                     f"padding:0.7rem;text-align:center;margin-bottom:0.5rem'>"
-                    f"<p style='font-size:0.95rem;font-weight:700;color:#f1f5f9;margin:0 0 0.4rem'>{v['venue_name']}</p>"
+                    f"<p style='font-size:0.95rem;font-weight:700;color:#1e293b;margin:0 0 0.4rem'>{v['venue_name']}</p>"
                     f"<span style='font-size:0.72rem;color:{badge_color};font-weight:700'>{badge}</span>"
-                    f"<p style='font-size:0.72rem;color:#8b9bb4;margin:0.4rem 0 0'>{next_label}</p>"
+                    f"<p style='font-size:0.72rem;color:#64748b;margin:0.4rem 0 0'>{next_label}</p>"
                     f"</div>",
                     unsafe_allow_html=True,
                 )
 
     st.markdown(
-        "<p style='color:#94a3b8;font-size:0.72rem;margin-top:0.5rem'>"
-        "枠の色: <span style='color:#d97706'>オレンジ=狙い目あり</span> / "
+        "<p style='color:#64748b;font-size:0.72rem;margin-top:0.5rem'>"
+        "枠の色: <span style='color:#0891b2'>水色=狙い目あり</span> / "
         "<span style='color:#1d4ed8'>青=まもなく締切</span> / グレー=狙い目なし</p>",
         unsafe_allow_html=True,
     )
@@ -221,16 +221,16 @@ def render_dashboard(supabase, today_str, save_bet_record_fn=None, load_bet_reco
             odds = v.get("odds_value")
             odds_text = f"<span style='color:#0891b2;font-weight:700;margin-left:8px'>{odds:.1f}倍</span>" if odds else ""
             time_label = v["deadline"] or "--:--"
-            opacity = "0.5" if is_past else "1"
-            bg = "#161e30" if is_past else "#1a2540"
-            border = "#2d3a52" if is_past else "#06b6d4"
+            opacity = "0.6" if is_past else "1"
+            bg = "#f8fafc" if is_past else "#f0f9ff"
+            border = "#e2e8f0" if is_past else "#06b6d4"
             check = "✅" if is_past else "⏰"
             st.markdown(
                 f"<div style='background:{bg};border:1px solid {border};border-radius:8px;"
                 f"padding:0.5rem 0.9rem;margin:0.25rem 0;display:flex;align-items:center;"
                 f"gap:0.8rem;flex-wrap:wrap;opacity:{opacity}'>"
                 f"<span style='font-size:0.82rem;color:#155e75'>{check} {time_label}</span>"
-                f"<span style='font-weight:700;color:#f1f5f9'>{v['venue_name']} {v['race_no']}R</span>"
+                f"<span style='font-weight:700;color:#1e293b'>{v['venue_name']} {v['race_no']}R</span>"
                 f"<span style='color:#1d4ed8;font-size:0.85rem'>{combo_text}</span>"
                 f"{odds_text}"
                 f"<span style='margin-left:auto;font-size:0.78rem;color:#64748b'>"

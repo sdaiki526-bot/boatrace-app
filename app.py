@@ -73,31 +73,31 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* カジノ・ナイター風テーマ（黒×金） */
-    .stApp { background-color: #0a0f1c; color: #e2e8f0; font-size: 16px; }
+    /* 白×水色テーマ（明るく清潔感のあるデザイン） */
+    .stApp { background-color: #f0f9ff; color: #1e293b; font-size: 16px; }
     .main .block-container { padding: 1.5rem 2rem; max-width: 1400px; }
     p, span, div, label, li { font-size: 1rem; }
-    h1 { font-size: 1.8rem !important; color: #f5c542 !important; }
-    h2 { font-size: 1.5rem !important; color: #f5c542 !important; }
-    h3 { font-size: 1.3rem !important; color: #f5c542 !important; }
-    h4 { font-size: 1.1rem !important; color: #f1f5f9 !important; }
+    h1 { font-size: 1.8rem !important; color: #0891b2 !important; }
+    h2 { font-size: 1.5rem !important; color: #0891b2 !important; }
+    h3 { font-size: 1.3rem !important; color: #0891b2 !important; }
+    h4 { font-size: 1.1rem !important; color: #1e293b !important; }
 
-    .stSelectbox > div > div { background: #1a2540 !important; border-color: #2d3a52 !important; }
-    .stSelectbox > div > div > div { color: #f1f5f9 !important; }
-    .stSelectbox svg { color: #f5c542 !important; }
-    .stSelectbox label, .stMultiSelect label { color: #8b9bb4 !important; }
+    .stSelectbox > div > div { background: #ffffff !important; border-color: #bae6fd !important; }
+    .stSelectbox > div > div > div { color: #1e293b !important; }
+    .stSelectbox svg { color: #0891b2 !important; }
+    .stSelectbox label, .stMultiSelect label { color: #64748b !important; }
 
     /* ヘッダー */
     .header-box {
-        background: linear-gradient(135deg, #0f1729 0%, #1a2540 60%, #0f1729 100%);
-        border: 1px solid #b8860b;
+        background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 60%, #ffffff 100%);
+        border: 1px solid #7dd3fc;
         border-radius: 14px;
         padding: 1.2rem 1.8rem;
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 1.2rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        box-shadow: 0 4px 16px rgba(14,165,233,0.12);
         position: relative;
         overflow: hidden;
     }
@@ -106,47 +106,47 @@ st.markdown("""
         position: absolute;
         right: -40px; top: -40px;
         width: 160px; height: 160px;
-        background: rgba(245,197,66,0.06);
+        background: rgba(8,145,178,0.06);
         border-radius: 50%;
     }
     .header-icon { flex-shrink: 0; }
-    .header-title { font-size: 1.7rem; font-weight: 800; color: #f5c542; margin: 0; letter-spacing: 0.02em; }
-    .header-date { color: #8b9bb4; font-size: 0.85rem; margin: 0.2rem 0 0; font-weight: 600; }
+    .header-title { font-size: 1.7rem; font-weight: 800; color: #0891b2; margin: 0; letter-spacing: 0.02em; }
+    .header-date { color: #64748b; font-size: 0.85rem; margin: 0.2rem 0 0; font-weight: 600; }
     .header-meta { margin-left: auto; text-align: right; z-index: 1; }
-    .header-meta-value { font-size: 1.5rem; font-weight: 800; color: #f5c542; line-height: 1; }
-    .header-meta-label { font-size: 0.75rem; color: #8b9bb4; font-weight: 600; margin-top: 0.2rem; }
+    .header-meta-value { font-size: 1.5rem; font-weight: 800; color: #0891b2; line-height: 1; }
+    .header-meta-label { font-size: 0.75rem; color: #64748b; font-weight: 600; margin-top: 0.2rem; }
 
     /* カード */
     .stat-card {
-        background: linear-gradient(135deg, #1a2540, #0f1729);
-        border: 1px solid #2d3a52;
+        background: linear-gradient(135deg, #ffffff, #f0f9ff);
+        border: 1px solid #bae6fd;
         border-radius: 10px;
         padding: 1rem;
         text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(14,165,233,0.08);
     }
-    .stat-value { font-size: 1.8rem; font-weight: 800; color: #f5c542; }
-    .stat-label { font-size: 0.78rem; color: #8b9bb4; margin-top: 0.2rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #0891b2; }
+    .stat-label { font-size: 0.78rem; color: #64748b; margin-top: 0.2rem; }
 
     /* 買い目ボックス */
     .buy-box {
-        background: #1a2540;
-        border: 1px solid #b8860b;
+        background: #ffffff;
+        border: 1px solid #7dd3fc;
         border-radius: 10px;
         padding: 1.2rem;
         margin: 0.8rem 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(14,165,233,0.08);
     }
-    .buy-title { font-size: 1rem; font-weight: 700; color: #f5c542; margin-bottom: 0.8rem; }
+    .buy-title { font-size: 1rem; font-weight: 700; color: #0891b2; margin-bottom: 0.8rem; }
     .buy-combo {
-        background: #0f1729;
-        border: 1px solid #b8860b;
+        background: #f0f9ff;
+        border: 1px solid #7dd3fc;
         border-radius: 6px;
         padding: 0.4rem 0.9rem;
         margin: 0.3rem 0.2rem;
         font-size: 1rem;
         font-weight: 700;
-        color: #f5c542;
+        color: #0891b2;
         display: inline-block;
         letter-spacing: 0.05em;
     }
@@ -156,15 +156,15 @@ st.markdown("""
         border-radius: 8px;
         font-weight: 700;
         font-size: 0.95rem;
-        border: 1px solid #2d3a52 !important;
-        background: #1a2540 !important;
-        color: #f1f5f9 !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        border: 1px solid #bae6fd !important;
+        background: #ffffff !important;
+        color: #1e293b !important;
+        box-shadow: 0 1px 3px rgba(14,165,233,0.1);
     }
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #b8860b, #f5c542) !important;
-        border-color: #f5c542 !important;
-        color: #0f1729 !important;
+        background: linear-gradient(135deg, #0891b2, #38bdf8) !important;
+        border-color: #0891b2 !important;
+        color: #ffffff !important;
     }
     .stButton > button:hover { opacity: 0.85; }
 
@@ -173,12 +173,12 @@ st.markdown("""
         display: flex;
         align-items: center;
         padding: 0.7rem 1rem;
-        background: #1a2540;
-        border: 1px solid #2d3a52;
+        background: #ffffff;
+        border: 1px solid #bae6fd;
         border-radius: 8px;
         margin: 4px 0;
         gap: 1rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        box-shadow: 0 1px 3px rgba(14,165,233,0.08);
     }
     .lane-badge {
         width: 30px; height: 30px; border-radius: 50%;
@@ -193,14 +193,14 @@ st.markdown("""
     .lane-6 { background: #16a34a; color: #fff; }
 
     /* 的中・ハズレ */
-    .hit-badge { background: #064e3b; border: 1px solid #10b981; color: #6ee7b7; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
-    .miss-badge { background: #7f1d1d; border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
-    .pending-badge { background: #1a2540; border: 1px solid #2d3a52; color: #8b9bb4; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .hit-badge { background: #dcfce7; border: 1px solid #16a34a; color: #15803d; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .miss-badge { background: #fee2e2; border: 1px solid #ef4444; color: #dc2626; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
+    .pending-badge { background: #f1f5f9; border: 1px solid #cbd5e1; color: #64748b; border-radius: 6px; padding: 2px 10px; font-size: 0.82rem; font-weight: 700; }
 
     /* 記録カード */
     .record-card {
-        background: #1a2540;
-        border: 1px solid #2d3a52;
+        background: #ffffff;
+        border: 1px solid #bae6fd;
         border-radius: 8px;
         padding: 0.7rem 1rem;
         margin: 4px 0;
@@ -209,22 +209,22 @@ st.markdown("""
         gap: 1rem;
         flex-wrap: wrap;
     }
-    hr { border-color: #2d3a52 !important; }
+    hr { border-color: #bae6fd !important; }
 
     /* Expander */
     [data-testid="stExpander"] {
-        background: #1a2540;
-        border: 1px solid #2d3a52 !important;
+        background: #ffffff;
+        border: 1px solid #bae6fd !important;
         border-radius: 8px !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        box-shadow: 0 1px 3px rgba(14,165,233,0.08);
     }
-    [data-testid="stExpander"] summary { color: #f1f5f9 !important; font-weight: 600 !important; }
-    [data-testid="stExpander"] summary span { color: #f1f5f9 !important; }
+    [data-testid="stExpander"] summary { color: #1e293b !important; font-weight: 600 !important; }
+    [data-testid="stExpander"] summary span { color: #1e293b !important; }
 
     /* メトリクス */
-    [data-testid="stMetric"] { background: #1a2540; border: 1px solid #2d3a52; border-radius: 8px; padding: 0.8rem; }
-    [data-testid="stMetricLabel"] { color: #8b9bb4 !important; }
-    [data-testid="stMetricValue"] { color: #f5c542 !important; }
+    [data-testid="stMetric"] { background: #ffffff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.8rem; }
+    [data-testid="stMetricLabel"] { color: #64748b !important; }
+    [data-testid="stMetricValue"] { color: #0891b2 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -616,9 +616,9 @@ st.markdown(header_html, unsafe_allow_html=True)
 # ─────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* サイドバー - ブルーグラデーション（ライトテーマに映える） */
+    /* サイドバー - 水色グラデーション（白背景に映えるアクセントパネル） */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
+        background: linear-gradient(180deg, #0891b2 0%, #0284c7 100%);
         border-right: none;
     }
     [data-testid="stSidebar"] > div { padding-top: 1.5rem; }
@@ -663,7 +663,7 @@ with st.sidebar:
         "<path d='M34 19 L50 26 L34 28 Z' fill='#ef4444'/>"
         "<rect x='30' y='18' width='4' height='13' rx='1' fill='#1f2937'/>"
         "</svg>"
-        "<span style='font-size:1.2rem;font-weight:800;color:#f1f5f9;letter-spacing:0.02em'>競艇予想ツール</span>"
+        "<span style='font-size:1.2rem;font-weight:800;color:#1e293b;letter-spacing:0.02em'>競艇予想ツール</span>"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -1107,13 +1107,13 @@ if page == "🎯 予想":
                     x=[s.total_score for s in sorted_scores],
                     y=[f"{s.lane}枠 {s.name}" for s in sorted_scores],
                     orientation='h',
-                    marker_color=['#f59e0b','#94a3b8','#b45309','#475569','#475569','#475569'],
+                    marker_color=['#f59e0b','#64748b','#b45309','#475569','#475569','#475569'],
                     text=[f"{s.total_score:.1f}" for s in sorted_scores],
                     textposition='outside',
                 ))
                 fig.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#94a3b8', height=220,
+                    font_color='#64748b', height=220,
                     margin=dict(l=10, r=60, t=10, b=10),
                     xaxis=dict(gridcolor='#1e293b', showgrid=True),
                     yaxis=dict(autorange='reversed'),
@@ -1160,8 +1160,8 @@ if page == "🎯 予想":
                             else "<span class='miss-badge'>❌ 本命不一致</span>"
                         )
                         st.markdown(
-                            f"<p style='margin:0.6rem 0'>自分のモデルの本命: <strong style='color:#f5c542'>{model_top1}号艇</strong>　"
-                            f"公式の本命: <strong style='color:#f5c542'>{official_top1}号艇</strong>　{badge}</p>",
+                            f"<p style='margin:0.6rem 0'>自分のモデルの本命: <strong style='color:#0891b2'>{model_top1}号艇</strong>　"
+                            f"公式の本命: <strong style='color:#0891b2'>{official_top1}号艇</strong>　{badge}</p>",
                             unsafe_allow_html=True,
                         )
                         cmp_rows = "".join(
@@ -1268,7 +1268,7 @@ if page == "📊 直前情報":
                 ))
                 fig2.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#94a3b8', height=200,
+                    font_color='#64748b', height=200,
                     margin=dict(l=10, r=10, t=10, b=10),
                     yaxis=dict(gridcolor='#1e293b', range=[6.5, 7.5]),
                     showlegend=False,
@@ -1462,7 +1462,7 @@ if page == "📈 成績記録":
     bet_records = load_bet_records()
     st.markdown("### 🎰 実戦収支")
     st.markdown(
-        "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
+        "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
         "🔥 ピックアップ タブ・ホーム画面の「狙い目レース」でBETした記録です"
         "（実際の投票とは連動しないエンタメ機能。3点×500円）。"
         "結果が確定すると、このタブを開いたときに自動で的中・払戻が反映されます。</p>",
@@ -1508,7 +1508,7 @@ if page == "📈 成績記録":
             stake = b.get("bet_amount") or 0
             payout = b.get("payout")
             profit_b = (payout or 0) - stake if b.get("hit") is not None else None
-            extra = f"<span style='color:#8b9bb4;font-size:0.85rem'>実際: <strong style='color:#f1f5f9'>{b['actual']}</strong></span>" if b.get("actual") else ""
+            extra = f"<span style='color:#64748b;font-size:0.85rem'>実際: <strong style='color:#1e293b'>{b['actual']}</strong></span>" if b.get("actual") else ""
             profit_text = ""
             if profit_b is not None:
                 pc = "#4ade80" if profit_b >= 0 else "#ef4444"
@@ -1517,10 +1517,10 @@ if page == "📈 成績記録":
 
             card_html = (
                 "<div class='record-card'>"
-                f"<span style='color:#8b9bb4;font-size:0.85rem'>{formatted}</span>"
-                f"<span style='font-weight:700;color:#f1f5f9'>{b['venue_name']} {b['race_no']}R</span>"
-                f"<span style='color:#f5c542;font-size:0.85rem'>{' / '.join(b['sanren_tan'])}</span>"
-                f"<span style='color:#8b9bb4;font-size:0.85rem'>¥{stake:,}購入</span>"
+                f"<span style='color:#64748b;font-size:0.85rem'>{formatted}</span>"
+                f"<span style='font-weight:700;color:#1e293b'>{b['venue_name']} {b['race_no']}R</span>"
+                f"<span style='color:#0891b2;font-size:0.85rem'>{' / '.join(b['sanren_tan'])}</span>"
+                f"<span style='color:#64748b;font-size:0.85rem'>¥{stake:,}購入</span>"
                 f"{extra}{profit_text}"
                 f"<span style='margin-left:auto'>{badge}</span>"
                 "</div>"
@@ -1567,11 +1567,11 @@ if page == "📈 成績記録":
             all_cost = len(all_checked) * 300
             all_roi = all_payout / all_cost * 100 if all_cost else 0
 
-            roi_color = "#4ade80" if v_roi >= 100 else ("#f5c542" if v_roi >= 75 else "#ef4444")
+            roi_color = "#4ade80" if v_roi >= 100 else ("#0891b2" if v_roi >= 75 else "#ef4444")
 
             st.markdown("### 💰 狙い目レースの成績（参考）")
             st.markdown(
-                "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
+                "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
                 "モデルが決着を読みにくいと判定したレース（差0.6pt以下）だけを買った場合の実績です。"
                 "回収率100%の達成は検証の結果不可能と分かっているため、参考値として見てください。</p>",
                 unsafe_allow_html=True,
@@ -1584,7 +1584,7 @@ if page == "📈 成績記録":
             with vc3:
                 st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:{roi_color}">{v_roi:.1f}%</div><div class="stat-label">狙い目の回収率</div></div>', unsafe_allow_html=True)
             with vc4:
-                st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#8b9bb4">{all_roi:.1f}%</div><div class="stat-label">全体の回収率</div></div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="stat-card"><div class="stat-value" style="color:#64748b">{all_roi:.1f}%</div><div class="stat-label">全体の回収率</div></div>', unsafe_allow_html=True)
 
             st.markdown(
                 "<p style='color:#64748b;font-size:0.78rem;margin-top:0.5rem'>"
@@ -1640,7 +1640,7 @@ if page == "📈 成績記録":
                            annotation_text=f"平均 {hit_rate:.1f}%")
             fig3.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                font_color='#94a3b8', height=200,
+                font_color='#64748b', height=200,
                 margin=dict(l=10, r=10, t=10, b=10),
                 yaxis=dict(gridcolor='#1e293b', title="的中率(%)"),
                 xaxis=dict(gridcolor='#1e293b', title="レース数"),
@@ -1682,7 +1682,7 @@ if page == "📈 成績記録":
                 ))
                 fig_venue.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#94a3b8', height=max(200, 30 * len(venue_names)),
+                    font_color='#64748b', height=max(200, 30 * len(venue_names)),
                     margin=dict(l=10, r=40, t=30, b=10),
                     xaxis=dict(gridcolor='#1e293b', title="的中率(%)", range=[0, 100]),
                     yaxis=dict(autorange='reversed'),
@@ -1713,7 +1713,7 @@ if page == "📈 成績記録":
                 ))
                 fig_race.update_layout(
                     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                    font_color='#94a3b8', height=240,
+                    font_color='#64748b', height=240,
                     margin=dict(l=10, r=10, t=30, b=10),
                     yaxis=dict(gridcolor='#1e293b', title="的中率(%)", range=[0, 100]),
                     showlegend=False,
@@ -1725,11 +1725,11 @@ if page == "📈 成績記録":
         st.markdown("#### 記録一覧")
         for r in sorted(records, reverse=True, key=lambda x: (x["race_date"], x["venue_code"], x["race_no"])):
             if r["hit"] is True:
-                badge = "<span style='background:#065f46;border:1px solid #10b981;color:#6ee7b7;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>🎉 的中</span>"
+                badge = "<span style='background:#dcfce7;border:1px solid #16a34a;color:#15803d;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>🎉 的中</span>"
             elif r["hit"] is False:
-                badge = "<span style='background:#7f1d1d;border:1px solid #ef4444;color:#fca5a5;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>❌ ハズレ</span>"
+                badge = "<span style='background:#fee2e2;border:1px solid #ef4444;color:#dc2626;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>❌ ハズレ</span>"
             else:
-                badge = "<span style='background:#292524;border:1px solid #57534e;color:#d6d3d1;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>⏳ 未確認</span>"
+                badge = "<span style='background:#f1f5f9;border:1px solid #cbd5e1;color:#64748b;border-radius:6px;padding:2px 10px;font-size:0.82rem;font-weight:700'>⏳ 未確認</span>"
 
             ds = r["race_date"]
             formatted = f"{ds[:4]}/{ds[4:6]}/{ds[6:]}"
@@ -1739,7 +1739,7 @@ if page == "📈 成績記録":
             extra1 = f"<span style='color:#475569;font-size:0.85rem'>{actual_text}</span>" if actual_text else ""
             extra2 = f"<span style='font-size:0.85rem'>{payout_text}</span>" if payout_text else ""
 
-            border_color = "#f59e0b" if r["hit"] is True else "#1e3a8a"
+            border_color = "#f59e0b" if r["hit"] is True else "#bae6fd"
             border_width = "2px" if r["hit"] is True else "1px"
 
             card_html = (
@@ -1830,7 +1830,7 @@ if page == "💎 高配当殿堂":
 if page == "🤖 モデル精度":
     st.markdown("### 🤖 モデル精度モニタリング")
     st.markdown(
-        "<p style='color:#8b9bb4;font-size:0.85rem;margin-bottom:1rem'>"
+        "<p style='color:#64748b;font-size:0.85rem;margin-bottom:1rem'>"
         "週次retrain（train_model.py）のたびの学習結果を記録し、精度の推移を確認します。"
         "急に的中率が落ちた場合はここで気づけます。</p>",
         unsafe_allow_html=True,
@@ -1895,7 +1895,7 @@ if page == "🤖 モデル精度":
         fig_metrics = go.Figure()
         fig_metrics.add_trace(go.Scatter(
             x=dates, y=hit_wins, mode="lines+markers", name="hit_win",
-            line=dict(color="#f5c542", width=2), marker=dict(size=7),
+            line=dict(color="#0891b2", width=2), marker=dict(size=7),
         ))
         fig_metrics.add_trace(go.Scatter(
             x=dates, y=cover3s, mode="lines+markers", name="cover3",
@@ -1903,7 +1903,7 @@ if page == "🤖 モデル精度":
         ))
         fig_metrics.update_layout(
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-            font_color="#94a3b8", height=320,
+            font_color="#64748b", height=320,
             margin=dict(l=10, r=10, t=30, b=10),
             yaxis=dict(gridcolor="#1e293b", title="%", range=[0, 100]),
             xaxis=dict(gridcolor="#1e293b"),
@@ -1919,11 +1919,11 @@ if page == "🤖 モデル精度":
             recent_days_label = f"直近{m['recent_days']}日" if m.get("recent_days") else "全期間"
             card_html = (
                 "<div class='record-card'>"
-                f"<span style='color:#8b9bb4;font-size:0.85rem'>{ds}</span>"
-                f"<span style='color:#f1f5f9;font-size:0.85rem'>{recent_days_label}</span>"
-                f"<span style='color:#f5c542;font-weight:700'>hit_win {m['hit_win']*100:.1f}%</span>"
+                f"<span style='color:#64748b;font-size:0.85rem'>{ds}</span>"
+                f"<span style='color:#1e293b;font-size:0.85rem'>{recent_days_label}</span>"
+                f"<span style='color:#0891b2;font-weight:700'>hit_win {m['hit_win']*100:.1f}%</span>"
                 f"<span style='color:#3b82f6;font-weight:700'>cover3 {m['cover3']*100:.1f}%</span>"
-                f"<span style='color:#8b9bb4;font-size:0.8rem'>{m.get('n_train_races', 0):,}レース / {m.get('n_features', 0)}特徴量</span>"
+                f"<span style='color:#64748b;font-size:0.8rem'>{m.get('n_train_races', 0):,}レース / {m.get('n_features', 0)}特徴量</span>"
                 "</div>"
             )
             st.markdown(card_html, unsafe_allow_html=True)
