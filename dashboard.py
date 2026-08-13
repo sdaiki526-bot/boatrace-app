@@ -10,13 +10,11 @@ import streamlit as st
 
 JST = timezone(timedelta(hours=9))
 
-# 狙い目の判定しきい値（app.py の VALUE_GAP_MAX / VALUE_SCORE_MAX と揃える）
-# 2026-07-29: model_rank.pkl(lambdarank)への切替に伴い、新スコア分布に合わせて再校正
-#   → その後の検証でこのしきい値が選ぶレースはcover3が全体平均より低いと判明したため、
-#     app.pyのVALUE_RACE_ENABLEDと合わせて一時無効化（value_count/狙い目リストは常に空にする）
-VALUE_GAP_MAX = 0.267
-VALUE_SCORE_MAX = 0.363
-VALUE_RACE_ENABLED = False
+# 狙い目の判定しきい値（app.py の VALUE_GAP_MAX と揃える）
+# エンタメ表示: 回収率100%達成は不可能と検証済みのため、「儲かるレース」ではなく
+# 「モデルが決着を読みにくい、荒れそうで見ていて面白いレース」を選ぶ目的で使う。
+# score_gap<=0.6の単一条件のみ(top_scoreは使わない)。
+VALUE_GAP_MAX = 0.6
 
 
 def _fetch_venue_summary(supabase, today_str):
@@ -58,8 +56,8 @@ def _fetch_venue_summary(supabase, today_str):
         if row.get("deadline_time"):
             v["deadlines"].append(row["deadline_time"])
         p = pred_map.get((vc, row["race_no"]))
-        if VALUE_RACE_ENABLED and p and p.get("top_score") is not None and p.get("score_gap") is not None:
-            if p["score_gap"] <= VALUE_GAP_MAX or p["top_score"] <= VALUE_SCORE_MAX:
+        if p and p.get("score_gap") is not None:
+            if p["score_gap"] <= VALUE_GAP_MAX:
                 v["value_count"] += 1
 
     return list(venues.values())
@@ -148,11 +146,12 @@ def render_dashboard(supabase, today_str):
     # ─────────────────────────────────────────────
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<p style='color:#475569;font-size:0.9rem;margin-bottom:0.6rem'>"
-                "💰 狙い目レース（締切が近い順）</p>", unsafe_allow_html=True)
-
-    if not VALUE_RACE_ENABLED:
-        st.warning("⚠️ 狙い目レースの判定は、新モデルでの再設計が完了するまで一時停止しています。")
-        return
+                "💰 狙い目レース（締切が近い順・エンタメ）</p>", unsafe_allow_html=True)
+    st.markdown(
+        "<p style='color:#64748b;font-size:0.78rem;margin-bottom:0.6rem'>"
+        "モデルが決着を読みにくい、荒れそうなレースです（回収率の保証はありません）。</p>",
+        unsafe_allow_html=True,
+    )
 
     # 予想と締切を結合して狙い目だけ抽出
     try:
@@ -176,9 +175,9 @@ def render_dashboard(supabase, today_str):
 
     value_races = []
     for p in pr:
-        if p.get("top_score") is None or p.get("score_gap") is None:
+        if p.get("score_gap") is None:
             continue
-        if p["score_gap"] <= VALUE_GAP_MAX or p["top_score"] <= VALUE_SCORE_MAX:
+        if p["score_gap"] <= VALUE_GAP_MAX:
             dl = deadline_map.get((p["venue_code"], p["race_no"]), "")
             value_races.append({**p, "deadline": dl})
 
@@ -217,7 +216,7 @@ def render_dashboard(supabase, today_str):
                 f"<span style='color:#1d4ed8;font-size:0.85rem'>{combo_text}</span>"
                 f"{odds_text}"
                 f"<span style='margin-left:auto;font-size:0.78rem;color:#64748b'>"
-                f"確信度{v['top_score']:.0f} / 差{v['score_gap']:.0f}</span>"
+                f"確信度{v['top_score']:.2f} / 差{v['score_gap']:.2f}</span>"
                 "</div>",
                 unsafe_allow_html=True,
             )
