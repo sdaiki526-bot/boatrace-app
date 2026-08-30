@@ -49,8 +49,8 @@
     "race_no"
   ],
   "metrics": {
-    "hit_win": 0.5645,
-    "cover3": 0.8681
+    "hit_win": 0.5654,
+    "cover3": 0.8667
   },
   "lgb_params": {
     "objective": "lambdarank",
